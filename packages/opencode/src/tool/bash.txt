@@ -2,24 +2,6 @@ Executes a given bash command in a persistent shell session, ensuring proper han
 
 All commands run in ${directory} by default. Use the `workdir` parameter if you need to run a command in a different directory.
 
-## Background Job Support
-
-Commands can run in background in two ways:
-
-- **Explicit Background**: Set `background=true` to immediately run as background job
-- **Auto-Background**: Commands running longer than 60 seconds are automatically converted to background jobs
-- **Job ID**: Each background job gets a unique ID for management
-- **Job Tools**: Use job_output, job_kill, and job_list to manage background jobs
-- **Auto-Cleanup**: Background jobs are automatically cleaned up after 8 hours
-
-## KISS Principle
-
-This tool follows the Keep It Simple, Stupid principle:
-- **No timeout parameter**: Commands never auto-terminate, they run until completion
-- **Simple background control**: Just set `background=true` for immediate background execution
-- **Automatic conversion**: If a command runs longer than 60 seconds, it's auto-converted to background
-- **Focus on core functionality**: No complex timeout management, just background vs foreground execution
-
 ## Usage
 
 ### Foreground Commands (Default)
@@ -29,59 +11,6 @@ Commands run synchronously by default and return output when complete:
 echo "Hello World"
 git status
 ls -la
-```
-
-### Background Commands (Two Ways)
-
-#### 1. Explicit Background
-Set `background=true` to immediately run as background job:
-```bash
-# Explicit background execution
-bash(
-  command="npm run dev", 
-  background=true,
-  description="Start development server"
-)
-```
-
-#### 2. Auto-Background Conversion
-If a foreground command runs longer than 60 seconds, it automatically converts to background:
-```bash
-# This will auto-convert after 60 seconds
-bash(
-  command="docker-compose up", 
-  description="Start services"
-)
-# After 60s: "Command automatically converted to background job with ID: A1B2"
-```
-
-### Managing Background Jobs
-
-#### View Job Output
-```bash
-# Check job status and output
-job_output(job_id="A1B2")
-
-# Follow job output in real-time
-job_output(job_id="A1B2", follow=true)
-```
-
-#### List All Jobs
-```bash
-# Show all background jobs
-job_list()
-
-# Show only running jobs
-job_list(status="running")
-```
-
-#### Terminate Jobs
-```bash
-# Stop a background job
-job_kill(job_id="A1B2")
-
-# Force terminate
-job_kill(job_id="A1B2", force=true)
 ```
 
 Before executing command, please follow these steps:
@@ -137,23 +66,3 @@ Usage notes:
     - Try to maintain your current working directory throughout the session by using
   absolute paths and avoiding usage of `cd`. You may use `cd` if the User explicitly
   requests it.
-       <good-example>
-       pytest /foo/bar/tests
-       </good-example>
-       <bad-example>
-       cd /foo/bar && pytest tests
-       </bad-example>
-
-# Working Directory
-
-The `workdir` parameter sets the working directory for command execution. Prefer using `workdir` over `cd <dir> &&` command chains when you simply need to run a command in a different directory.
-
-<good-example>
-workdir="/foo/bar", command="pytest tests"
-</good-example>
-<good-example>
-command="pytest /foo/bar/tests"
-</good-example>
-<bad-example>
-command="cd /foo/bar && pytest tests"
-</bad-example>
