@@ -1,8 +1,37 @@
-- Fast content search tool that works with any codebase size
-- Searches file contents using regular expressions
-- Supports full regex syntax (eg. "log.*Error", "function\s+\w+", etc.)
-- Filter files by pattern with the include parameter (eg. "*.js", "*.{ts,tsx}")
-- Returns file paths and line numbers with at least one match sorted by modification time
-- Use this tool when you need to find files containing specific patterns
-- If you need to identify/count the number of matches within files, use the Bash tool with `rg` (ripgrep) directly. Do NOT use `grep`.
-- When you are doing an open-ended search that may require multiple rounds of globbing and grepping, use the Task tool instead
+Fast content search tool that finds files containing specific patterns, returning file paths, line numbers, and matching content sorted by modification time (newest first).
+
+<usage>
+- Provide regex pattern to search within file contents (required)
+- Optional starting directory (defaults to current working directory)
+- Optional include pattern to filter which files to search (e.g. "*.js", "*.{ts,tsx}")
+- Returns up to 100 matches sorted by most recently modified files
+- Each match shows file path, line number, and matching line content
+</usage>
+
+<regex_syntax>
+Supports standard ripgrep regex patterns:
+
+- 'function' searches for literal text "function"
+- 'log\..*Error' finds text starting with "log." and ending with "Error"
+- 'import\s+.*\s+from' finds import statements in JavaScript/TypeScript
+- 'TODO|FIXME' finds lines containing either TODO or FIXME
+</regex_syntax>
+
+<include_patterns>
+- '*.js' - Only search JavaScript files
+- '*.{ts,tsx}' - Only search TypeScript files
+- '*.go' - Only search Go files
+- 'src/**/*.test.ts' - Only search test files in src directory
+</include_patterns>
+
+<limitations>
+- Limited to 100 matches (newest first)
+- Each line truncated to 2000 characters
+- Hidden files (starting with '.') skipped by ripgrep
+- Binary files skipped automatically
+</limitations>
+
+<ignore_support>
+- Automatically respects .gitignore patterns
+- Skips files and directories ignored by git
+</ignore_support>
