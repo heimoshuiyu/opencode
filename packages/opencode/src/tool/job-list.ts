@@ -116,7 +116,6 @@ function formatJsonOutput(jobs: any[], totalJobs: number): string {
       exit_code: job.exitCode,
       start_time: job.startTime.toISOString(),
       runtime_seconds: Math.floor((Date.now() - job.startTime.getTime()) / 1000),
-      description: job.description,
       output_length: job.output.length,
     }))
   }
@@ -141,11 +140,7 @@ function formatDetailedOutput(jobs: any[], totalJobs: number): string {
     output += `  Working Directory: ${job.cwd}\n`
     output += `  Runtime: ${formatRuntime(runtime)}\n`
     output += `  Started: ${job.startTime.toLocaleString()}\n`
-    
-    if (job.description) {
-      output += `  Description: ${job.description}\n`
-    }
-    
+
     if (job.exitCode !== undefined) {
       output += `  Exit Code: ${job.exitCode}\n`
     }
