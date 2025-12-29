@@ -69,12 +69,7 @@ The tool will attempt to gracefully terminate the process first, then force kill
       output += `- PID: ${job.pid}\n`
       output += `- Command: ${job.command}\n`
       output += `- Runtime: ${runtime}s\n`
-      output += `- Description: ${job.description || 'None'}\n`
       output += `- Termination: ${force ? 'Force (SIGKILL)' : 'Graceful (SIGTERM)'}\n`
-
-      if (job.description) {
-        output += `- Description: ${job.description}\n`
-      }
 
       return {
         title: `Terminated job ${jobId}`,
@@ -101,10 +96,6 @@ function formatJobStatus(job: any): string {
   
   if (job.exitCode !== undefined) {
     output += `- Exit Code: ${job.exitCode}\n`
-  }
-  
-  if (job.description) {
-    output += `- Description: ${job.description}\n`
   }
 
   return output
