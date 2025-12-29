@@ -63,17 +63,8 @@ export const BashTool = Tool.define("bash", async () => {
         .boolean()
         .describe("Whether to run the command in the background. If false and command runs over 60 seconds, it will automatically be converted to background.")
         .default(false),
-      workdir: z
-        .string()
-        .describe(
-          `The working directory to run the command in. Defaults to ${Instance.directory}. Use this instead of 'cd' commands.`,
-        )
-        .optional(),
-      description: z
-        .string()
-        .describe(
-          "Clear, concise description of what this command does in 5-10 words. Examples:\nInput: ls\nOutput: Lists files in current directory\n\nInput: git status\nOutput: Shows working tree status\n\nInput: npm install\nOutput: Installs package dependencies\n\nInput: mkdir foo\nOutput: Creates directory 'foo'",
-        ),
+      description: z.string().optional().describe("Description of the command being executed"),
+      workdir: z.string().optional().describe("Working directory for the command"),
     }),
     async execute(params, ctx) {
       const cwd = params.workdir || Instance.directory
@@ -208,7 +199,6 @@ export const BashTool = Tool.define("bash", async () => {
         const result = await BackgroundJobManager.startJob({
           command: params.command,
           cwd,
-          description: params.description,
         })
         
         jobId = result.jobId
@@ -219,7 +209,6 @@ export const BashTool = Tool.define("bash", async () => {
 
 Command: ${params.command}
 Working Directory: ${cwd}
-Description: ${params.description}
 
 Use job_output tool to view output or job_kill to terminate.`,
           metadata: {
@@ -227,7 +216,6 @@ Use job_output tool to view output or job_kill to terminate.`,
             is_background: true,
             command: params.command,
             cwd,
-            description: params.description,
           } as any,
         }
       }
@@ -249,7 +237,6 @@ Use job_output tool to view output or job_kill to terminate.`,
       ctx.metadata({
         metadata: {
           output: "",
-          description: params.description,
         },
       })
 
@@ -259,7 +246,6 @@ Use job_output tool to view output or job_kill to terminate.`,
           ctx.metadata({
             metadata: {
               output,
-              description: params.description,
             },
           })
         }
@@ -296,7 +282,6 @@ Use job_output tool to view output or job_kill to terminate.`,
           const result = await BackgroundJobManager.startJob({
             command: params.command,
             cwd,
-            description: params.description,
           })
           
           jobId = result.jobId
@@ -354,7 +339,6 @@ Use job_output tool to view output or job_kill to terminate.`,
 
 Command: ${params.command}
 Working Directory: ${cwd}
-Description: ${params.description}
 
 Reason: Command exceeded ${AUTO_BACKGROUND_TIMEOUT/1000} second limit
 
@@ -365,17 +349,15 @@ Use job_output tool to view output or job_kill to terminate.`,
             auto_converted: true,
             command: params.command,
             cwd,
-            description: params.description,
           } as any,
         }
       }
 
       return {
-        title: params.description,
+        title: "Command executed",
         metadata: {
           output,
           exit: proc.exitCode,
-          description: params.description,
           is_background: false,
         },
         output,
