@@ -4,6 +4,7 @@ import { BashTool } from "./bash"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { ListTool } from "./ls"
 import { BatchTool } from "./batch"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
@@ -144,6 +145,7 @@ export namespace ToolRegistry {
       const read = yield* build(ReadTool)
       const glob = yield* build(GlobTool)
       const grep = yield* build(GrepTool)
+      const list = yield* build(ListTool)
       const edit = yield* build(EditTool)
       const write = yield* build(WriteTool)
       const task = yield* build(TaskTool)
@@ -172,6 +174,7 @@ export namespace ToolRegistry {
           read,
           glob,
           grep,
+          list,
           edit,
           write,
           task,
