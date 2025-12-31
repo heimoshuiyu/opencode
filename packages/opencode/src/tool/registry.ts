@@ -4,6 +4,8 @@ import { BashTool } from "./bash"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { ListTool } from "./ls"
+
 import { ReadTool } from "./read"
 import { TaskDescription, TaskTool } from "./task"
 import { TodoWriteTool } from "./todo"
@@ -156,8 +158,10 @@ export namespace ToolRegistry {
                 CodeSearchTool,
                 SkillTool,
                 ApplyPatchTool,
+                ListTool,
                 ...(question ? [QuestionTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
+
                 ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
                 JobKillTool,
                 JobListTool,
