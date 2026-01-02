@@ -473,7 +473,7 @@ export namespace SessionPrompt {
           messageID: summaryUserMsg.id,
           sessionID,
           type: "text",
-          text: "Summarize the task tool output above and continue with your task.",
+          text: "总结上面的 task 工具输出并继续你的任务。",
           synthetic: true,
         } satisfies MessageV2.TextPart)
 
