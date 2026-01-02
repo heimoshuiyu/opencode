@@ -90,13 +90,13 @@ export namespace SessionSummary {
         small: true,
         messages: [
           {
-            role: "user" as const,
-            content: `
-              The following is the text to summarize:
-              <text>
-              ${textPart?.text ?? ""}
-              </text>
-            `,
+              role: "user" as const,
+              content: `
+                以下是需要总结的文本：
+                <text>
+                ${textPart?.text ?? ""}
+                </text>
+              `,
           },
         ],
         abort: new AbortController().signal,
@@ -120,7 +120,7 @@ export namespace SessionSummary {
         for (const msg of messages) {
           for (const part of msg.parts) {
             if (part.type === "tool" && part.state.status === "completed") {
-              part.state.output = "[TOOL OUTPUT PRUNED]"
+              part.state.output = "[工具输出已修剪]"
             }
           }
         }
@@ -137,7 +137,7 @@ export namespace SessionSummary {
             ...MessageV2.toModelMessage(messages),
             {
               role: "user" as const,
-              content: `Summarize the above conversation according to your system prompts.`,
+              content: `根据你的系统提示词总结上述对话。`,
             },
           ],
           abort: new AbortController().signal,
