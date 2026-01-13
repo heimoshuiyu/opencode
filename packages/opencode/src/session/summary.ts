@@ -89,13 +89,13 @@ export namespace SessionSummary {
         small: true,
         messages: [
           {
-            role: "user" as const,
-            content: `
-              The following is the text to summarize:
-              <text>
-              ${textPart?.text ?? ""}
-              </text>
-            `,
+              role: "user" as const,
+              content: `
+                以下是需要总结的文本：
+                <text>
+                ${textPart?.text ?? ""}
+                </text>
+              `,
           },
         ],
         abort: new AbortController().signal,
