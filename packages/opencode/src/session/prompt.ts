@@ -1151,10 +1151,10 @@ export namespace SessionPrompt {
               sessionID: input.sessionID,
               type: "text",
               synthetic: true,
-              // An extra space is added here. Otherwise the 'Use' gets appended
+              // An extra space is added here. Otherwise the '使用' gets appended
               // to user's last word; making a combined word
               text:
-                " Use the above message and context to generate a prompt and call the task tool with subagent: " +
+                " 使用上述消息和上下文生成提示词并调用 task 工具，子代理为：" +
                 part.name +
                 hint,
             },
