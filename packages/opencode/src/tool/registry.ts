@@ -26,6 +26,9 @@ import { Log } from "@/util/log"
 import { LspTool } from "./lsp"
 import { Truncate } from "./truncation"
 import { PlanExitTool, PlanEnterTool } from "./plan"
+import { JobOutputTool } from "./job-output"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -109,6 +112,9 @@ export namespace ToolRegistry {
       CodeSearchTool,
       SkillTool,
       ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
+      JobOutputTool,
+      JobKillTool,
+      JobListTool,
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
       ...custom,
