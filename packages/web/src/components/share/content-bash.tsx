@@ -45,10 +45,10 @@ export function ContentBash(props: Props) {
     <div class={style.root} data-expanded={expanded() || props.expand === true ? true : undefined}>
       <div data-slot="body">
         <div data-slot="header">
-          <span>{props.description}</span>
+          <span>{props.command}</span>
         </div>
         <div data-slot="content">
-          <div innerHTML={commandHtml()} />
+          <div>{props.description}</div>
           <div data-slot="output" ref={overflow.ref} innerHTML={outputHtml()} />
         </div>
       </div>
