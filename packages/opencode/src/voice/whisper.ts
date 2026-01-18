@@ -5,7 +5,7 @@ import { tmpdir } from "os"
 import path from "path"
 import z from "zod"
 
-const toWavOrMp3 = async (input: { buffer: ArrayBuffer; mime: string }) => {
+export const toWavOrMp3 = async (input: { buffer: ArrayBuffer; mime: string }) => {
   const isWav = input.mime.includes("wav")
   const isMp3 = input.mime.includes("mpeg") || input.mime.includes("mp3")
   if (isWav || isMp3) {
@@ -48,7 +48,7 @@ const toWavOrMp3 = async (input: { buffer: ArrayBuffer; mime: string }) => {
   return { buffer, name: "audio.mp3", mime: "audio/mpeg" }
 }
 
-const getLastAssistantText = async (sessionID?: SessionID) => {
+export const getLastAssistantText = async (sessionID?: SessionID) => {
   if (!sessionID) return ""
   return Promise.resolve()
     .then(() => Session.messages({ sessionID, limit: 50 }))
@@ -71,7 +71,7 @@ const getLastAssistantText = async (sessionID?: SessionID) => {
     })
 }
 
-const buildPrompt = (input: { prompt?: string; assistant?: string }) => {
+export const buildPrompt = (input: { prompt?: string; assistant?: string }) => {
   const head = input.assistant?.trim() ?? ""
   const tail = input.prompt?.trim() ?? ""
   if (!head) return tail
