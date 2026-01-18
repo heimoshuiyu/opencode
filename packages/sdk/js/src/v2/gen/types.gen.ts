@@ -1423,6 +1423,10 @@ export type Config = {
    */
   voice?: {
     /**
+     * Transcription provider type
+     */
+    type?: "whisper" | "alm"
+    /**
      * Whisper transcription settings
      */
     whisper?: {
@@ -1442,6 +1446,31 @@ export type Config = {
        * Whisper language code
        */
       language?: string
+    }
+    /**
+     * Audio language model transcription settings
+     */
+    alm?: {
+      /**
+       * Audio LM API URL
+       */
+      url?: string
+      /**
+       * Audio LM API key
+       */
+      apiKey?: string
+      /**
+       * Audio LM model name
+       */
+      model?: string
+      /**
+       * Audio LM base prompt
+       */
+      prompt?: string
+      /**
+       * Audio LM system prompt
+       */
+      system?: string
     }
   }
   server?: ServerConfig
@@ -2278,27 +2307,6 @@ export type AuthSetResponses = {
 }
 
 export type AuthSetResponse = AuthSetResponses[keyof AuthSetResponses]
-
-export type AudioTranscribeData = {
-  body?: never
-  path?: never
-  query?: {
-    directory?: string
-    workspace?: string
-  }
-  url: "/voice/transcribe"
-}
-
-export type AudioTranscribeResponses = {
-  /**
-   * Transcription result
-   */
-  200: {
-    text?: string
-  }
-}
-
-export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type AppLogData = {
   body?: {
@@ -4826,6 +4834,27 @@ export type McpDisconnectResponses = {
 }
 
 export type McpDisconnectResponse = McpDisconnectResponses[keyof McpDisconnectResponses]
+
+export type AudioTranscribeData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text?: string
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type TuiAppendPromptData = {
   body?: {
