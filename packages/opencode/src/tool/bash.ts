@@ -60,6 +60,17 @@ type Scan = {
 
 export const log = Log.create({ service: "bash-tool" })
 
+export class RedirectError extends Error {
+  readonly command: string
+  readonly tool: string
+  constructor(command: string, tool: string, message: string) {
+    super(message)
+    this.name = "RedirectError"
+    this.command = command
+    this.tool = tool
+  }
+}
+
 const resolveWasm = (asset: string) => {
   if (asset.startsWith("file://")) return fileURLToPath(asset)
   if (asset.startsWith("/") || /^[a-z]:/i.test(asset)) return asset
@@ -526,6 +537,27 @@ export const BashTool = Tool.define("bash", async () => {
       await ask(ctx, scan)
 
       const background = params.background ?? false
+      const trimmed = params.command.trimStart()
+      const confirm = /#\s*confirm\s*$/i.test(trimmed)
+      const match = trimmed.match(/^[^\s]+/)
+      const name = match ? match[0] : ""
+      const redirects: Record<string, string> = {
+        grep: "Grep",
+        cat: "Read",
+        sed: "Edit",
+        ls: "List",
+        find: "Grep or Glob",
+        cd: "workdir",
+      }
+      const tool = redirects[name]
+      if (tool && !confirm) {
+        const msg = tool === "Grep or Glob"
+          ? `Command starts with 'find'. Use the \`Grep\` or \`Glob\` tool instead.`
+          : tool === "workdir"
+            ? `Command starts with '${name}'. Do not use 'cd' to change directories. Use the bash tool's \`workdir\` parameter to specify the working directory instead.`
+            : `Command starts with '${name}'. Use the \`${tool}\` tool instead.`
+        throw new RedirectError(name, tool, `${msg}\n\nTip: If you really want to use this tool, add a "# confirm" comment at the end of the command and run it again.`)
+      }
 
       if (background) {
         log.info("Starting command in background job", { command: params.command, cwd })
