@@ -260,42 +260,57 @@ Use job_output tool to view output or job_kill to terminate.`,
 
       ctx.abort.addEventListener("abort", abortHandler, { once: true })
 
+      const finish = { current: undefined as undefined | ((error?: Error) => void) }
+
       // Auto-background conversion timer
       const autoBackgroundTimer = setTimeout(async () => {
         if (!exited && !autoConverted) {
           autoConverted = true
           log.info("Auto-converting to background job", { command: params.command, runtime: AUTO_BACKGROUND_TIMEOUT })
-          
+
           // Convert to background job
           const result = await BackgroundJobManager.startJob({
             command: params.command,
             cwd,
             description: params.description,
+            process: proc,
+            output,
           })
-          
+
           jobId = result.jobId
-          
-          // Kill the current process
-          await kill()
+
+          proc.stdout?.removeListener("data", append)
+          proc.stderr?.removeListener("data", append)
+
+          finish.current?.()
         }
       }, AUTO_BACKGROUND_TIMEOUT)
 
       await new Promise<void>((resolve, reject) => {
+        const finished = { value: false }
         const cleanup = () => {
           clearTimeout(autoBackgroundTimer)
           ctx.abort.removeEventListener("abort", abortHandler)
         }
 
+        finish.current = (error?: Error) => {
+          if (finished.value) return
+          finished.value = true
+          cleanup()
+          if (error) {
+            reject(error)
+            return
+          }
+          resolve()
+        }
+
         proc.once("exit", () => {
           exited = true
-          cleanup()
-          resolve()
+          finish.current?.()
         })
-
         proc.once("error", (error) => {
           exited = true
-          cleanup()
-          reject(error)
+          finish.current?.(error)
         })
       })
 
