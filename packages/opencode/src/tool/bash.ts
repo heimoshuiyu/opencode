@@ -82,6 +82,34 @@ export const BashTool = Tool.define("bash", async () => {
     async execute(params, ctx) {
       const cwd = params.workdir || Instance.directory
       const background = params.background ?? false
+      const trimmed = params.command.trimStart()
+      const confirm = /#\s*confirm\s*$/i.test(trimmed)
+      const match = trimmed.match(/^[^\s]+/)
+      const name = match ? match[0] : ""
+      const redirects: Record<string, string> = {
+        grep: "Grep",
+        cat: "Read",
+        sed: "Edit",
+        ls: "List",
+        find: "Grep or Glob",
+      }
+      const tool = redirects[name]
+      const base = tool === "Grep or Glob"
+        ? "Command starts with 'find'. Use the `Grep` or `Glob` tool instead."
+        : `Command starts with '${name}'. Use the \`${tool}\` tool instead.`
+      const message = `${base}\n\nTip: If you really want to use this tool, add a \"# confirm\" comment at the end of the command and run it again.`
+
+      if (tool && !confirm) {
+        return {
+          title: `Use ${tool} tool`,
+          output: message,
+          metadata: {
+            redirected: true,
+            command: name,
+            tool,
+          },
+        }
+      }
 
       const tree = await parser().then((p) => p.parse(params.command))
       if (!tree) {
