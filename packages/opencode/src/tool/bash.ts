@@ -381,10 +381,14 @@ async function run(
         command: input.command,
         cwd: input.cwd,
         description: input.description,
+        process: proc,
+        output,
       })
 
       jobId = result.jobId
-      await kill()
+
+      proc.stdout?.removeListener("data", append)
+      proc.stderr?.removeListener("data", append)
     }
   }, AUTO_BACKGROUND_TIMEOUT)
 
