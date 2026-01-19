@@ -30,7 +30,12 @@ function getNetworkIPs() {
 
 export const WebCommand = cmd({
   command: "web",
-  builder: (yargs) => withNetworkOptions(yargs),
+  builder: (yargs) =>
+    withNetworkOptions(yargs).option("no-browser", {
+      type: "boolean",
+      describe: "do not open the web interface in a browser",
+      default: false,
+    }),
   describe: "start opencode server and open web interface",
   handler: async (args) => {
     if (!Flag.OPENCODE_SERVER_PASSWORD) {
@@ -41,6 +46,8 @@ export const WebCommand = cmd({
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
+
+    const browser = !args.noBrowser
 
     if (opts.hostname === "0.0.0.0") {
       // Show localhost for local access
@@ -67,13 +74,13 @@ export const WebCommand = cmd({
         )
       }
 
-      // Open localhost in browser
-      open(localhostUrl.toString()).catch(() => {})
-    } else {
-      const displayUrl = server.url.toString()
-      UI.println(UI.Style.TEXT_INFO_BOLD + "  Web interface:    ", UI.Style.TEXT_NORMAL, displayUrl)
-      open(displayUrl).catch(() => {})
+      if (browser) open(localhostUrl.toString()).catch(() => {})
+      return
     }
+
+    const displayUrl = server.url.toString()
+    UI.println(UI.Style.TEXT_INFO_BOLD + "  Web interface:    ", UI.Style.TEXT_NORMAL, displayUrl)
+    if (browser) open(displayUrl).catch(() => {})
 
     await new Promise(() => {})
     await server.stop()
