@@ -21,6 +21,8 @@ export interface JobOptions {
   cwd: string
   description?: string
   timeout?: number
+  process?: ChildProcess
+  output?: string
 }
 
 const AUTO_BACKGROUND_TIMEOUT = 60 * 1000 // 1 minute
@@ -52,7 +54,8 @@ export namespace BackgroundJobManager {
       timeout: options.timeout 
     })
 
-    const proc = spawn(options.command, {
+    const existing = options.process
+    const proc = existing || spawn(options.command, {
       shell: Shell.acceptable(),
       cwd: options.cwd,
       env: { ...process.env },
@@ -60,6 +63,7 @@ export namespace BackgroundJobManager {
       detached: process.platform !== "win32",
     })
 
+    const output = options.output || ""
     const job: BackgroundJob = {
       id: jobId,
       pid: proc.pid || 0,
@@ -67,7 +71,7 @@ export namespace BackgroundJobManager {
       cwd: options.cwd,
       startTime: new Date(),
       status: "running",
-      output: "",
+      output,
       process: proc,
       description: options.description,
     }
@@ -83,6 +87,10 @@ export namespace BackgroundJobManager {
       }
     }
 
+    if (output) {
+      eventEmitter.emit("jobUpdate", { jobId, output: job.output })
+    }
+
     proc.stdout?.on("data", append)
     proc.stderr?.on("data", append)
 
@@ -92,7 +100,7 @@ export namespace BackgroundJobManager {
       job.exitCode = code ?? undefined
       log.info(`Job ${jobId} completed`, { code, status: job.status })
       eventEmitter.emit("jobComplete", { jobId, status: job.status, exitCode: code })
-      
+
       // Schedule cleanup
       scheduleCleanup(jobId)
     })
