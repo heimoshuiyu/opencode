@@ -366,10 +366,10 @@ This starts an HTTP server that provides API access to opencode functionality wi
 
 | Flag         | Description                                |
 | ------------ | ------------------------------------------ |
-| `--port`     | Port to listen on                          |
-| `--hostname` | Hostname to listen on                      |
-| `--mdns`     | Enable mDNS discovery                      |
-| `--cors`     | Additional browser origin(s) to allow CORS |
+| `--port`        | Port to listen on                          |
+| `--hostname`    | Hostname to listen on                      |
+| `--mdns`        | Enable mDNS discovery                      |
+| `--cors`        | Additional browser origin(s) to allow CORS |
 
 ---
 
@@ -456,16 +456,17 @@ Start a headless OpenCode server with a web interface.
 opencode web
 ```
 
-This starts an HTTP server and opens a web browser to access OpenCode through a web interface. Set `OPENCODE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `opencode`).
+This starts an HTTP server and opens a web browser to access OpenCode through a web interface. Set `OPENCODE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `opencode`). Use `--no-browser` to skip opening a browser window.
 
 #### Flags
 
 | Flag         | Description                                |
 | ------------ | ------------------------------------------ |
-| `--port`     | Port to listen on                          |
-| `--hostname` | Hostname to listen on                      |
-| `--mdns`     | Enable mDNS discovery                      |
-| `--cors`     | Additional browser origin(s) to allow CORS |
+| `--port`        | Port to listen on                          |
+| `--hostname`    | Hostname to listen on                      |
+| `--mdns`        | Enable mDNS discovery                      |
+| `--cors`        | Additional browser origin(s) to allow CORS |
+| `--no-browser`  | Do not open a browser window               |
 
 ---
 
