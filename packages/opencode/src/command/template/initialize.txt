@@ -1,10 +1,10 @@
-Please analyze this codebase and create an AGENTS.md file containing:
-1. Build/lint/test commands - especially for running a single test
-2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.
+请分析此代码库并创建一个 AGENTS.md 文件，包含以下内容：
+1. 构建/检查/测试命令 - 特别是运行单个测试的命令
+2. 代码风格指南，包括导入、格式化、类型、命名约定、错误处理等
 
-The file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.
-If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.
+你创建的文件将提供给在此代码库中工作的 AI 编程代理（如你自己）。请将其控制在约 150 行。
+如果存在 Cursor 规则（在 .cursor/rules/ 或 .cursorrules 中）或 Copilot 规则（在 .github/copilot-instructions.md 中），请务必包含它们。
 
-If there's already an AGENTS.md, improve it if it's located in ${path}
+如果 ${path} 中已经存在 AGENTS.md，请对其进行改进。
 
 $ARGUMENTS
