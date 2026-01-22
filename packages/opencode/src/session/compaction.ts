@@ -139,7 +139,7 @@ export namespace SessionCompaction {
       { context: [], prompt: undefined },
     )
     const defaultPrompt =
-      "Provide a detailed prompt for continuing our conversation above. Focus on information that would be helpful for continuing the conversation, including what we did, what we're doing, which files we're working on, and what we're going to do next considering new session will not have access to our conversation."
+      "提供详细的提示词，以便继续上述对话。重点放在有助于继续对话的信息上，包括我们做了什么、正在做什么、正在处理哪些文件，以及考虑到新会话将无法访问我们的对话后，接下来要做什么。"
     const promptText = compacting.prompt ?? [defaultPrompt, ...compacting.context].join("\n\n")
     const result = await processor.process({
       user: userMessage,
@@ -180,7 +180,7 @@ export namespace SessionCompaction {
         sessionID: input.sessionID,
         type: "text",
         synthetic: true,
-        text: "Continue if you have next steps",
+        text: "如果你有后续步骤，请继续",
         time: {
           start: Date.now(),
           end: Date.now(),
