@@ -2612,7 +2612,7 @@ export class Audio extends HeyApiClient {
   /**
    * Transcribe audio
    *
-   * Transcribe an audio file with Whisper
+   * Transcribe an audio file with Whisper or an audio language model
    */
   public transcribe<ThrowOnError extends boolean = false>(
     parameters?: {
