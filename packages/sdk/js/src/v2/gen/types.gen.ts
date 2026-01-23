@@ -1659,6 +1659,10 @@ export type Config = {
    */
   voice?: {
     /**
+     * Transcription provider type
+     */
+    type?: "whisper" | "alm"
+    /**
      * Whisper transcription settings
      */
     whisper?: {
@@ -1678,6 +1682,31 @@ export type Config = {
        * Whisper language code
        */
       language?: string
+    }
+    /**
+     * Audio language model transcription settings
+     */
+    alm?: {
+      /**
+       * Audio LM API URL
+       */
+      url?: string
+      /**
+       * Audio LM API key
+       */
+      apiKey?: string
+      /**
+       * Audio LM model name
+       */
+      model?: string
+      /**
+       * Audio LM base prompt
+       */
+      prompt?: string
+      /**
+       * Audio LM system prompt
+       */
+      system?: string
     }
   }
   server?: ServerConfig
