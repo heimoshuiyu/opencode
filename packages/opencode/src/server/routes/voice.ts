@@ -8,15 +8,6 @@ import { Whisper } from "@/voice/whisper"
 import { lazy } from "@/util/lazy"
 import { Hono } from "hono"
 
-const resolveType = (voice?: Config.Info["voice"]) => {
-  if (voice?.type) return voice.type
-  if (voice?.whisper?.apiKey && !voice?.alm?.apiKey) return "whisper"
-  if (voice?.alm?.apiKey && !voice?.whisper?.apiKey) return "alm"
-  if (voice?.whisper?.apiKey) return "whisper"
-  if (voice?.alm?.apiKey) return "alm"
-  return "whisper"
-}
-
 export const VoiceRoutes = lazy(() =>
   new Hono().post(
     "/transcribe",
@@ -48,7 +39,7 @@ export const VoiceRoutes = lazy(() =>
       const file = data.file
       const mime = file.type || "audio/wav"
       const voice = (await Config.get()).voice
-      const type = resolveType(voice)
+      const type = voice?.type ?? "whisper"
       const result = await (type === "alm"
         ? Alm.transcribe({
             file,
