@@ -1,6 +1,7 @@
 import { tmpdir } from "os"
 import path from "path"
 import { Config } from "@/config/config"
+import type { Config as SdkConfig } from "@opencode-ai/sdk/v2"
 import { Alm } from "@/voice/alm"
 import { Whisper } from "@/voice/whisper"
 
@@ -8,6 +9,8 @@ export type VoiceConfig = {
   command?: string[]
   mime?: string
 }
+
+type SdkVoiceConfig = NonNullable<SdkConfig["voice"]>
 
 const defaultCommands = [
   ["ffmpeg", "-y", "-f", "pulse", "-i", "default", "-ac", "1", "-ar", "16000", "-f", "mp3", "{output}"],
@@ -18,15 +21,6 @@ const defaultCommands = [
 ]
 
 const defaultMime = "audio/mpeg"
-
-const resolveType = (voice?: Config.Info["voice"]) => {
-  if (voice?.type) return voice.type
-  if (voice?.whisper?.apiKey && !voice?.alm?.apiKey) return "whisper"
-  if (voice?.alm?.apiKey && !voice?.whisper?.apiKey) return "alm"
-  if (voice?.whisper?.apiKey) return "whisper"
-  if (voice?.alm?.apiKey) return "alm"
-  return "whisper"
-}
 
 const pickCommand = (config?: VoiceConfig) => {
   if (config?.command?.length) return config.command
@@ -46,7 +40,7 @@ const readStream = async (stream?: ReadableStream<Uint8Array> | number | null) =
 export namespace Voice {
   export function create(input: {
     config: () => VoiceConfig | undefined
-    transcription?: () => Config.Info["voice"] | undefined
+    transcription?: () => SdkVoiceConfig | undefined
     sessionID?: () => string | undefined
     prompt?: () => string | undefined
   }) {
@@ -59,7 +53,7 @@ export namespace Voice {
 
     const isEnabled = () => {
       const voice = input.transcription?.()
-      const type = resolveType(voice)
+      const type = voice?.type ?? "whisper"
       if (type === "alm") return !!voice?.alm?.apiKey
       return !!voice?.whisper?.apiKey
     }
@@ -101,7 +95,7 @@ export namespace Voice {
       const blob = new Blob([buffer], { type: mime })
       const apiFile = new File([blob], "audio.mp3", { type: mime })
       const voice = input.transcription?.()
-      const type = resolveType(voice)
+      const type = voice?.type ?? "whisper"
       if (type === "alm") {
         console.log("voice transcribe start", {
           provider: "alm",
