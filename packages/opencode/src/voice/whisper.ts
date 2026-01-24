@@ -34,17 +34,24 @@ export const toWavOrMp3 = async (input: { buffer: ArrayBuffer; mime: string }) =
     {
       stdin: "pipe",
       stdout: "ignore",
-      stderr: "ignore",
+      stderr: "pipe",
     },
   )
   proc.stdin?.write(new Uint8Array(input.buffer))
   proc.stdin?.end()
   await proc.exited
 
+  const stderr = await new Response(proc.stderr).text().catch(() => "")
+
+  if (proc.exitCode !== 0) {
+    await Bun.file(outPath).delete().catch(() => {})
+    throw new Error(`ffmpeg conversion failed (exit code ${proc.exitCode}): ${stderr}`)
+  }
+
   const file = Bun.file(outPath, { type: "audio/mpeg" })
   const buffer = await file.arrayBuffer().catch(() => undefined)
   await Bun.file(outPath).delete().catch(() => {})
-  if (!buffer) throw new Error("Failed to convert audio")
+  if (!buffer) throw new Error("Failed to convert audio: output file was not created")
   return { buffer, name: "audio.mp3", mime: "audio/mpeg" }
 }
 
