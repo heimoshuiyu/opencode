@@ -30,6 +30,7 @@ const pickCommand = (config?: VoiceConfig) => {
     if (!bin) continue
     if (Bun.which(bin)) return candidate
   }
+  console.log("voice: no recording command available")
   return undefined
 }
 
