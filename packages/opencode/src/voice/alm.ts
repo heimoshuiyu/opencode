@@ -1,6 +1,6 @@
 import z from "zod"
 import { Config } from "@/config/config"
-import { buildPrompt, getLastAssistantText, toWavOrMp3 } from "@/voice/whisper"
+import { buildPrompt, getLastAssistantText, prepareAudio, buildTranscriptionContext } from "@/voice/common"
 import { SessionID } from "@/session/schema"
 
 const buildMessages = (input: {
@@ -52,12 +52,14 @@ export namespace Alm {
       throw new Error("Missing voice.alm.apiKey")
     }
 
-    const content = await input.file.arrayBuffer()
-    const prepared = await toWavOrMp3({ buffer: content, mime: input.mime })
+    const prepared = await prepareAudio(input.file, input.mime)
     const audio = `data:${prepared.mime};base64,${Buffer.from(prepared.buffer).toString("base64")}`
 
-    const assistant = await getLastAssistantText(input.sessionID)
-    const context = buildPrompt({ assistant, prompt: buildPrompt({ assistant: alm?.prompt, prompt: input.prompt }) })
+    const context = await buildTranscriptionContext({
+      sessionID: input.sessionID,
+      userPrompt: input.prompt,
+      systemPrompt: alm?.prompt,
+    })
     const messages = buildMessages({
       system: alm?.system,
       context,
