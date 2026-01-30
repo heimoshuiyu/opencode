@@ -40,6 +40,7 @@ export const ListTool = Tool.define("list", {
   parameters: z.object({
     path: z.string().describe("The absolute path to the directory to list (must be absolute, not relative)").optional(),
     ignore: z.array(z.string()).describe("List of glob patterns to ignore").optional(),
+    depth: z.number().default(1).describe("Maximum depth to traverse (0 = only files in root, 1 = root + 1 level subdirs)"),
   }),
   async execute(params, ctx) {
     const searchPath = path.resolve(Instance.directory, params.path || ".")
@@ -80,7 +81,7 @@ export const ListTool = Tool.define("list", {
       filesByDir.get(dir)!.push(path.basename(file))
     }
 
-    function renderDir(dirPath: string, depth: number): string {
+    function renderDir(dirPath: string, depth: number, maxDepth: number): string {
       const indent = "  ".repeat(depth)
       let output = ""
 
@@ -93,21 +94,26 @@ export const ListTool = Tool.define("list", {
         .filter((d) => path.dirname(d) === dirPath && d !== dirPath)
         .sort()
 
-      // Render subdirectories first
-      for (const child of children) {
-        output += renderDir(child, depth + 1)
+      // Render subdirectories first, if within depth limit
+      const childrenToRender = depth < maxDepth ? children : []
+      for (const child of childrenToRender) {
+        output += renderDir(child, depth + 1, maxDepth)
       }
 
-      // Render files
-      const files = filesByDir.get(dirPath) || []
-      for (const file of files.sort()) {
-        output += `${childIndent}${file}\n`
+      // Render files in this directory
+      // Root directory (depth 0) always renders files, subdirectories respect depth limit
+      const shouldRenderFiles = depth === 0 || depth < maxDepth
+      if (shouldRenderFiles) {
+        const files = filesByDir.get(dirPath) || []
+        for (const file of files.sort()) {
+          output += `${childIndent}${file}\n`
+        }
       }
 
       return output
     }
 
-    const output = `${searchPath}/\n` + renderDir(".", 0)
+    const output = `${searchPath}/\n` + renderDir(".", 0, params.depth)
 
     return {
       title: path.relative(Instance.worktree, searchPath),
