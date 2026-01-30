@@ -41,7 +41,6 @@ export const ListTool = Tool.define(
   "list",
   Effect.gen(function* () {
     const rg = yield* Ripgrep.Service
-
     return {
       description: DESCRIPTION,
       parameters: z.object({
@@ -50,11 +49,13 @@ export const ListTool = Tool.define(
           .describe("The absolute path to the directory to list (must be absolute, not relative)")
           .optional(),
         ignore: z.array(z.string()).describe("List of glob patterns to ignore").optional(),
+        depth: z.number().default(1).describe("Maximum depth to traverse (0 = only files in root, 1 = root + 1 level subdirs)"),
       }),
-      execute: (params: { path?: string; ignore?: string[] }, ctx: Tool.Context) =>
+      execute: (params: { path?: string; ignore?: string[]; depth?: number }, ctx: Tool.Context) =>
         Effect.gen(function* () {
           const ins = yield* InstanceState.context
           const search = path.resolve(ins.directory, params.path || ".")
+          const maxDepth = params.depth ?? 1
           yield* assertExternalDirectoryEffect(ctx, search, { kind: "directory" })
 
           yield* ctx.ask({
@@ -97,13 +98,20 @@ export const ListTool = Tool.define(
             const dirs2 = Array.from(dirs)
               .filter((item) => path.dirname(item) === dir && item !== dir)
               .sort()
-            for (const item of dirs2) {
-              output += render(item, depth + 1)
+
+            const shouldRenderChildren = depth < maxDepth
+            if (shouldRenderChildren) {
+              for (const item of dirs2) {
+                output += render(item, depth + 1)
+              }
             }
 
-            const files = map.get(dir) || []
-            for (const file of files.sort()) {
-              output += `${child}${file}\n`
+            const shouldRenderFiles = depth === 0 || depth < maxDepth
+            if (shouldRenderFiles) {
+              const items = map.get(dir) || []
+              for (const file of items.sort()) {
+                output += `${child}${file}\n`
+              }
             }
             return output
           }
