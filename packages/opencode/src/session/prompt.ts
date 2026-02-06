@@ -520,7 +520,7 @@ export namespace SessionPrompt {
             messageID: summaryUserMsg.id,
             sessionID,
             type: "text",
-            text: "Summarize the task tool output above and continue with your task.",
+            text: "总结上面的 task 工具输出并继续你的任务。",
             synthetic: true,
           } satisfies MessageV2.TextPart)
         }
@@ -1285,7 +1285,7 @@ export namespace SessionPrompt {
               // An extra space is added here. Otherwise the 'Use' gets appended
               // to user's last word; making a combined word
               text:
-                " Use the above message and context to generate a prompt and call the task tool with subagent: " +
+                " 使用上面的消息和上下文生成提示词，并使用 subagent 调用 task 工具：" +
                 part.name +
                 hint,
             },
