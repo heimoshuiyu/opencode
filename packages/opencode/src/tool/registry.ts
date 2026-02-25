@@ -30,6 +30,9 @@ import { Truncate } from "./truncation"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { pathToFileURL } from "url"
+import { JobOutputTool } from "./job-output"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -118,6 +121,9 @@ export namespace ToolRegistry {
       SkillTool,
       ApplyPatchTool,
       ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
+      JobOutputTool,
+      JobKillTool,
+      JobListTool,
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
       ...custom,
