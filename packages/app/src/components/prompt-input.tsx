@@ -1114,24 +1114,24 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const selection = window.getSelection()
     if (!selection) return false
 
-    if (selection.rangeCount === 0 || !editorRef.contains(selection.anchorNode)) {
+    const hasRange = selection.rangeCount > 0
+    const inEditor = hasRange && editorRef.contains(selection.anchorNode)
+    const cursorPosition = inEditor
+      ? getCursorPosition(editorRef)
+      : (prompt.cursor() ?? getCursorPosition(editorRef))
+    if (!inEditor) {
       editorRef.focus()
-      const cursor = prompt.cursor() ?? promptLength(prompt.current())
-      setCursorPosition(editorRef, cursor)
+      setCursorPosition(editorRef, cursorPosition)
     }
-
     if (selection.rangeCount === 0) return false
     const range = selection.getRangeAt(0)
-    if (!editorRef.contains(range.startContainer)) return false
+
+    const currentPrompt = prompt.current()
+    const rawText = currentPrompt.map((p) => ("content" in p ? p.content : "")).join("")
+    const textBeforeCursor = rawText.substring(0, cursorPosition)
+    const atMatch = textBeforeCursor.match(/@(\S*)$/)
 
     if (part.type === "file" || part.type === "agent") {
-      const cursorPosition = getCursorPosition(editorRef)
-      const rawText = prompt
-        .current()
-        .map((p) => ("content" in p ? p.content : ""))
-        .join("")
-      const textBeforeCursor = rawText.substring(0, cursorPosition)
-      const atMatch = textBeforeCursor.match(/@(\S*)$/)
       const pill = createPill(part)
       const gap = document.createTextNode(" ")
 
