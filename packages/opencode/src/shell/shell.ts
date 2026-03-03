@@ -4,7 +4,7 @@ import { Filesystem } from "@/util/filesystem"
 import path from "path"
 import { spawn, type ChildProcess } from "child_process"
 
-const SIGKILL_TIMEOUT_MS = 200
+const SIGKILL_TIMEOUT_MS = 3000
 
 export namespace Shell {
   export async function killTree(proc: ChildProcess, opts?: { exited?: () => boolean }): Promise<void> {
