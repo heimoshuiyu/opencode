@@ -816,6 +816,7 @@ export namespace Config {
       variant_cycle: z.string().optional().default("ctrl+t").describe("Cycle model variants"),
       input_clear: z.string().optional().default("ctrl+c").describe("Clear input field"),
       input_paste: z.string().optional().default("ctrl+v").describe("Paste from clipboard"),
+      input_voice: z.string().optional().default("<leader>v").describe("Toggle voice input"),
       input_submit: z.string().optional().default("return").describe("Submit input"),
       input_newline: z
         .string()
@@ -911,6 +912,34 @@ export namespace Config {
       ref: "KeybindsConfig",
     })
 
+  export const TUI = z.object({
+    scroll_speed: z.number().min(0.001).optional().describe("TUI scroll speed"),
+    scroll_acceleration: z
+      .object({
+        enabled: z.boolean().describe("Enable scroll acceleration"),
+      })
+      .optional()
+      .describe("Scroll acceleration settings"),
+    diff_style: z
+      .enum(["auto", "stacked"])
+      .optional()
+      .describe("Control diff rendering style: 'auto' adapts to terminal width, 'stacked' always shows single column"),
+  })
+
+  export const Voice = z
+    .object({
+      whisper: z
+        .object({
+          url: z.string().optional().describe("Whisper API URL"),
+          apiKey: z.string().optional().describe("Whisper API key"),
+          model: z.string().optional().describe("Whisper model name"),
+          language: z.string().optional().describe("Whisper language code"),
+        })
+        .optional()
+        .describe("Whisper transcription settings"),
+    })
+    .describe("Voice transcription settings")
+
   export const Server = z
     .object({
       port: z.number().int().positive().optional().describe("Port to listen on"),
@@ -986,6 +1015,7 @@ export namespace Config {
     .object({
       $schema: z.string().optional().describe("JSON schema reference for configuration validation"),
       logLevel: Log.Level.optional().describe("Log level"),
+      voice: Voice.optional().describe("Voice transcription settings"),
       server: Server.optional().describe("Server configuration for opencode serve and web commands"),
       command: z
         .record(z.string(), Command)

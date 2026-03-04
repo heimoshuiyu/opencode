@@ -34,6 +34,8 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { useTextareaKeybindings } from "../textarea-keybindings"
 import { DialogSkill } from "../dialog-skill"
+import { Voice } from "../../util/voice"
+import { useTuiConfig } from "@tui/context/tui-config"
 
 export type PromptProps = {
   sessionID?: string
@@ -77,6 +79,7 @@ export function Prompt(props: PromptProps) {
   const renderer = useRenderer()
   const { theme, syntax } = useTheme()
   const kv = useKV()
+  const tuiConfig = useTuiConfig()
 
   function promptModelWarning() {
     toast.show({
@@ -90,6 +93,13 @@ export function Prompt(props: PromptProps) {
   }
 
   const textareaKeybindings = useTextareaKeybindings()
+  const voiceConfig = createMemo(() => tuiConfig.voice)
+  const voice = Voice.create({
+    config: voiceConfig,
+    transcription: () => sync.data.config.voice,
+    sessionID: () => props.sessionID,
+    prompt: () => store.prompt.input,
+  })
 
   const fileStyleId = syntax().getStyleId("extmark.file")!
   const agentStyleId = syntax().getStyleId("extmark.agent")!
@@ -126,6 +136,8 @@ export function Prompt(props: PromptProps) {
     extmarkToPartIndex: Map<number, number>
     interrupt: number
     placeholder: number
+    recording: boolean
+    processing: boolean
   }>({
     placeholder: Math.floor(Math.random() * PLACEHOLDERS.length),
     prompt: {
@@ -135,6 +147,8 @@ export function Prompt(props: PromptProps) {
     mode: "normal",
     extmarkToPartIndex: new Map(),
     interrupt: 0,
+    recording: false,
+    processing: false,
   })
 
   createEffect(
@@ -191,6 +205,16 @@ export function Prompt(props: PromptProps) {
           if (!input.focused) return
           submit()
           dialog.clear()
+        },
+      },
+      {
+        title: "Voice input",
+        value: "prompt.voice",
+        disabled: true,
+        keybind: "input_voice",
+        category: "Prompt",
+        onSelect: async () => {
+          await toggleVoice()
         },
       },
       {
@@ -693,6 +717,84 @@ export function Prompt(props: PromptProps) {
     )
   }
 
+  async function toggleVoice() {
+    if (store.processing) {
+      const cancelled = voice.cancel()
+      if (cancelled) {
+        setStore("processing", false)
+        toast.show({
+          message: "Transcription cancelled",
+          variant: "info",
+          duration: 1500,
+        })
+      }
+      return
+    }
+
+    if (store.recording) {
+      setStore("recording", false)
+      setStore("processing", true)
+      const result = await voice.stop().catch((error) => {
+        toast.error(error)
+        return undefined
+      })
+      setStore("processing", false)
+      if (result?.cancelled) return
+      if (!result) {
+        toast.show({
+          message: "Recording failed (empty audio)",
+          variant: "warning",
+        })
+        return
+      }
+      if (!result.text.trim()) {
+        toast.show({
+          message: "No speech detected (Whisper returned empty text)",
+          variant: "warning",
+        })
+        return
+      }
+
+      input.insertText(result.text)
+      input.getLayoutNode().markDirty()
+      input.gotoBufferEnd()
+      renderer.requestRender()
+      return
+    }
+
+    const enabled = voice.isEnabled()
+    if (!enabled) {
+      toast.show({
+        message: "Voice input unavailable (disabled or missing OPENCODE_WHISPER_API_KEY)",
+        variant: "warning",
+      })
+      return
+    }
+
+    setStore("recording", true)
+    toast.show({
+      message: "Recording... press keybind again to stop",
+      variant: "info",
+      duration: 2000,
+    })
+    const ok = await voice.start().catch((error) => {
+      toast.error(error)
+      return false
+    })
+    if (ok) return
+    setStore("recording", false)
+    toast.show({
+      message: "Failed to start recording",
+      variant: "error",
+    })
+  }
+
+  onCleanup(() => {
+    if (store.processing) voice.cancel()
+    if (!store.recording) return
+    voice.stop().catch(() => {})
+  })
+
   async function pasteImage(file: { filename?: string; content: string; mime: string }) {
     const currentOffset = input.visualCursor.offset
     const extmarkStart = currentOffset
@@ -756,6 +858,18 @@ export function Prompt(props: PromptProps) {
       return `Run a command... "${example}"`
     }
     return `Ask anything... "${PLACEHOLDERS[store.placeholder % PLACEHOLDERS.length]}"`
+  })
+  const voiceEnabled = createMemo(() => voice.isEnabled())
+  const voiceLabel = createMemo(() => {
+    if (store.processing) return "Transcribing"
+    if (store.recording) return "Stop"
+    return "Record"
+  })
+  const voiceColor = createMemo(() => {
+    if (store.processing) return theme.warning
+    if (store.recording) return theme.warning
+    if (!voiceEnabled()) return theme.textMuted
+    return theme.text
   })
 
   const spinnerDef = createMemo(() => {
@@ -852,6 +966,11 @@ export function Prompt(props: PromptProps) {
                     return
                   }
                   // If no image, let the default paste behavior continue
+                }
+                if (keybind.match("input_voice", e)) {
+                  e.preventDefault()
+                  await toggleVoice()
+                  return
                 }
                 if (keybind.match("input_clear", e) && store.prompt.input !== "") {
                   input.clear()
@@ -1014,6 +1133,16 @@ export function Prompt(props: PromptProps) {
                   </Show>
                 </box>
               </Show>
+              <box flexGrow={1} />
+              <box
+                flexDirection="row"
+                onMouseUp={async () => {
+                  if (!voiceEnabled() && !store.recording && !store.processing) return
+                  await toggleVoice()
+                }}
+              >
+                <text fg={voiceColor()}>{voiceLabel()}</text>
+              </box>
             </box>
           </box>
         </box>
