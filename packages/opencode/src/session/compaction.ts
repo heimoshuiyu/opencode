@@ -170,34 +170,33 @@ export namespace SessionCompaction {
       { sessionID: input.sessionID },
       { context: [], prompt: undefined },
     )
-    const defaultPrompt = `Provide a detailed prompt for continuing our conversation above.
-Focus on information that would be helpful for continuing the conversation, including what we did, what we're doing, which files we're working on, and what we're going to do next.
-The summary that you construct will be used so that another agent can read it and continue the work.
+    const defaultPrompt = `提供详细的提示词，以便继续上述对话。
+重点放在有助于继续对话的信息上，包括我们做了什么、正在做什么、正在处理哪些文件，以及接下来要做什么。
+你构建的摘要将被另一个智能体读取并继续工作。
 
-When constructing the summary, try to stick to this template:
+在构建摘要时，请尽量遵循以下模板：
 ---
-## Goal
+## 目标
 
-[What goal(s) is the user trying to accomplish?]
+[用户想要完成什么目标？]
 
-## Instructions
+## 指令
 
-- [What important instructions did the user give you that are relevant]
-- [If there is a plan or spec, include information about it so next agent can continue using it]
+- [用户给出的相关重要指令]
+- [如果有计划或规格说明，请包含相关信息，以便下一个智能体继续使用]
 
-## Discoveries
+## 发现
 
-[What notable things were learned during this conversation that would be useful for the next agent to know when continuing the work]
+[在本次对话中发现了哪些值得注意的内容，这些内容对下一个智能体继续工作会有帮助]
 
-## Accomplished
+## 已完成
 
-[What work has been completed, what work is still in progress, and what work is left?]
+[已完成哪些工作，正在进行哪些工作，还有哪些工作待完成？]
 
-## Relevant files / directories
+## 相关文件 / 目录
 
-[Construct a structured list of relevant files that have been read, edited, or created that pertain to the task at hand. If all the files in a directory are relevant, include the path to the directory.]
+[构建一个结构化的相关文件列表，这些文件与当前任务相关，已被读取、编辑或创建。如果目录中的所有文件都相关，请包含目录路径。]
 ---`
-
     const promptText = compacting.prompt ?? [defaultPrompt, ...compacting.context].join("\n\n")
     const result = await processor.process({
       user: userMessage,
@@ -271,9 +270,9 @@ When constructing the summary, try to stick to this template:
         })
         const text =
           (input.overflow
-            ? "The previous request exceeded the provider's size limit due to large media attachments. The conversation was compacted and media files were removed from context. If the user was asking about attached images or files, explain that the attachments were too large to process and suggest they try again with smaller or fewer files.\n\n"
+            ? "由于媒体附件过大，之前的请求超出了提供商的大小限制。对话已被压缩，媒体文件已从上下文中移除。如果用户询问的是附件中的图片或文件，请解释附件过大无法处理，并建议使用更小或更少的文件重试。\n\n"
             : "") +
-          "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed."
+          "如果你有后续步骤，请继续；如果不确定如何继续，请停下来请求澄清。"
         await Session.updatePart({
           id: Identifier.ascending("part"),
           messageID: continueMsg.id,
