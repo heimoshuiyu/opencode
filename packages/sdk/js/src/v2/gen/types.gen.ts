@@ -1309,6 +1309,32 @@ export type Config = {
    */
   $schema?: string
   logLevel?: LogLevel
+  /**
+   * Voice transcription settings
+   */
+  voice?: {
+    /**
+     * Whisper transcription settings
+     */
+    whisper?: {
+      /**
+       * Whisper API URL
+       */
+      url?: string
+      /**
+       * Whisper API key
+       */
+      apiKey?: string
+      /**
+       * Whisper model name
+       */
+      model?: string
+      /**
+       * Whisper language code
+       */
+      language?: string
+    }
+  }
   server?: ServerConfig
   /**
    * Command configuration, see https://opencode.ai/docs/commands
@@ -4079,6 +4105,27 @@ export type ProviderOauthCallbackResponses = {
 }
 
 export type ProviderOauthCallbackResponse = ProviderOauthCallbackResponses[keyof ProviderOauthCallbackResponses]
+
+export type AudioTranscribeData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text?: string
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type FindTextData = {
   body?: never
