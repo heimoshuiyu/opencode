@@ -18,3 +18,9 @@ export function MemoryRouter(props: ParentProps) {
 export function Route(props: ParentProps) {
   return props.children
 }
+
+export function useLocation() {
+  return {
+    pathname: "/session/story-session",
+  }
+}
