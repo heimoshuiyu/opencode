@@ -21,11 +21,13 @@ import { testEffect } from "../lib/effect"
 import { Tool } from "@/tool/tool"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { InstanceStore } from "@/project/instance-store"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 const shellLayer = Layer.mergeAll(
   LayerNode.compile(
     LayerNode.group([
       CrossSpawnSpawner.node,
+      BackgroundJobManager.node,
       FSUtil.node,
       Plugin.node,
       Truncate.node,
