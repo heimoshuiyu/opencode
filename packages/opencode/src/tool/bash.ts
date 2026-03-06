@@ -13,13 +13,14 @@ import { Filesystem } from "@/util/filesystem"
 import { fileURLToPath } from "url"
 import { Flag } from "@/flag/flag.ts"
 import { Shell } from "@/shell/shell"
+import { BackgroundJobManager } from "./background-job-manager"
 
 import { BashArity } from "@/permission/arity"
 import { Truncate } from "./truncation"
 import { Plugin } from "@/plugin"
 
 const MAX_METADATA_LENGTH = 30_000
-const DEFAULT_TIMEOUT = Flag.OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
+const AUTO_BACKGROUND_TIMEOUT = 60 * 1000 // 1 minute for auto-background conversion
 
 export const log = Log.create({ service: "bash-tool" })
 
@@ -62,7 +63,10 @@ export const BashTool = Tool.define("bash", async () => {
       .replaceAll("${maxBytes}", String(Truncate.MAX_BYTES)),
     parameters: z.object({
       command: z.string().describe("The command to execute"),
-      timeout: z.number().describe("Optional timeout in milliseconds").optional(),
+      background: z
+        .boolean()
+        .optional()
+        .describe("Whether to run the command in the background. If false and command runs over 60 seconds, it will automatically be converted to background."),
       workdir: z
         .string()
         .describe(
@@ -77,10 +81,8 @@ export const BashTool = Tool.define("bash", async () => {
     }),
     async execute(params, ctx) {
       const cwd = params.workdir || Instance.directory
-      if (params.timeout !== undefined && params.timeout < 0) {
-        throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
-      }
-      const timeout = params.timeout ?? DEFAULT_TIMEOUT
+      const background = params.background ?? false
+
       const tree = await parser().then((p) => p.parse(params.command))
       if (!tree) {
         throw new Error("Failed to parse command")
@@ -164,6 +166,42 @@ export const BashTool = Tool.define("bash", async () => {
         { cwd, sessionID: ctx.sessionID, callID: ctx.callID },
         { env: {} },
       )
+      // Determine if command should run in background
+      let jobId: string | undefined
+      const shouldRunInBackground = background
+
+      if (shouldRunInBackground) {
+        log.info("Starting command in background job", { command: params.command, cwd })
+
+        // Start as background job
+        const result = await BackgroundJobManager.startJob({
+          command: params.command,
+          cwd,
+          description: params.description,
+        })
+
+        jobId = result.jobId
+
+        return {
+          title: `Background job started`,
+          output: `Background job started with ID: ${jobId}
+
+Command: ${params.command}
+Working Directory: ${cwd}
+Description: ${params.description}
+
+Use job_output tool to view output or job_kill to terminate.`,
+          metadata: {
+            job_id: jobId,
+            is_background: true,
+            command: params.command,
+            cwd,
+            description: params.description,
+          } as any,
+        }
+      }
+
+      // Synchronous execution with auto-background conversion
       const proc = spawn(params.command, {
         shell,
         cwd,
@@ -200,9 +238,9 @@ export const BashTool = Tool.define("bash", async () => {
       proc.stdout?.on("data", append)
       proc.stderr?.on("data", append)
 
-      let timedOut = false
       let aborted = false
       let exited = false
+      let autoConverted = false
 
       const kill = () => Shell.killTree(proc, { exited: () => exited })
 
@@ -218,14 +256,29 @@ export const BashTool = Tool.define("bash", async () => {
 
       ctx.abort.addEventListener("abort", abortHandler, { once: true })
 
-      const timeoutTimer = setTimeout(() => {
-        timedOut = true
-        void kill()
-      }, timeout + 100)
+      // Auto-background conversion timer
+      const autoBackgroundTimer = setTimeout(async () => {
+        if (!exited && !autoConverted) {
+          autoConverted = true
+          log.info("Auto-converting to background job", { command: params.command, runtime: AUTO_BACKGROUND_TIMEOUT })
+          
+          // Convert to background job
+          const result = await BackgroundJobManager.startJob({
+            command: params.command,
+            cwd,
+            description: params.description,
+          })
+          
+          jobId = result.jobId
+          
+          // Kill the current process
+          await kill()
+        }
+      }, AUTO_BACKGROUND_TIMEOUT)
 
       await new Promise<void>((resolve, reject) => {
         const cleanup = () => {
-          clearTimeout(timeoutTimer)
+          clearTimeout(autoBackgroundTimer)
           ctx.abort.removeEventListener("abort", abortHandler)
         }
 
@@ -244,16 +297,42 @@ export const BashTool = Tool.define("bash", async () => {
 
       const resultMetadata: string[] = []
 
-      if (timedOut) {
-        resultMetadata.push(`bash tool terminated command after exceeding timeout ${timeout} ms`)
-      }
-
       if (aborted) {
         resultMetadata.push("User aborted the command")
       }
 
+      if (autoConverted) {
+        resultMetadata.push(`Command automatically converted to background job after ${AUTO_BACKGROUND_TIMEOUT/1000} seconds`)
+      }
+
       if (resultMetadata.length > 0) {
-        output += "\n\n<bash_metadata>\n" + resultMetadata.join("\n") + "\n</bash_metadata>"
+        resultMetadata.unshift("<bash_metadata>")
+        resultMetadata.push("</bash_metadata>")
+        output += "\n\n" + resultMetadata.join("\n")
+      }
+
+      // Return different response based on whether auto-conversion happened
+      if (autoConverted && jobId) {
+        return {
+          title: `Auto-converted to background job`,
+          output: `Command automatically converted to background job with ID: ${jobId}
+
+Command: ${params.command}
+Working Directory: ${cwd}
+Description: ${params.description}
+
+Reason: Command exceeded ${AUTO_BACKGROUND_TIMEOUT/1000} second limit
+
+Use job_output tool to view output or job_kill to terminate.`,
+          metadata: {
+            job_id: jobId,
+            is_background: true,
+            auto_converted: true,
+            command: params.command,
+            cwd,
+            description: params.description,
+          } as any,
+        }
       }
 
       return {
@@ -262,6 +341,7 @@ export const BashTool = Tool.define("bash", async () => {
           output: output.length > MAX_METADATA_LENGTH ? output.slice(0, MAX_METADATA_LENGTH) + "\n\n..." : output,
           exit: proc.exitCode,
           description: params.description,
+          is_background: false,
         },
         output,
       }
