@@ -63,6 +63,7 @@ import { Format } from "../../src/format"
 import { Reference } from "../../src/reference/reference"
 import { RepositoryCache } from "../../src/reference/repository-cache"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 void Log.init({ print: false })
 
@@ -129,6 +130,7 @@ function makeHttp() {
     mcp,
     FSUtil.defaultLayer,
     BackgroundJob.defaultLayer,
+    BackgroundJobManager.defaultLayer,
     status,
     Database.defaultLayer,
     EventV2Bridge.defaultLayer,

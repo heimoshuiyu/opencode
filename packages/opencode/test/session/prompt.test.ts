@@ -58,6 +58,7 @@ import { reply, TestLLMServer } from "../lib/llm-server"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 void Log.init({ print: false })
 
@@ -183,6 +184,7 @@ function makePrompt(input?: { processor?: "blocking" }) {
     mcp,
     FSUtil.defaultLayer,
     BackgroundJob.defaultLayer,
+    BackgroundJobManager.defaultLayer,
     status,
     Database.defaultLayer,
     EventV2Bridge.defaultLayer,
