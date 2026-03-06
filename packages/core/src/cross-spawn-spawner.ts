@@ -249,12 +249,14 @@ export const make = Effect.gen(function* () {
       ? NodeStream.fromReadable({
           evaluate: () => proc.stdout!,
           onError: (cause) => toPlatformError("fromReadable(stdout)", toError(cause), command),
+          closeOnDone: false,
         })
       : Stream.empty
     let stderr = proc.stderr
       ? NodeStream.fromReadable({
           evaluate: () => proc.stderr!,
           onError: (cause) => toPlatformError("fromReadable(stderr)", toError(cause), command),
+          closeOnDone: false,
         })
       : Stream.empty
 

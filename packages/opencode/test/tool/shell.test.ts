@@ -20,6 +20,7 @@ import { testEffect } from "../lib/effect"
 import { Tool } from "@/tool/tool"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { InstanceStore } from "@/project/instance-store"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 const shellLayer = Layer.mergeAll(
   CrossSpawnSpawner.defaultLayer,
@@ -30,6 +31,7 @@ const shellLayer = Layer.mergeAll(
   Agent.defaultLayer,
   RuntimeFlags.defaultLayer,
   testInstanceStoreLayer,
+  BackgroundJobManager.defaultLayer.pipe(Layer.provide(CrossSpawnSpawner.defaultLayer)),
 )
 const it = testEffect(shellLayer)
 type ShellTestServices =
