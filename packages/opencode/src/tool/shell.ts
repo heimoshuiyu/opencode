@@ -1,4 +1,4 @@
-import { Effect, Stream } from "effect"
+import { Effect, Exit, Scope, Stream } from "effect"
 import os from "os"
 import { createWriteStream } from "node:fs"
 import * as Tool from "./tool"
@@ -15,6 +15,7 @@ import { Config } from "@/config/config"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Shell } from "@/shell/shell"
 import { ShellID } from "./shell/id"
+import { BackgroundJobManager } from "./background-job-manager"
 
 import * as Truncate from "./truncate"
 import { Plugin } from "@/plugin"
@@ -26,6 +27,7 @@ import { BashArity } from "@/permission/arity"
 export { Parameters } from "./shell/prompt"
 
 const MAX_METADATA_LENGTH = 30_000
+const AUTO_BACKGROUND_TIMEOUT = 60 * 1000
 const CWD = new Set(["cd", "chdir", "popd", "pushd", "push-location", "set-location"])
 const FILES = new Set([
   ...CWD,
@@ -83,6 +85,10 @@ type Chunk = {
 }
 
 export const log = Log.create({ service: "shell-tool" })
+
+function toolMetadata(input: Record<string, unknown>) {
+  return input
+}
 
 const resolveWasm = (asset: string) => {
   if (asset.startsWith("file://")) return fileURLToPath(asset)
@@ -340,6 +346,7 @@ export const ShellTool = Tool.define(
     const trunc = yield* Truncate.Service
     const plugin = yield* Plugin.Service
     const flags = yield* RuntimeFlags.Service
+    const jobs = yield* BackgroundJobManager.Service
     const defaultTimeout = flags.bashDefaultTimeoutMs ?? 2 * 60 * 1000
 
     const cygpath = Effect.fn("ShellTool.cygpath")(function* (shell: string, text: string) {
@@ -443,6 +450,9 @@ export const ShellTool = Tool.define(
       let cut = false
       let expired = false
       let aborted = false
+      let autoConverted = false
+      let jobId: string | undefined
+      let outputOffset = 0
 
       const closeSink = Effect.fnUntraced(function* () {
         const stream = sink
@@ -476,87 +486,133 @@ export const ShellTool = Tool.define(
         },
       })
 
-      const code: number | null = yield* Effect.scoped(
-        Effect.gen(function* () {
-          yield* Effect.addFinalizer(closeSink)
-          const handle = yield* spawner.spawn(cmd(input.shell, input.command, input.cwd, input.env))
+      const processScope = yield* Scope.make()
+      const foregroundScope = yield* Scope.make()
 
-          yield* Effect.forkScoped(
-            Stream.runForEach(Stream.decodeText(handle.all), (chunk) => {
-              const size = Buffer.byteLength(chunk, "utf-8")
-              list.push({ text: chunk, size })
-              used += size
-              while (used > keep && list.length > 1) {
-                const item = list.shift()
-                if (!item) break
-                used -= item.size
-                cut = true
-              }
+      const code: number | null = yield* Effect.gen(function* () {
+        const handle = yield* Scope.provide(processScope)(
+          spawner.spawn(cmd(input.shell, input.command, input.cwd, input.env)),
+        )
 
-              last = preview(last + chunk)
+        yield* Stream.runForEach(Stream.decodeText(handle.all), (chunk) => {
+          const size = Buffer.byteLength(chunk, "utf-8")
+          list.push({ text: chunk, size })
+          used += size
+          while (used > keep && list.length > 1) {
+            const item = list.shift()
+            if (!item) break
+            used -= item.size
+            cut = true
+          }
 
-              if (file) {
-                sink?.write(chunk)
-              } else {
-                full += chunk
-                if (Buffer.byteLength(full, "utf-8") > limits.maxBytes) {
-                  return trunc.write(full).pipe(
-                    Effect.andThen((next) =>
-                      Effect.sync(() => {
-                        file = next
-                        cut = true
-                        sink = createWriteStream(next, { flags: "a" })
-                        full = ""
-                      }),
-                    ),
-                    Effect.andThen(
-                      ctx.metadata({
-                        metadata: {
-                          output: last,
-                          description: input.description,
-                        },
-                      }),
-                    ),
-                  )
-                }
-              }
+          last = preview(last + chunk)
 
-              return ctx.metadata({
-                metadata: {
-                  output: last,
-                  description: input.description,
-                },
-              })
-            }),
-          )
+          if (file) {
+            sink?.write(chunk)
+          } else {
+            full += chunk
+            if (Buffer.byteLength(full, "utf-8") > limits.maxBytes) {
+              return trunc.write(full).pipe(
+                Effect.andThen((next) =>
+                  Effect.sync(() => {
+                    file = next
+                    cut = true
+                    sink = createWriteStream(next, { flags: "a" })
+                    full = ""
+                  }),
+                ),
+                Effect.andThen(
+                  ctx.metadata({
+                    metadata: {
+                      output: last,
+                      description: input.description,
+                    },
+                  }),
+                ),
+              )
+            }
+          }
 
-          const abort = Effect.callback<void>((resume) => {
-            if (ctx.abort.aborted) return resume(Effect.void)
-            const handler = () => resume(Effect.void)
-            ctx.abort.addEventListener("abort", handler, { once: true })
-            return Effect.sync(() => ctx.abort.removeEventListener("abort", handler))
+          return ctx.metadata({
+            metadata: {
+              output: last,
+              description: input.description,
+            },
           })
+        }).pipe(Effect.forkIn(foregroundScope))
 
-          const timeout = Effect.sleep(`${input.timeout + 100} millis`)
+        const abort = Effect.callback<void>((resume) => {
+          if (ctx.abort.aborted) return resume(Effect.void)
+          const handler = () => resume(Effect.void)
+          ctx.abort.addEventListener("abort", handler, { once: true })
+          return Effect.sync(() => ctx.abort.removeEventListener("abort", handler))
+        })
 
-          const exit = yield* Effect.raceAll([
-            handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
-            abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
-            timeout.pipe(Effect.map(() => ({ kind: "timeout" as const, code: null }))),
-          ])
+        const timeout = Effect.sleep(`${input.timeout + 100} millis`)
+        const autoBg = Effect.sleep(`${AUTO_BACKGROUND_TIMEOUT} millis`)
 
-          if (exit.kind === "abort") {
-            aborted = true
-            yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
-          }
-          if (exit.kind === "timeout") {
-            expired = true
-            yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
-          }
+        const exit = yield* Effect.raceAll([
+          handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
+          abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
+          timeout.pipe(Effect.map(() => ({ kind: "timeout" as const, code: null }))),
+          autoBg.pipe(Effect.map(() => ({ kind: "autobg" as const, code: null }))),
+        ])
 
-          return exit.kind === "exit" ? exit.code : null
-        }),
-      ).pipe(Effect.orDie)
+        if (exit.kind === "abort") {
+          aborted = true
+          yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
+        }
+        if (exit.kind === "timeout") {
+          expired = true
+          yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
+        }
+        if (exit.kind === "autobg") {
+          autoConverted = true
+          log.info("Auto-converting to background job", { command: input.command, runtime: AUTO_BACKGROUND_TIMEOUT })
+          // Close foreground scope to stop the stream consumer before adopt
+          // starts its own consumer on handle.all (prevents two concurrent readers).
+          yield* Scope.close(foregroundScope, Exit.void).pipe(Effect.ignore)
+          const capturedOutput = list.map((item) => item.text).join("")
+          const adopted = yield* jobs.adopt({
+            handle,
+            scope: processScope,
+            command: input.command,
+            cwd: input.cwd,
+            description: input.description,
+            output: capturedOutput,
+          })
+          jobId = adopted.info.id
+          outputOffset = capturedOutput.length
+        }
+
+        return exit.kind === "exit" ? exit.code : null
+      }).pipe(
+        Effect.ensuring(
+          Effect.gen(function* () {
+            yield* Scope.close(foregroundScope, Exit.void).pipe(Effect.ignore)
+            if (!autoConverted) {
+              yield* Scope.close(processScope, Exit.void)
+            }
+            yield* closeSink()
+          }),
+        ),
+        Effect.orDie,
+      )
+
+      if (autoConverted && jobId) {
+        return {
+          title: "Auto-converted to background job",
+          output: `Command automatically converted to background job with ID: ${jobId}\n\nCommand: ${input.command}\nWorking Directory: ${input.cwd}\nDescription: ${input.description}\n\nReason: Command exceeded ${AUTO_BACKGROUND_TIMEOUT / 1000} second limit\n\nUse job_output tool with offset=${outputOffset} to get new output, or job_kill to terminate.`,
+          metadata: toolMetadata({
+            job_id: jobId,
+            is_background: true,
+            auto_converted: true,
+            command: input.command,
+            cwd: input.cwd,
+            description: input.description,
+          }),
+        }
+      }
 
       const meta: string[] = []
       if (expired) {
@@ -584,13 +640,13 @@ export const ShellTool = Tool.define(
       }
       return {
         title: input.description,
-        metadata: {
+        metadata: toolMetadata({
           output: last || preview(output),
           exit: code,
           description: input.description,
           truncated: cut,
           ...(cut && file ? { outputPath: file } : {}),
-        },
+        }),
         output,
       }
     })
@@ -628,6 +684,31 @@ export const ShellTool = Tool.define(
                   yield* ask(ctx, scan)
                 }),
               )
+
+              const background = params.background ?? false
+
+              if (background) {
+                log.info("Starting command in background job", { command: params.command, cwd })
+                const result = yield* jobs
+                  .start({
+                    process: cmd(shell, params.command, cwd, yield* shellEnv(ctx, cwd)),
+                    command: params.command,
+                    cwd,
+                    description: params.description,
+                  })
+                  .pipe(Effect.orDie)
+                return {
+                  title: "Background job started",
+                  output: `Background job started with ID: ${result.id}\n\nCommand: ${params.command}\nWorking Directory: ${cwd}\nDescription: ${params.description}\n\nUse job_output tool with offset=0 to view output, or job_kill to terminate.`,
+                  metadata: toolMetadata({
+                    job_id: result.id,
+                    is_background: true,
+                    command: params.command,
+                    cwd,
+                    description: params.description,
+                  }),
+                }
+              }
 
               return yield* run(
                 {
