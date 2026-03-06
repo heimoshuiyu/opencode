@@ -12,6 +12,7 @@ import { AppFileSystem } from "@/filesystem"
 import { fileURLToPath } from "url"
 import { Flag } from "@/flag/flag"
 import { Shell } from "@/shell/shell"
+import { BackgroundJobManager } from "./background-job-manager"
 
 import { BashArity } from "@/permission/arity"
 import { Truncate } from "./truncate"
@@ -22,6 +23,7 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 
 const MAX_METADATA_LENGTH = 30_000
 const DEFAULT_TIMEOUT = Flag.OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
+const AUTO_BACKGROUND_TIMEOUT = 60 * 1000
 const PS = new Set(["powershell", "pwsh"])
 const CWD = new Set(["cd", "push-location", "set-location"])
 const FILES = new Set([
@@ -51,6 +53,12 @@ const SWITCHES = new Set(["-confirm", "-debug", "-force", "-nonewline", "-recurs
 
 const Parameters = z.object({
   command: z.string().describe("The command to execute"),
+  background: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to run the command in the background. If false and command runs over 60 seconds, it will automatically be converted to background.",
+    ),
   timeout: z.number().describe("Optional timeout in milliseconds").optional(),
   workdir: z
     .string()
@@ -384,6 +392,8 @@ export const BashTool = Tool.define(
       let output = ""
       let expired = false
       let aborted = false
+      let autoConverted = false
+      let jobId: string | undefined
 
       yield* ctx.metadata({
         metadata: {
@@ -416,11 +426,13 @@ export const BashTool = Tool.define(
           })
 
           const timeout = Effect.sleep(`${input.timeout + 100} millis`)
+          const autoBg = Effect.sleep(`${AUTO_BACKGROUND_TIMEOUT} millis`)
 
           const exit = yield* Effect.raceAll([
             handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
             abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
             timeout.pipe(Effect.map(() => ({ kind: "timeout" as const, code: null }))),
+            autoBg.pipe(Effect.map(() => ({ kind: "autobg" as const, code: null }))),
           ])
 
           if (exit.kind === "abort") {
@@ -431,10 +443,39 @@ export const BashTool = Tool.define(
             expired = true
             yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
           }
+          if (exit.kind === "autobg") {
+            autoConverted = true
+            log.info("Auto-converting to background job", { command: input.command, runtime: AUTO_BACKGROUND_TIMEOUT })
+            const result = yield* Effect.promise(() =>
+              BackgroundJobManager.startJob({
+                command: input.command,
+                cwd: input.cwd,
+                description: input.description,
+                output,
+              }),
+            )
+            jobId = result.jobId
+            yield* handle.kill({ forceKillAfter: "3 seconds" }).pipe(Effect.orDie)
+          }
 
           return exit.kind === "exit" ? exit.code : null
         }),
       ).pipe(Effect.orDie)
+
+      if (autoConverted && jobId) {
+        return {
+          title: "Auto-converted to background job",
+          output: `Command automatically converted to background job with ID: ${jobId}\n\nCommand: ${input.command}\nWorking Directory: ${input.cwd}\nDescription: ${input.description}\n\nReason: Command exceeded ${AUTO_BACKGROUND_TIMEOUT / 1000} second limit\n\nUse job_output tool to view output or job_kill to terminate.`,
+          metadata: {
+            job_id: jobId,
+            is_background: true,
+            auto_converted: true,
+            command: input.command,
+            cwd: input.cwd,
+            description: input.description,
+          } as Record<string, unknown>,
+        }
+      }
 
       const meta: string[] = []
       if (expired) {
@@ -490,6 +531,30 @@ export const BashTool = Tool.define(
               const scan = yield* collect(root, cwd, ps, shell)
               if (!Instance.containsPath(cwd)) scan.dirs.add(cwd)
               yield* ask(ctx, scan)
+
+              const background = params.background ?? false
+
+              if (background) {
+                log.info("Starting command in background job", { command: params.command, cwd })
+                const result = yield* Effect.promise(() =>
+                  BackgroundJobManager.startJob({
+                    command: params.command,
+                    cwd,
+                    description: params.description,
+                  }),
+                )
+                return {
+                  title: "Background job started",
+                  output: `Background job started with ID: ${result.jobId}\n\nCommand: ${params.command}\nWorking Directory: ${cwd}\nDescription: ${params.description}\n\nUse job_output tool to view output or job_kill to terminate.`,
+                  metadata: {
+                    job_id: result.jobId,
+                    is_background: true,
+                    command: params.command,
+                    cwd,
+                    description: params.description,
+                  } as Record<string, unknown>,
+                }
+              }
 
               return yield* run(
                 {

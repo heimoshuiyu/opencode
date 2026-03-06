@@ -35,6 +35,9 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 import * as CrossSpawnSpawner from "@/effect/cross-spawn-spawner"
 import { Ripgrep } from "../file/ripgrep"
 import { Format } from "../format"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
+import { JobOutputTool } from "./job-output"
 import { InstanceState } from "@/effect/instance-state"
 import { Question } from "../question"
 import { Todo } from "../session/todo"
@@ -120,6 +123,9 @@ export namespace ToolRegistry {
       const greptool = yield* GrepTool
       const patchtool = yield* ApplyPatchTool
       const skilltool = yield* SkillTool
+      const jobkill = yield* JobKillTool
+      const joblist = yield* JobListTool
+      const joboutput = yield* JobOutputTool
       const agent = yield* Agent.Service
 
       const state = yield* InstanceState.make<State>(
@@ -198,6 +204,9 @@ export namespace ToolRegistry {
             question: Tool.init(question),
             lsp: Tool.init(lsptool),
             plan: Tool.init(plan),
+            jobKill: Tool.init(jobkill),
+            jobList: Tool.init(joblist),
+            jobOutput: Tool.init(joboutput),
           })
 
           return {
@@ -220,6 +229,9 @@ export namespace ToolRegistry {
               tool.patch,
               ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [tool.lsp] : []),
               ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [tool.plan] : []),
+              tool.jobKill,
+              tool.jobList,
+              tool.jobOutput,
             ],
             task: tool.task,
             read: tool.read,
