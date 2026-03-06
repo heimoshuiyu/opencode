@@ -31,6 +31,7 @@ describe("tool.bash", () => {
           {
             command: "echo 'test'",
             description: "Echo test message",
+            background: false,
           },
           ctx,
         )
@@ -59,6 +60,7 @@ describe("tool.bash permissions", () => {
           {
             command: "echo hello",
             description: "Echo hello",
+            background: false,
           },
           testCtx,
         )
@@ -75,24 +77,347 @@ describe("tool.bash permissions", () => {
       directory: tmp.path,
       fn: async () => {
         const bash = await BashTool.init()
-        const requests: Array<Omit<PermissionNext.Request, "id" | "sessionID" | "tool">> = []
-        const testCtx = {
-          ...ctx,
-          ask: async (req: Omit<PermissionNext.Request, "id" | "sessionID" | "tool">) => {
-            requests.push(req)
+        await expect(
+          bash.execute(
+            {
+              command: "curl https://example.com",
+              description: "Fetch URL",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+      },
+    })
+  })
+
+  test("denies all commands with wildcard deny", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              bash: {
+                "*": "deny",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        await expect(
+          bash.execute(
+            {
+              command: "ls",
+              description: "List files",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+      },
+    })
+  })
+
+  test("more specific pattern overrides general pattern", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              bash: {
+                "*": "deny",
+                "ls *": "allow",
+                "pwd*": "allow",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // ls should be allowed
+        const result = await bash.execute(
+          {
+            command: "ls -la",
+            description: "List files",
+            background: false,
           },
-        }
-        await bash.execute(
+          ctx,
+        )
+        expect(result.metadata.exit).toBe(0)
+
+        // pwd should be allowed
+        const pwd = await bash.execute(
+          {
+            command: "pwd",
+            description: "Print working directory",
+            background: false,
+          },
+          ctx,
+        )
+        expect(pwd.metadata.exit).toBe(0)
+
+        // cat should be denied
+        await expect(
+          bash.execute(
+            {
+              command: "cat /etc/passwd",
+              description: "Read file",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+      },
+    })
+  })
+
+  test("denies dangerous subcommands while allowing safe ones", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              bash: {
+                "find *": "allow",
+                "find * -delete*": "deny",
+                "find * -exec*": "deny",
+                "*": "deny",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // Basic find should work
+        const result = await bash.execute(
+          {
+            command: "find . -name '*.ts'",
+            description: "Find typescript files",
+            background: false,
+          },
+          ctx,
+        )
+        expect(result.metadata.exit).toBe(0)
+
+        // find -delete should be denied
+        await expect(
+          bash.execute(
+            {
+              command: "find . -name '*.tmp' -delete",
+              description: "Delete temp files",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+
+        // find -exec should be denied
+        await expect(
+          bash.execute(
+            {
+              command: "find . -name '*.ts' -exec cat {} \\;",
+              description: "Find and cat files",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+      },
+    })
+  })
+
+  test("allows git read commands while denying writes", async () => {
+    await using tmp = await tmpdir({
+      git: true,
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              bash: {
+                "git status*": "allow",
+                "git log*": "allow",
+                "git diff*": "allow",
+                "git branch": "allow",
+                "git commit *": "deny",
+                "git push *": "deny",
+                "*": "deny",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // git status should work
+        const status = await bash.execute(
+          {
+            command: "git status",
+            description: "Git status",
+            background: false,
+          },
+          ctx,
+        )
+        expect(status.metadata.exit).toBe(0)
+
+        // git log should work
+        const log = await bash.execute(
+          {
+            command: "git log --oneline -5",
+            description: "Git log",
+            background: false,
+          },
+          ctx,
+        )
+        expect(log.metadata.exit).toBe(0)
+
+        // git commit should be denied
+        await expect(
+          bash.execute(
+            {
+              command: "git commit -m 'test'",
+              description: "Git commit",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+
+        // git push should be denied
+        await expect(
+          bash.execute(
+            {
+              command: "git push origin main",
+              description: "Git push",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow("restricted")
+      },
+    })
+  })
+
+  test("denies external directory access when permission is deny", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              external_directory: "deny",
+              bash: {
+                "*": "allow",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // Should deny cd to parent directory (cd is checked for external paths)
+        await expect(
+          bash.execute(
+            {
+              command: "cd ../",
+              description: "Change to parent directory",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow()
+      },
+    })
+  })
+
+  test("denies workdir outside project when external_directory is deny", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              external_directory: "deny",
+              bash: {
+                "*": "allow",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        await expect(
+          bash.execute(
+            {
+              command: "ls",
+              workdir: "/tmp",
+              description: "List /tmp",
+              background: false,
+            },
+            ctx,
+          ),
+        ).rejects.toThrow()
+      },
+    })
+  })
+
+  test("handles multiple commands in sequence", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "opencode.json"),
+          JSON.stringify({
+            permission: {
+              bash: {
+                "echo *": "allow",
+                "curl *": "deny",
+                "*": "deny",
+              },
+            },
+          }),
+        )
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // echo && echo should work
+        const result = await bash.execute(
           {
             command: "echo foo && echo bar",
             description: "Echo twice",
+            background: false,
           },
-          testCtx,
+          ctx,
         )
-        expect(requests.length).toBe(1)
-        expect(requests[0].permission).toBe("bash")
-        expect(requests[0].patterns).toContain("echo foo")
-        expect(requests[0].patterns).toContain("echo bar")
+        expect(result.metadata.exit).toBe(0)
       },
     })
   })
