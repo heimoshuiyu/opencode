@@ -6,7 +6,7 @@ import path from "path"
 import { spawn, type ChildProcess } from "child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
-const SIGKILL_TIMEOUT_MS = 200
+const SIGKILL_TIMEOUT_MS = 3000
 
 export namespace Shell {
   const BLACKLIST = new Set(["fish", "nu"])

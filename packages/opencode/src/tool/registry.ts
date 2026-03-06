@@ -27,6 +27,9 @@ import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
+import { JobOutputTool } from "./job-output"
 import { Effect, Layer, ServiceMap } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
@@ -156,6 +159,9 @@ export namespace ToolRegistry {
                 ...(question ? [QuestionTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
+                JobKillTool,
+                JobListTool,
+                JobOutputTool,
               ],
               build,
               { concurrency: "unbounded" },
