@@ -27,6 +27,9 @@ import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
+import { JobOutputTool } from "./job-output"
 import { Effect, Layer, ServiceMap } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
@@ -161,6 +164,9 @@ export namespace ToolRegistry {
             question: Tool.init(question),
             lsp: Tool.init(LspTool),
             plan: Tool.init(PlanExitTool),
+            jobKill: Tool.init(JobKillTool),
+            jobList: Tool.init(JobListTool),
+            jobOutput: Tool.init(JobOutputTool),
           })
 
           return {
@@ -183,6 +189,9 @@ export namespace ToolRegistry {
               tool.patch,
               ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [tool.lsp] : []),
               ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [tool.plan] : []),
+              tool.jobKill,
+              tool.jobList,
+              tool.jobOutput,
             ],
             task: tool.task,
             read: tool.read,
