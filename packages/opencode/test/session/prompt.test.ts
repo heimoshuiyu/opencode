@@ -57,6 +57,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { LocationServiceMap, locationServiceMapLayer } from "@opencode-ai/core/location-services"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 const summary = Layer.succeed(
   SessionSummary.Service,
@@ -186,6 +187,7 @@ const promptRoot = LayerNode.group([
   MCP.node,
   FSUtil.node,
   BackgroundJob.node,
+  BackgroundJobManager.node,
   SessionStatus.node,
   SessionRunState.node,
   Database.node,

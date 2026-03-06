@@ -15,6 +15,10 @@ export type Limits = {
 export function parameterSchema() {
   return Schema.Struct({
     command: Schema.String.annotate({ description: "The command to execute" }),
+    background: Schema.optional(Schema.Boolean).annotate({
+      description:
+        "Whether to run the command in the background. If false and command runs over 60 seconds, it will automatically be converted to background.",
+    }),
     timeout: Schema.optional(PositiveInt).annotate({ description: "Optional timeout in milliseconds" }),
     workdir: Schema.optional(Schema.String).annotate({
       description: `The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.`,
@@ -94,6 +98,7 @@ function bashCommandSection(chain: string, limits: Limits, defaultTimeoutMs: num
 
 Usage notes:
   - The command argument is required.
+  - The background parameter determines if command runs in background (true) or foreground (false, default). If false and command runs over 60 seconds, it will automatically be converted to background.
   - You can specify an optional timeout in milliseconds. If not specified, commands will time out after ${defaultTimeoutMs}ms.
   - If the output exceeds ${limits.maxLines} lines or ${limits.maxBytes} bytes, it will be truncated and the full output will be written to a file. You can use Read with offset/limit to read specific sections or Grep to search the full content. Do NOT use \`head\`, \`tail\`, or other truncation commands to limit output; the full output will already be captured to a file for more precise searching.
 
@@ -145,6 +150,7 @@ Before executing the command, please follow these steps:
 
 Usage notes:
   - The command argument is required.
+  - The background parameter determines if command runs in background (true) or foreground (false, default). If false and command runs over 60 seconds, it will automatically be converted to background.
   - You can specify an optional timeout in milliseconds. If not specified, commands will time out after ${defaultTimeoutMs}ms.
   - If the output exceeds ${limits.maxLines} lines or ${limits.maxBytes} bytes, it will be truncated and the full output will be written to a file. You can use Read with offset/limit to read specific sections or Grep to search the full content. Do NOT use \`Select-Object -First\`, \`Select-Object -Last\`, or other truncation commands to limit output; the full output will already be captured to a file for more precise searching.
 
@@ -194,6 +200,7 @@ Before executing the command, please follow these steps:
 
 Usage notes:
   - The command argument is required.
+  - The background parameter determines if command runs in background (true) or foreground (false, default). If false and command runs over 60 seconds, it will automatically be converted to background.
   - You can specify an optional timeout in milliseconds. If not specified, commands will time out after ${defaultTimeoutMs}ms.
   - If the output exceeds ${limits.maxLines} lines or ${limits.maxBytes} bytes, it will be truncated and the full output will be written to a file. You can use Read with offset/limit to read specific sections or Grep to search the full content. Do NOT use \`more\` or other pagination commands to limit output; the full output will already be captured to a file for more precise searching.
 
