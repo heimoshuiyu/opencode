@@ -6,7 +6,7 @@ import path from "path"
 import { spawn, type ChildProcess } from "child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
-const SIGKILL_TIMEOUT_MS = 200
+const SIGKILL_TIMEOUT_MS = 3000
 const META: Record<string, { deny?: boolean; login?: boolean; posix?: boolean; ps?: boolean }> = {
   bash: { login: true, posix: true },
   dash: { login: true, posix: true },
@@ -25,8 +25,7 @@ export type Item = {
   acceptable: boolean
 }
 
-export async function killTree(proc: ChildProcess, opts?: { exited?: () => boolean }): Promise<void> {
-  const pid = proc.pid
+export async function killTreeByPid(pid: number, opts?: { exited?: () => boolean }): Promise<void> {
   if (!pid || opts?.exited?.()) return
 
   if (process.platform === "win32") {
@@ -47,13 +46,18 @@ export async function killTree(proc: ChildProcess, opts?: { exited?: () => boole
     if (!opts?.exited?.()) {
       process.kill(-pid, "SIGKILL")
     }
-  } catch (_e) {
-    proc.kill("SIGTERM")
+  } catch {
+    process.kill(pid, "SIGTERM")
     await sleep(SIGKILL_TIMEOUT_MS)
     if (!opts?.exited?.()) {
-      proc.kill("SIGKILL")
+      process.kill(pid, "SIGKILL")
     }
   }
+}
+
+export async function killTree(proc: ChildProcess, opts?: { exited?: () => boolean }): Promise<void> {
+  if (!proc.pid) return
+  return killTreeByPid(proc.pid, opts)
 }
 
 function full(file: string) {
