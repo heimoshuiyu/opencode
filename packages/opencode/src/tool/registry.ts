@@ -29,6 +29,9 @@ import { Truncate } from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { pathToFileURL } from "url"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
+import { JobOutputTool } from "./job-output"
 import { Effect, Layer, ServiceMap } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
@@ -154,6 +157,10 @@ export namespace ToolRegistry {
       const batch = yield* build(BatchTool)
       const plan = yield* build(PlanExitTool)
 
+      const jobKill = yield* build(JobKillTool)
+      const jobList = yield* build(JobListTool)
+      const jobOutput = yield* build(JobOutputTool)
+
       const all = Effect.fn("ToolRegistry.all")(function* (custom: Tool.Info[]) {
         const cfg = yield* config.get()
         const question = ["app", "cli", "desktop"].includes(Flag.OPENCODE_CLIENT) || Flag.OPENCODE_ENABLE_QUESTION_TOOL
@@ -177,6 +184,9 @@ export namespace ToolRegistry {
           ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [lsp] : []),
           ...(cfg.experimental?.batch_tool === true ? [batch] : []),
           ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [plan] : []),
+          jobKill,
+          jobList,
+          jobOutput,
           ...custom,
         ]
       })
