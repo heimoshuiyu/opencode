@@ -38,6 +38,10 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Ripgrep } from "../file/ripgrep"
 import { Format } from "../format"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
+import { JobOutputTool } from "./job-output"
+import { BackgroundJobManager } from "./background-job-manager"
 import { InstanceState } from "@/effect/instance-state"
 import { EffectBridge } from "@/effect/bridge"
 import { Question } from "../question"
@@ -90,6 +94,7 @@ export const layer: Layer.Layer<
   | Skill.Service
   | Session.Service
   | BackgroundJob.Service
+  | BackgroundJobManager.Service
   | Provider.Service
   | Git.Service
   | RepositoryCache.Service
@@ -132,6 +137,9 @@ export const layer: Layer.Layer<
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const jobkill = yield* JobKillTool
+    const joblist = yield* JobListTool
+    const joboutput = yield* JobOutputTool
     const agent = yield* Agent.Service
 
     const state = yield* InstanceState.make<State>(
@@ -241,6 +249,9 @@ export const layer: Layer.Layer<
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
+          jobKill: Tool.init(jobkill),
+          jobList: Tool.init(joblist),
+          jobOutput: Tool.init(joboutput),
         })
 
         return {
@@ -263,6 +274,9 @@ export const layer: Layer.Layer<
             tool.patch,
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
+            tool.jobKill,
+            tool.jobList,
+            tool.jobOutput,
           ],
           task: tool.task,
           read: tool.read,
@@ -379,7 +393,7 @@ export const defaultLayer = Layer.suspend(() =>
       Layer.provide(Skill.defaultLayer),
       Layer.provide(Agent.defaultLayer),
       Layer.provide(Session.defaultLayer),
-      Layer.provide(BackgroundJob.defaultLayer),
+      Layer.provide(Layer.mergeAll(BackgroundJob.defaultLayer, BackgroundJobManager.defaultLayer)),
       Layer.provide(Provider.defaultLayer),
       Layer.provide(Layer.mergeAll(Git.defaultLayer, RepositoryCache.defaultLayer)),
       Layer.provide(Reference.defaultLayer),
