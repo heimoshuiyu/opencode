@@ -1,4 +1,4 @@
-Executes a given bash command in a persistent shell session with optional timeout, ensuring proper handling and security measures.
+Executes a given bash command in a persistent shell session, ensuring proper handling and security measures.
 
 Be aware: OS: ${os}, Shell: ${shell}
 
@@ -24,6 +24,7 @@ Before executing the command, please follow these steps:
 
 Usage notes:
   - The command argument is required.
+  - The background parameter determines if command runs in background (true) or foreground (false, default). If false and command runs over 60 seconds, it will automatically be converted to background.
   - You can specify an optional timeout in milliseconds. If not specified, commands will time out after 120000ms (2 minutes).
   - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
   - If the output exceeds ${maxLines} lines or ${maxBytes} bytes, it will be truncated and the full output will be written to a file. You can use Read with offset/limit to read specific sections or Grep to search the full content. Do NOT use `head`, `tail`, or other truncation commands to limit output; the full output will already be captured to a file for more precise searching.
@@ -63,7 +64,7 @@ Git Safety Protocol:
   (3) Commit has NOT been pushed to remote (verify: git status shows "Your branch is ahead")
 - CRITICAL: If commit FAILED or was REJECTED by hook, NEVER amend - fix the issue and create a NEW commit
 - CRITICAL: If you already pushed to remote, NEVER amend unless user explicitly requests it (requires force push)
-- NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked, otherwise the user will feel that you are being too proactive.
+- NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked, otherwise you will feel that you are being too proactive.
 
 1. You can call multiple tools in a single response. When multiple independent pieces of information are requested and all commands are likely to succeed, run multiple tool calls in parallel for optimal performance. run the following bash commands in parallel, each using the Bash tool:
   - Run a git status command to see all untracked files.
