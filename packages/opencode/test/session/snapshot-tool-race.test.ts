@@ -60,6 +60,7 @@ import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { Format } from "../../src/format"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 const mcp = Layer.succeed(
   MCP.Service,
@@ -124,6 +125,7 @@ function makeHttp() {
     mcp,
     FSUtil.defaultLayer,
     BackgroundJob.defaultLayer,
+    BackgroundJobManager.defaultLayer,
     status,
     Database.defaultLayer,
     EventV2Bridge.defaultLayer,
