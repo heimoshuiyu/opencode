@@ -29,6 +29,9 @@ import { Truncate } from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { pathToFileURL } from "url"
+import { JobOutputTool } from "./job-output"
+import { JobKillTool } from "./job-kill"
+import { JobListTool } from "./job-list"
 import { Effect, Layer, ServiceMap } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRunPromise } from "@/effect/run-service"
@@ -130,6 +133,9 @@ export namespace ToolRegistry {
           SkillTool,
           ApplyPatchTool,
           ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
+          JobOutputTool,
+          JobKillTool,
+          JobListTool,
           ...(cfg.experimental?.batch_tool === true ? [BatchTool] : []),
           ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
           ...custom,
