@@ -57,6 +57,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { LocationServiceMap } from "@opencode-ai/core/location-layer"
+import { BackgroundJobManager } from "@/tool/background-job-manager"
 
 const summary = Layer.succeed(
   SessionSummary.Service,
@@ -184,6 +185,7 @@ function makePrompt(input?: { mcpInstructions?: MCP.ServerInstructions[]; proces
     makeMcp(input?.mcpInstructions),
     FSUtil.defaultLayer,
     BackgroundJob.defaultLayer,
+    BackgroundJobManager.defaultLayer,
     status,
     Database.defaultLayer,
     EventV2Bridge.defaultLayer,
