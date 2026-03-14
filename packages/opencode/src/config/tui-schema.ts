@@ -22,6 +22,16 @@ export const TuiOptions = z.object({
     .enum(["auto", "stacked"])
     .optional()
     .describe("Control diff rendering style: 'auto' adapts to terminal width, 'stacked' always shows single column"),
+  voice: z
+    .object({
+      command: z
+        .array(z.string())
+        .optional()
+        .describe("Recorder command template with {output} placeholder"),
+      mime: z.string().optional().describe("Recorded audio mime type"),
+    })
+    .optional()
+    .describe("Voice input settings"),
 })
 
 export const TuiInfo = z
