@@ -141,8 +141,8 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
 
     // Dynamic theme-color for PWA/mobile status bar
     createEffect(() => {
-      store.themeId()
-      store.mode()
+      store.themeId
+      store.mode
       const bg = getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()
       if (!bg) return
       document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
