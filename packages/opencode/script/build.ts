@@ -4,6 +4,7 @@ import { $ } from "bun"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import { gzipSync } from "node:zlib"
 import solidPlugin from "@opentui/solid/bun-plugin"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -55,6 +56,51 @@ const migrations = await Promise.all(
   }),
 )
 console.log(`Loaded ${migrations.length} migrations`)
+
+// Build frontend and embed assets into the binary
+const embedWebFlag = !process.argv.includes("--no-embed-web")
+const appDir = path.resolve(dir, "../app")
+const appDistDir = path.join(appDir, "dist")
+
+let webAssetsDefine: string | undefined
+if (embedWebFlag && fs.existsSync(appDistDir)) {
+  console.log("Embedding web assets from packages/app/dist ...")
+  // { d?: raw base64 (for binary assets), g?: gzip base64 (for text assets) }
+  // Text assets are gzip-compressed to reduce binary size.
+  // Binary assets (png, ico, wasm, woff2) are stored raw — they're already compressed.
+  const assets: Record<string, { d?: string; g?: string }> = {}
+
+  const compressible = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".map", ".webmanifest"])
+  async function walk(dir: string, prefix: string) {
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name)
+      const rel = prefix ? `${prefix}/${entry.name}` : entry.name
+      if (entry.isDirectory()) {
+        await walk(full, rel)
+      } else {
+        const buf = await Bun.file(full).arrayBuffer()
+        const bytes = Buffer.from(buf)
+        const dot = rel.lastIndexOf(".")
+        const ext = dot >= 0 ? rel.slice(dot).toLowerCase() : ""
+        if (compressible.has(ext)) {
+          assets[rel] = { g: gzipSync(bytes).toString("base64") }
+        } else {
+          assets[rel] = { d: bytes.toString("base64") }
+        }
+      }
+    }
+  }
+
+  await walk(appDistDir, "")
+  const totalKeys = Object.keys(assets).length
+  console.log(`Embedded ${totalKeys} web asset files`)
+  // Inject as a JSON object literal into the define block
+  webAssetsDefine = JSON.stringify(assets)
+} else if (embedWebFlag) {
+  console.log("Warning: --no-embed-web not set but packages/app/dist not found; skipping web embedding")
+  console.log("  Run 'bun run --filter=@opencode-ai/app build' first, or pass --no-embed-web")
+}
 
 const singleFlag = process.argv.includes("--single")
 const baselineFlag = process.argv.includes("--baseline")
@@ -196,6 +242,7 @@ for (const item of targets) {
       OPENCODE_WORKER_PATH: workerPath,
       OPENCODE_CHANNEL: `'${Script.channel}'`,
       OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
+      ...(webAssetsDefine ? { OPENCODE_WEB_ASSETS: webAssetsDefine } : {}),
     },
   })
 

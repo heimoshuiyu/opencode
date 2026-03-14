@@ -43,7 +43,7 @@ describe("session messages endpoint", () => {
       fn: async () => {
         const session = await Session.create({})
         const ids = await fill(session.id, 5)
-        const app = Server.Default()
+        const app = Server.App()
 
         const a = await app.request(`/session/${session.id}/message?limit=2`)
         expect(a.status).toBe(200)
@@ -69,7 +69,7 @@ describe("session messages endpoint", () => {
       fn: async () => {
         const session = await Session.create({})
         const ids = await fill(session.id, 3)
-        const app = Server.Default()
+        const app = Server.App()
 
         const res = await app.request(`/session/${session.id}/message`)
         expect(res.status).toBe(200)
@@ -86,7 +86,7 @@ describe("session messages endpoint", () => {
       directory: root,
       fn: async () => {
         const session = await Session.create({})
-        const app = Server.Default()
+        const app = Server.App()
 
         const bad = await app.request(`/session/${session.id}/message?limit=2&before=bad`)
         expect(bad.status).toBe(400)
@@ -105,7 +105,7 @@ describe("session messages endpoint", () => {
       fn: async () => {
         const session = await Session.create({})
         await fill(session.id, 520)
-        const app = Server.Default()
+        const app = Server.App()
 
         const res = await app.request(`/session/${session.id}/message?limit=510`)
         expect(res.status).toBe(200)
