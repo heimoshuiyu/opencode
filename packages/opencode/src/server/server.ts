@@ -82,6 +82,7 @@ export namespace Server {
         if (c.req.method === "OPTIONS") return next()
         const password = Flag.OPENCODE_SERVER_PASSWORD
         if (!password) return next()
+        if (c.req.path === "/site.webmanifest") return next()
         const username = Flag.OPENCODE_SERVER_USERNAME ?? "opencode"
         return basicAuth({ username, password })(c, next)
       })
