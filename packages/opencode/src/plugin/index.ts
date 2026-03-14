@@ -30,7 +30,7 @@ export namespace Plugin {
             Authorization: `Basic ${Buffer.from(`${Flag.OPENCODE_SERVER_USERNAME ?? "opencode"}:${Flag.OPENCODE_SERVER_PASSWORD}`).toString("base64")}`,
           }
         : undefined,
-      fetch: async (...args) => Server.Default().fetch(...args),
+      fetch: async (...args) => Server.App().fetch(...args),
     })
     const config = await Config.get()
     const hooks: Hooks[] = []
@@ -40,7 +40,7 @@ export namespace Plugin {
       worktree: Instance.worktree,
       directory: Instance.directory,
       get serverUrl(): URL {
-        return Server.url ?? new URL("http://localhost:4096")
+        return Server.url()
       },
       $: Bun.$,
     }
