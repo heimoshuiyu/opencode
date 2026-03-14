@@ -17,6 +17,7 @@ import { Flag } from "../flag/flag"
 import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
 import { Snapshot } from "@/snapshot"
+import { VoiceRoutes } from "./routes/voice"
 import { ProjectRoutes } from "./routes/project"
 import { SessionRoutes } from "./routes/session"
 import { PtyRoutes } from "./routes/pty"
@@ -55,6 +56,7 @@ export const InstanceRoutes = (app?: Hono) =>
     .route("/", FileRoutes())
     .route("/", EventRoutes())
     .route("/mcp", McpRoutes())
+    .route("/voice", VoiceRoutes())
     .route("/tui", TuiRoutes())
     .post(
       "/instance/dispose",
