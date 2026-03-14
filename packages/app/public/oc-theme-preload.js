@@ -16,6 +16,17 @@
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
 
+  // Set initial theme-color for mobile PWA status bar
+  var bg = isDark ? "#101010" : "#f8f8f8"
+  if (themeId !== "oc-2") {
+    var computed = getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()
+    if (computed) bg = computed
+  }
+  var metas = document.querySelectorAll('meta[name="theme-color"]')
+  for (var i = 0; i < metas.length; i++) {
+    metas[i].content = bg
+  }
+
   if (themeId === "oc-2") return
 
   var css = localStorage.getItem("opencode-theme-css-" + mode)
