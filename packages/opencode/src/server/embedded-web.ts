@@ -82,7 +82,7 @@ export function serveEmbedded(p: string): Response | undefined {
   return new Response(new Uint8Array(bytes), {
     headers: {
       "content-type": mime(key),
-      "cache-control": "public, max-age=86400",
+      "cache-control": cc,
     },
   })
 }
