@@ -44,6 +44,7 @@ import { GlobalRoutes } from "./routes/global"
 import { MDNS } from "./mdns"
 import { lazy } from "@/util/lazy"
 import { VoiceRoutes } from "./routes/voice"
+import { hasEmbedded, serveEmbedded, shouldProxy } from "./embedded-web"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -51,7 +52,15 @@ globalThis.AI_SDK_LOG_WARNINGS = false
 export namespace Server {
   const log = Log.create({ service: "server" })
 
-  export const Default = lazy(() => createApp({}))
+  let _url: URL | undefined
+  let _corsWhitelist: string[] = []
+
+  export function url(): URL {
+    return _url ?? new URL("http://localhost:4096")
+  }
+
+  export const App = lazy(() => createApp({}))
+  export const Default = App
 
   export const createApp = (opts: { cors?: string[] }): Hono => {
     const app = new Hono()
@@ -120,6 +129,9 @@ export namespace Server {
               return input
             }
             if (opts?.cors?.includes(input)) {
+              return input
+            }
+            if (_corsWhitelist.includes(input)) {
               return input
             }
 
@@ -501,27 +513,52 @@ export namespace Server {
         },
       )
       .all("/*", async (c) => {
-        const path = c.req.path
-        // Fork override: default web URL points to personal CloudFront; upstream default was https://app.opencode.ai
+        const reqPath = c.req.path
+        const csp =
+          "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' data:; connect-src 'self' data:"
+
+        if (shouldProxy()) {
+          const target = Flag.OPENCODE_WEB_URL!
+          const response = await proxy(`${target}${reqPath}`, {
+            ...c.req,
+            headers: {
+              ...c.req.raw.headers,
+              host: new URL(target).host,
+            },
+          })
+          response.headers.set("Content-Security-Policy", csp)
+          return response
+        }
+
+        if (hasEmbedded()) {
+          const res = serveEmbedded(reqPath)
+          if (res) {
+            res.headers.set("Content-Security-Policy", csp)
+            return res
+          }
+          const fallback = serveEmbedded("index.html")
+          if (fallback) {
+            fallback.headers.set("Content-Security-Policy", csp)
+            return fallback
+          }
+        }
+
         const target = Flag.OPENCODE_WEB_URL ?? "https://d3ir6x3lfy3u68.cloudfront.net"
-        const response = await proxy(`${target}${path}`, {
+        const response = await proxy(`${target}${reqPath}`, {
           ...c.req,
           headers: {
             ...c.req.raw.headers,
             host: new URL(target).host,
           },
         })
-        response.headers.set(
-          "Content-Security-Policy",
-          "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' data:; connect-src 'self' data:",
-        )
+        response.headers.set("Content-Security-Policy", csp)
         return response
       })
   }
 
   export async function openapi() {
     // Cast to break excessive type recursion from long route chains
-    const result = await generateSpecs(Default(), {
+    const result = await generateSpecs(App(), {
       documentation: {
         info: {
           title: "opencode",
@@ -534,9 +571,6 @@ export namespace Server {
     return result
   }
 
-  /** @deprecated do not use this dumb shit */
-  export let url: URL
-
   export function listen(opts: {
     port: number
     hostname: string
@@ -544,12 +578,11 @@ export namespace Server {
     mdnsDomain?: string
     cors?: string[]
   }) {
-    url = new URL(`http://${opts.hostname}:${opts.port}`)
-    const app = createApp(opts)
+    _corsWhitelist = opts.cors ?? []
     const args = {
       hostname: opts.hostname,
       idleTimeout: 0,
-      fetch: app.fetch,
+      fetch: App().fetch,
       websocket: websocket,
     } as const
     const tryServe = (port: number) => {
@@ -561,6 +594,7 @@ export namespace Server {
     }
     const server = opts.port === 0 ? (tryServe(4096) ?? tryServe(0)) : tryServe(opts.port)
     if (!server) throw new Error(`Failed to start server on port ${opts.port}`)
+    _url = server.url
 
     const shouldPublishMDNS =
       opts.mdns &&
