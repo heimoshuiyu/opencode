@@ -95,9 +95,9 @@ export const BashTool = Tool.define("bash", async () => {
       }
       const tool = redirects[name]
       const base = tool === "Grep or Glob"
-        ? "Command starts with 'find'. Use the `Grep` or `Glob` tool instead."
-        : `Command starts with '${name}'. Use the \`${tool}\` tool instead.`
-      const message = `${base}\n\nTip: If you really want to use this tool, add a \"# confirm\" comment at the end of the command and run it again.`
+        ? "<ERROR>Command starts with 'find'. Use the `Grep` or `Glob` tool instead.</ERROR>"
+        : `<ERROR>Command starts with '${name}'. Use the \`${tool}\` tool instead.</ERROR>`
+      const message = `<SYSTEM-REMINDER>\n${base}\n\nTip: If you really want to use this tool, add a \"# confirm\" comment at the end of the command and run it again\n</SYSTEM-REMINDER>`
 
       if (tool && !confirm) {
         return {
