@@ -40,10 +40,26 @@ export const ErrorMiddleware: ErrorHandler = (err, c) => {
   })
 }
 
+function isStaticPath(path: string, method: string) {
+  if (method !== "GET" && method !== "HEAD") return false
+  if (
+    path === "/" ||
+    path === "/index.html" ||
+    path === "/site.webmanifest" ||
+    path === "/favicon.ico" ||
+    path === "/robots.txt" ||
+    path === "/oc-theme-preload.js"
+  )
+    return true
+  if (path.startsWith("/assets/")) return true
+  return false
+}
+
 export const AuthMiddleware: MiddlewareHandler = (c, next) => {
   // Allow CORS preflight requests to succeed without auth.
-  // Browser clients sending Authorization headers will preflight with OPTIONS.
+  // Browser clients sending Authorization headers will prefill with OPTIONS.
   if (c.req.method === "OPTIONS") return next()
+  if (isStaticPath(c.req.path, c.req.method)) return next()
   const password = Flag.OPENCODE_SERVER_PASSWORD
   if (!password) return next()
   if (isPublicUIPath(c.req.method, c.req.path)) return next()
