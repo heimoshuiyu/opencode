@@ -15,6 +15,10 @@ const STORAGE_KEYS = {
 } as const
 
 const THEME_STYLE_ID = "oc-theme"
+const FALLBACK = {
+  light: "#F8F7F7",
+  dark: "#131010",
+} as const
 
 function normalize(id: string | null | undefined) {
   return id === "oc-1" ? "oc-2" : id
@@ -36,6 +40,22 @@ function ensureThemeStyleElement(): HTMLStyleElement {
 
 function getSystemMode(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+}
+
+function paint(mode: "light" | "dark") {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()
+  const fill = raw || FALLBACK[mode]
+  const tags = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+
+  if (tags.length) {
+    tags.forEach((item) => item.setAttribute("content", fill))
+  }
+  if (!tags.length) {
+    const tag = document.createElement("meta")
+    tag.name = "theme-color"
+    tag.content = fill
+    document.head.appendChild(tag)
+  }
 }
 
 function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "dark") {
@@ -60,6 +80,7 @@ function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "da
   ensureThemeStyleElement().textContent = fullCss
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
+  paint(mode)
 }
 
 function cacheThemeVariants(theme: DesktopTheme, themeId: string) {
