@@ -24,6 +24,20 @@ import { createAdaptorServer, type ServerType } from "@hono/node-server"
 globalThis.AI_SDK_LOG_WARNINGS = false
 
 initProjectors()
+function web(path: string, method: string) {
+  if (method !== "GET" && method !== "HEAD") return false
+  if (
+    path === "/" ||
+    path === "/index.html" ||
+    path === "/site.webmanifest" ||
+    path === "/favicon.ico" ||
+    path === "/robots.txt" ||
+    path === "/oc-theme-preload.js"
+  )
+    return true
+  if (path.startsWith("/assets/")) return true
+  return false
+}
 
 export namespace Server {
   export type Listener = {
@@ -51,6 +65,7 @@ export namespace Server {
         // Allow CORS preflight requests to succeed without auth.
         // Browser clients sending Authorization headers will preflight with OPTIONS.
         if (c.req.method === "OPTIONS") return next()
+        if (web(c.req.path, c.req.method)) return next()
         const password = Flag.OPENCODE_SERVER_PASSWORD
         if (!password) return next()
         const username = Flag.OPENCODE_SERVER_USERNAME ?? "opencode"
