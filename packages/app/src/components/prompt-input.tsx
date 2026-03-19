@@ -780,11 +780,7 @@ const handleCompositionStart = () => {
     const dropped = event.dataTransfer?.files
     if (!dropped) return
 
-    for (const file of Array.from(dropped)) {
-      if (ACCEPTED_FILE_TYPES.includes(file.type)) {
-        await addAttachment(file)
-      }
-    }
+    await addAttachments(Array.from(dropped).filter((file) => ACCEPTED_FILE_TYPES.includes(file.type)))
   }
 
   onMount(() => {
