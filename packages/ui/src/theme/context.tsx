@@ -80,6 +80,10 @@ const names: Record<string, string> = {
   zenburn: "Zenburn",
 }
 const oc2Theme = oc2ThemeJson as DesktopTheme
+const FALLBACK = {
+  light: "#F8F7F7",
+  dark: "#131010",
+} as const
 
 function normalize(id: string | null | undefined) {
   return id === "oc-1" ? "oc-2" : id
@@ -127,6 +131,16 @@ function getSystemMode(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
+function paint(mode: "light" | "dark") {
+  const fill =
+    getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim() || FALLBACK[mode]
+  const tag =
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]') ??
+    Object.assign(document.createElement("meta"), { name: "theme-color" })
+  tag.content = fill
+  if (!tag.parentElement) document.head.appendChild(tag)
+}
+
 function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "dark") {
   const isDark = mode === "dark"
   const variant = isDark ? theme.dark : theme.light
@@ -147,6 +161,7 @@ function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "da
   ensureThemeStyleElement().textContent = fullCss
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
+  paint(mode)
 }
 
 function cacheThemeVariants(theme: DesktopTheme, themeId: string) {

@@ -12,13 +12,27 @@
   var scheme = localStorage.getItem("opencode-color-scheme") || "system"
   var isDark = scheme === "dark" || (scheme === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
   var mode = isDark ? "dark" : "light"
+  var fill = isDark ? "#131010" : "#F8F7F7"
 
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
 
+  var css = themeId === "oc-2" ? null : localStorage.getItem("opencode-theme-css-" + mode)
+  if (css) {
+    var m = css.match(/--background-base\s*:\s*([^;]+)/)
+    if (m) fill = m[1].trim()
+  }
+
+  var tag = document.querySelector('meta[name="theme-color"]')
+  if (!tag) {
+    tag = document.createElement("meta")
+    tag.name = "theme-color"
+    document.head.appendChild(tag)
+  }
+  tag.content = fill
+
   if (themeId === "oc-2") return
 
-  var css = localStorage.getItem("opencode-theme-css-" + mode)
   if (css) {
     var style = document.createElement("style")
     style.id = "oc-theme-preload"
