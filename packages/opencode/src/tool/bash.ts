@@ -530,17 +530,16 @@ export const BashTool = Tool.define("bash", async () => {
         throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
       }
       const timeout = params.timeout ?? DEFAULT_TIMEOUT
-      const ps = PS.has(name)
-      const root = await parse(params.command, ps)
-      const scan = await collect(root, cwd, ps, shell)
-      if (!Instance.containsPath(cwd)) scan.dirs.add(cwd)
-      await ask(ctx, scan)
-
       const background = params.background ?? false
       const trimmed = params.command.trimStart()
       const confirm = /#\s*confirm\s*$/i.test(trimmed)
       const match = trimmed.match(/^[^\s]+/)
       const name = match ? match[0] : ""
+      const ps = PS.has(name)
+      const root = await parse(params.command, ps)
+      const scan = await collect(root, cwd, ps, shell)
+      if (!Instance.containsPath(cwd)) scan.dirs.add(cwd)
+      await ask(ctx, scan)
       const redirects: Record<string, string> = {
         grep: "Grep",
         cat: "Read",
