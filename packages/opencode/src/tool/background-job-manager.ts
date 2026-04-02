@@ -184,6 +184,10 @@ export namespace BackgroundJobManager {
     eventEmitter.on("jobComplete", callback)
   }
 
+  export function offJobComplete(callback: (data: { jobId: string; status: string; exitCode?: number; error?: string }) => void): void {
+    eventEmitter.removeListener("jobComplete", callback)
+  }
+
   function scheduleCleanup(jobId: string): void {
     setTimeout(() => {
       cleanupJob(jobId)
