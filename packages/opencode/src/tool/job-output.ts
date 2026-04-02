@@ -58,25 +58,30 @@ The tool returns the current output and whether the job has finished.`,
 
         // Wait for either completion or timeout
         await new Promise<void>((resolve) => {
+          let done = false
+          const finish = () => {
+            if (done) return
+            done = true
+            clearInterval(checkInterval)
+            BackgroundJobManager.offJobComplete(onComplete)
+            resolve()
+          }
+
           const checkInterval = setInterval(() => {
             current = getCurrentOutput()
-
-            // Check if job completed or timeout reached
             const timeElapsed = Date.now() - startTime
             if (current.completed || timeElapsed >= maxWaitMs) {
-              clearInterval(checkInterval)
-              resolve()
+              finish()
             }
-          }, 100) // Check every 100ms
+          }, 100)
 
-          // Also listen for job completion events
-          BackgroundJobManager.onJobComplete((data) => {
+          const onComplete = (data: { jobId: string }) => {
             if (data.jobId === jobId) {
               current = getCurrentOutput()
-              clearInterval(checkInterval)
-              resolve()
+              finish()
             }
-          })
+          }
+          BackgroundJobManager.onJobComplete(onComplete)
         })
       }
 
