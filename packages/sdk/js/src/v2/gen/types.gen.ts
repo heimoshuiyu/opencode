@@ -1461,6 +1461,61 @@ export type Config = {
    */
   $schema?: string
   logLevel?: LogLevel
+  /**
+   * Voice transcription settings
+   */
+  voice?: {
+    /**
+     * Transcription provider type
+     */
+    type?: "whisper" | "alm"
+    /**
+     * Whisper transcription settings
+     */
+    whisper?: {
+      /**
+       * Whisper API URL
+       */
+      url?: string
+      /**
+       * Whisper API key
+       */
+      apiKey?: string
+      /**
+       * Whisper model name
+       */
+      model?: string
+      /**
+       * Whisper language code
+       */
+      language?: string
+    }
+    /**
+     * Audio language model transcription settings
+     */
+    alm?: {
+      /**
+       * Audio LM API URL
+       */
+      url?: string
+      /**
+       * Audio LM API key
+       */
+      apiKey?: string
+      /**
+       * Audio LM model name
+       */
+      model?: string
+      /**
+       * Audio LM base prompt
+       */
+      prompt?: string
+      /**
+       * Audio LM system prompt
+       */
+      system?: string
+    }
+  }
   server?: ServerConfig
   /**
    * Command configuration, see https://opencode.ai/docs/commands
@@ -4852,6 +4907,27 @@ export type McpDisconnectResponses = {
 }
 
 export type McpDisconnectResponse = McpDisconnectResponses[keyof McpDisconnectResponses]
+
+export type AudioTranscribeData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text?: string
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type TuiAppendPromptData = {
   body?: {
