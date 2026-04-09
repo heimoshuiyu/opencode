@@ -1710,7 +1710,7 @@ const handleCompositionStart = () => {
       <Show when={store.mode === "normal" || store.mode === "shell"}>
         <DockTray attach="top">
           <div class="px-1.75 pt-5.5 pb-2 flex items-center gap-2 min-w-0">
-            <div class="flex items-center gap-1.5 min-w-0 flex-1 relative">
+            <div class="flex-1 min-w-0 overflow-x-auto no-scrollbar relative">
               <div
                 class="h-7 flex items-center gap-1.5 max-w-[160px] min-w-0 absolute inset-y-0 left-0"
                 style={{
@@ -1721,7 +1721,8 @@ const handleCompositionStart = () => {
                 <span class="truncate text-13-medium text-text-strong">{language.t("prompt.mode.shell")}</span>
                 <div class="size-4 shrink-0" />
               </div>
-              <div class="flex items-center gap-1.5 min-w-0 flex-1 h-7">
+              <div class="flex items-center gap-1.5 min-w-max">
+                <div class="flex items-center gap-1.5">
                 <Show when={!agentsLoading()}>
                   <div data-component="prompt-agent-control">
                     <TooltipKeybind
@@ -1846,10 +1847,11 @@ const handleCompositionStart = () => {
                     </div>
                   </Show>
                 </Show>
+                </div>
               </div>
             </div>
             <TooltipKeybind placement="top" title={voiceTitle()} keybind={command.keybind("prompt.voice")}>
-              <Button type="button" variant="ghost" class="h-6 w-6" onClick={toggleVoice}>
+              <Button type="button" variant="ghost" class="h-6 w-6 shrink-0" onClick={toggleVoice}>
                 <Switch>
                   <Match when={transcribing()}>
                     <Spinner class="size-4 text-icon-base" />
