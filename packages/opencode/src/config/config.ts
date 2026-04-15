@@ -91,11 +91,35 @@ const LogLevelRef = Schema.Any.annotate({ [ZodOverride]: Log.Level })
 const PositiveInt = Schema.Number.check(Schema.isInt()).check(Schema.isGreaterThan(0))
 const NonNegativeInt = Schema.Number.check(Schema.isInt()).check(Schema.isGreaterThanOrEqualTo(0))
 
+const VoiceSchema = Schema.Struct({
+  type: Schema.optional(Schema.Literals(["whisper", "alm"])).annotate({
+    description: "Transcription provider type",
+  }),
+  whisper: Schema.optional(
+    Schema.Struct({
+      url: Schema.optional(Schema.String).annotate({ description: "Whisper API URL" }),
+      apiKey: Schema.optional(Schema.String).annotate({ description: "Whisper API key" }),
+      model: Schema.optional(Schema.String).annotate({ description: "Whisper model name" }),
+      language: Schema.optional(Schema.String).annotate({ description: "Whisper language code" }),
+    }),
+  ).annotate({ description: "Whisper transcription settings" }),
+  alm: Schema.optional(
+    Schema.Struct({
+      model: Schema.optional(ConfigModelID).annotate({
+        description: "Model to use for audio transcription in the format of provider/model, eg openai/gpt-4o-audio-preview",
+      }),
+      prompt: Schema.optional(Schema.String).annotate({ description: "Audio LM base prompt" }),
+      system: Schema.optional(Schema.String).annotate({ description: "Audio LM system prompt" }),
+    }),
+  ).annotate({ description: "Audio language model transcription settings" }),
+}).annotate({ description: "Voice transcription settings" })
+
 const InfoSchema = Schema.Struct({
   $schema: Schema.optional(Schema.String).annotate({
     description: "JSON schema reference for configuration validation",
   }),
   logLevel: Schema.optional(LogLevelRef).annotate({ description: "Log level" }),
+  voice: Schema.optional(VoiceSchema).annotate({ description: "Voice transcription settings" }),
   server: Schema.optional(ConfigServer.Server).annotate({
     description: "Server configuration for opencode serve and web commands",
   }),
