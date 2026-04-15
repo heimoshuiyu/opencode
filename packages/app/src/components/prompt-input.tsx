@@ -78,6 +78,7 @@ import { useQueryOptions } from "@/context/server-sync"
 import { pathKey } from "@/utils/path-key"
 import { base64Encode } from "@opencode-ai/core/util/encode"
 import { displayName } from "@/pages/layout/helpers"
+import { createVoiceInput, VoiceButton } from "./prompt-input/voice"
 
 interface PromptInputProps {
   class?: string
@@ -581,6 +582,23 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     })
   }
 
+  command.register(() => [
+    {
+      id: "prompt.voice",
+      title: "Voice input",
+      description: "Start or stop voice recording",
+      category: "Prompt",
+      keybind: "mod+shift+v",
+      onSelect: () => {
+        if (voice.hasLastRecording() && !voice.transcribing()) {
+          void voice.confirmRetry()
+        } else {
+          void voice.toggleVoice()
+        }
+      },
+    },
+  ])
+
   const agentList = createMemo(() =>
     sync.data.agent
       .filter((agent) => !agent.hidden && agent.mode !== "primary")
@@ -1009,6 +1027,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     closePopover()
     return true
   }
+
+  const voice = createVoiceInput({
+    sdk,
+    editorText: () => prompt.current().map((part) => ("content" in part ? part.content : "")).join(""),
+    addPart,
+    editorRef,
+    queueScroll,
+  })
 
   const addToHistory = (prompt: Prompt, mode: "normal" | "shell") => {
     const currentHistory = mode === "shell" ? shellHistory : history
@@ -1570,6 +1596,16 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                   </Show>
                   <ComposerModelControl state={modelControlState()} />
                 </div>
+                <VoiceButton
+                  voiceTitle={voice.voiceTitle}
+                  toggleVoice={voice.toggleVoice}
+                  confirmRetry={voice.confirmRetry}
+                  cancelRetry={voice.cancelRetry}
+                  recording={voice.recording}
+                  transcribing={voice.transcribing}
+                  hasLastRecording={voice.hasLastRecording}
+                  keybind={command.keybind("prompt.voice")}
+                />
                 <Tooltip placement="top" inactive={!working() && blank()} value={tip()}>
                   <IconButton
                     data-action="prompt-submit"
@@ -1762,7 +1798,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           <Show when={store.mode === "normal" || store.mode === "shell"}>
             <DockTray attach="top">
               <div class="px-1.75 pt-5.5 pb-2 flex items-center gap-2 min-w-0">
-                <div class="flex items-center gap-1.5 min-w-0 flex-1 relative">
+                <div class="flex-1 min-w-0 overflow-x-auto no-scrollbar relative">
                   <div
                     class="h-7 flex items-center gap-1.5 min-w-0 absolute inset-0"
                     style={{
@@ -1783,7 +1819,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                       {language.t("common.cancel")}
                     </Button>
                   </div>
-                  <div class="flex items-center gap-1.5 min-w-0 flex-1 h-7">
+                  <div class="flex items-center gap-1.5 min-w-max">
                     <Show when={!agentsLoading()}>
                       <div
                         data-component="prompt-agent-control"
@@ -1921,6 +1957,16 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     </Show>
                   </div>
                 </div>
+              <VoiceButton
+                voiceTitle={voice.voiceTitle}
+                toggleVoice={voice.toggleVoice}
+                confirmRetry={voice.confirmRetry}
+                cancelRetry={voice.cancelRetry}
+                recording={voice.recording}
+                transcribing={voice.transcribing}
+                hasLastRecording={voice.hasLastRecording}
+                keybind={command.keybind("prompt.voice")}
+              />
               </div>
             </DockTray>
           </Show>
