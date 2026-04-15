@@ -54,6 +54,7 @@ import { Snapshot } from "@/snapshot"
 import { ToolRegistry } from "@/tool/registry"
 import { lazy } from "@/util/lazy"
 import { Vcs } from "@/project/vcs"
+import { Voice } from "@/voice"
 import { Worktree } from "@/worktree"
 import { Workspace } from "@/control-plane/workspace"
 import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
@@ -71,6 +72,7 @@ import {
 import { EventApi } from "./groups/event"
 import { PtyConnectApi } from "./groups/pty"
 import { eventHandlers } from "./handlers/event"
+import { audioHandlers } from "./handlers/audio"
 import { configHandlers } from "./handlers/config"
 import { controlHandlers } from "./handlers/control"
 import { controlPlaneHandlers } from "./handlers/control-plane"
@@ -138,6 +140,7 @@ const ptyConnectApiRoutes = HttpApiBuilder.layer(PtyConnectApi).pipe(
 )
 const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
   Layer.provide([
+    audioHandlers,
     configHandlers,
     experimentalHandlers,
     fileHandlers,
@@ -251,6 +254,7 @@ export function createRoutes(
       Todo.defaultLayer,
       ToolRegistry.defaultLayer,
       Vcs.defaultLayer,
+      Voice.defaultLayer,
       Workspace.defaultLayer,
       Worktree.appLayer,
       FSUtil.defaultLayer,
