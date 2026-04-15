@@ -70,6 +70,13 @@ export const Prompt = Schema.Struct({
   }),
 }).annotate({ description: "Prompt size settings" })
 
+export const VoiceConfig = Schema.Struct({
+  command: Schema.optional(Schema.Array(Schema.String)).annotate({
+    description: "Recorder command template with {output} placeholder",
+  }),
+  mime: Schema.optional(Schema.String).annotate({ description: "Recorded audio mime type" }),
+}).annotate({ description: "Voice input settings" })
+
 export const TuiInfo = Schema.Struct({
   $schema: Schema.optional(Schema.String),
   theme: Schema.optional(Schema.String),
@@ -85,4 +92,5 @@ export const TuiInfo = Schema.Struct({
   scroll_acceleration: Schema.optional(ScrollAcceleration),
   diff_style: Schema.optional(DiffStyle),
   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable or disable mouse capture (default: true)" }),
+  voice: Schema.optional(VoiceConfig),
 })

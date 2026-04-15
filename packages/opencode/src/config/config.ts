@@ -131,6 +131,37 @@ const LogLevelRef = Schema.Literals(["DEBUG", "INFO", "WARN", "ERROR"]).annotate
   description: "Log level",
 })
 
+const VoiceSchema = Schema.Struct({
+  type: Schema.optional(Schema.Literals(["whisper", "lalm"])).annotate({
+    description: "Transcription provider type",
+  }),
+  whisper: Schema.optional(
+    Schema.Struct({
+      url: Schema.optional(Schema.String).annotate({ description: "Whisper API URL" }),
+      apiKey: Schema.optional(Schema.String).annotate({ description: "Whisper API key" }),
+      model: Schema.optional(Schema.String).annotate({ description: "Whisper model name" }),
+      language: Schema.optional(Schema.String).annotate({ description: "Whisper language code" }),
+    }),
+  ).annotate({ description: "Whisper transcription settings" }),
+  lalm: Schema.optional(
+    Schema.Struct({
+      model: Schema.optional(ConfigModelID).annotate({
+        description: "Model to use for audio transcription in the format of provider/model, eg openai/gpt-4o-audio-preview",
+      }),
+      prompt: Schema.optional(Schema.String).annotate({ description: "Large Audio Language Model base prompt" }),
+      system: Schema.optional(Schema.String).annotate({ description: "Large Audio Language Model system prompt" }),
+      instruction: Schema.optional(Schema.String).annotate({ description: "Instruction text appended after the audio content to guide transcription behavior" }),
+      audio_input_format: Schema.optional(Schema.Literals(["input_audio", "audio_url"])).annotate({
+        description:
+          'Audio input format for the LLM API. "input_audio" (default) sends audio as OpenAI-style base64 parts. "audio_url" sends audio as data-URL parts compatible with SiliconFlow/Qwen-style APIs.',
+      }),
+    }),
+  ).annotate({ description: "Large Audio Language Model transcription settings" }),
+  context_pairs: Schema.optional(Schema.Int.check(Schema.isGreaterThanOrEqualTo(1), Schema.isLessThanOrEqualTo(10))).annotate({
+    description: "Number of recent user/assistant conversation pairs to include as transcription context (default: 3)",
+  }),
+}).annotate({ description: "Voice transcription settings" })
+
 export const Info = Schema.Struct({
   $schema: Schema.optional(Schema.String).annotate({
     description: "JSON schema reference for configuration validation",
@@ -139,6 +170,7 @@ export const Info = Schema.Struct({
     description: "Default shell to use for terminal and bash tool",
   }),
   logLevel: Schema.optional(LogLevelRef).annotate({ description: "Log level" }),
+  voice: Schema.optional(VoiceSchema).annotate({ description: "Voice transcription settings" }),
   server: Schema.optional(ConfigServer.Server).annotate({
     description: "Server configuration for opencode serve and web commands",
   }),
