@@ -51,6 +51,7 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
+import { useVoice } from "./voice"
 import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
 import { Flag } from "@opencode-ai/core/flag/flag"
@@ -211,6 +212,21 @@ export function Prompt(props: PromptProps) {
     setDismissedEditorSelectionKey(editorSelectionKey(editorContext()))
     editor.clearSelection()
   }
+  const voiceWorkspaceID = () => {
+    const sessionID = props.sessionID
+    if (sessionID) return sync.session.get(sessionID)?.workspaceID ?? project.workspace.current()
+    const ws = workspace.selection()
+    if (!ws) return project.workspace.current()
+    if (ws.type === "none") return undefined
+    if (ws.type === "existing") return ws.workspaceID
+    return undefined
+  }
+  const voice = useVoice({
+    input: () => input,
+    promptInput: () => store.prompt.input,
+    sessionID: () => props.sessionID,
+    workspaceID: voiceWorkspaceID,
+  })
   const fileStyleId = syntax().getStyleId("extmark.file")!
   const agentStyleId = syntax().getStyleId("extmark.agent")!
   const pasteStyleId = syntax().getStyleId("extmark.paste")!
@@ -347,6 +363,18 @@ export function Prompt(props: PromptProps) {
         run: () => {
           dismissEditorContext()
           dialog.clear()
+        },
+      },
+      {
+        title: "Voice input",
+        name: "prompt.voice",
+        category: "Prompt",
+        run: async () => {
+          if (voice.pendingRetry()) {
+            await voice.confirmRetry()
+          } else {
+            await voice.toggle()
+          }
         },
       },
       {
@@ -550,6 +578,7 @@ export function Prompt(props: PromptProps) {
       "prompt.submit",
       "prompt.editor",
       "prompt.editor_context.clear",
+      "prompt.voice",
       "prompt.stash",
       "prompt.stash.pop",
       "prompt.stash.list",
@@ -790,6 +819,14 @@ export function Prompt(props: PromptProps) {
       target: inputTarget,
       enabled: inputTarget() !== undefined && !props.disabled && store.prompt.input !== "",
       bindings: tuiConfig.keybinds.get("prompt.clear"),
+    }
+  })
+
+  useBindings(() => {
+    return {
+      target: inputTarget,
+      enabled: inputTarget() !== undefined && !props.disabled,
+      bindings: tuiConfig.keybinds.get("prompt.voice"),
     }
   })
 
@@ -1484,6 +1521,33 @@ export function Prompt(props: PromptProps) {
               <Show when={hasRightContent()}>
                 <box flexDirection="row" gap={1} alignItems="center">
                   {props.right}
+                </box>
+              </Show>
+              <Show
+                when={voice.pendingRetry()}
+                fallback={
+                  <box
+                    flexDirection="row"
+                    onMouseUp={async () => {
+                      if (!voice.enabled() && !voice.recording() && !voice.processing()) return
+                      await voice.toggle()
+                    }}
+                  >
+                    <text fg={voice.color()}>{voice.label()}</text>
+                  </box>
+                }
+              >
+                <box flexDirection="row" gap={1}>
+                  <box
+                    onMouseUp={() => voice.confirmRetry()}
+                  >
+                    <text fg={theme.warning}>Retry</text>
+                  </box>
+                  <box
+                    onMouseUp={() => voice.cancelRetry()}
+                  >
+                    <text fg={theme.textMuted}>Cancel</text>
+                  </box>
                 </box>
               </Show>
             </box>
