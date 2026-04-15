@@ -26,6 +26,7 @@ import { ExperimentalRoutes } from "./experimental"
 import { ProviderRoutes } from "./provider"
 import { EventRoutes } from "./event"
 import { SyncRoutes } from "./sync"
+import { VoiceRoutes } from "./voice"
 import { InstanceMiddleware } from "./middleware"
 import { jsonRequest } from "./trace"
 
@@ -63,6 +64,7 @@ export const InstanceRoutes = (upgrade: UpgradeWebSocket): Hono => {
     .route("/", FileRoutes())
     .route("/", EventRoutes())
     .route("/mcp", McpRoutes())
+    .route("/voice", VoiceRoutes())
     .route("/tui", TuiRoutes())
     .post(
       "/instance/dispose",

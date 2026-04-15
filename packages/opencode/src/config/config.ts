@@ -91,6 +91,29 @@ const LogLevelRef = Schema.Any.annotate({ [ZodOverride]: Log.Level })
 const PositiveInt = Schema.Number.check(Schema.isInt()).check(Schema.isGreaterThan(0))
 const NonNegativeInt = Schema.Number.check(Schema.isInt()).check(Schema.isGreaterThanOrEqualTo(0))
 
+const VoiceSchema = Schema.Struct({
+  type: Schema.optional(Schema.Literals(["whisper", "lalm"])).annotate({
+    description: "Transcription provider type",
+  }),
+  whisper: Schema.optional(
+    Schema.Struct({
+      url: Schema.optional(Schema.String).annotate({ description: "Whisper API URL" }),
+      apiKey: Schema.optional(Schema.String).annotate({ description: "Whisper API key" }),
+      model: Schema.optional(Schema.String).annotate({ description: "Whisper model name" }),
+      language: Schema.optional(Schema.String).annotate({ description: "Whisper language code" }),
+    }),
+  ).annotate({ description: "Whisper transcription settings" }),
+  lalm: Schema.optional(
+    Schema.Struct({
+      model: Schema.optional(ConfigModelID).annotate({
+        description: "Model to use for audio transcription in the format of provider/model, eg openai/gpt-4o-audio-preview",
+      }),
+      prompt: Schema.optional(Schema.String).annotate({ description: "Large Audio Language Model base prompt" }),
+      system: Schema.optional(Schema.String).annotate({ description: "Large Audio Language Model system prompt" }),
+    }),
+  ).annotate({ description: "Large Audio Language Model transcription settings" }),
+}).annotate({ description: "Voice transcription settings" })
+
 // The Effect Schema is the canonical source of truth. The `.zod` compatibility
 // surface is derived so existing Hono validators keep working without a parallel
 // Zod definition.
@@ -104,6 +127,7 @@ export const Info = Schema.Struct({
     description: "JSON schema reference for configuration validation",
   }),
   logLevel: Schema.optional(LogLevelRef).annotate({ description: "Log level" }),
+  voice: Schema.optional(VoiceSchema).annotate({ description: "Voice transcription settings" }),
   server: Schema.optional(ConfigServer.Server).annotate({
     description: "Server configuration for opencode serve and web commands",
   }),
