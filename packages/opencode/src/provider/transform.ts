@@ -1016,6 +1016,13 @@ export function smallOptions(model: Provider.Model) {
     return { veniceParameters: { disableThinking: true } }
   }
 
+  if (model.api.npm === "@ai-sdk/openai-compatible") {
+    if (model.providerID === "opencode-go") {
+      return { reasoningEffort: "none" }
+    }
+    return { reasoningEffort: WIDELY_SUPPORTED_EFFORTS[0] }
+  }
+
   return {}
 }
 
