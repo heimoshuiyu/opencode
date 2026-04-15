@@ -43,6 +43,7 @@ import { SyncEvent } from "@/sync"
 import { ToolRegistry } from "@/tool/registry"
 import { lazy } from "@/util/lazy"
 import { Vcs } from "@/project/vcs"
+import { Voice } from "@/voice"
 import { Worktree } from "@/worktree"
 import { Workspace } from "@/control-plane/workspace"
 import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
@@ -51,6 +52,7 @@ import { ServerAuth } from "@/server/auth"
 import { InstanceHttpApi, RootHttpApi } from "./api"
 import { authorizationLayer, authorizationRouterMiddleware } from "./middleware/authorization"
 import { EventApi, eventHandlers } from "./event"
+import { audioHandlers } from "./handlers/audio"
 import { configHandlers } from "./handlers/config"
 import { controlHandlers } from "./handlers/control"
 import { experimentalHandlers } from "./handlers/experimental"
@@ -107,6 +109,7 @@ const eventApiRoutes = HttpApiBuilder.layer(EventApi).pipe(
 )
 const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
   Layer.provide([
+    audioHandlers,
     configHandlers,
     experimentalHandlers,
     fileHandlers,
@@ -184,6 +187,7 @@ export function createRoutes(corsOptions?: CorsOptions) {
       Todo.defaultLayer,
       ToolRegistry.defaultLayer,
       Vcs.defaultLayer,
+      Voice.defaultLayer,
       Workspace.defaultLayer,
       Worktree.appLayer,
       Bus.layer,

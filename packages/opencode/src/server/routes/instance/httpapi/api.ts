@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { HttpApi } from "effect/unstable/httpapi"
 import { BusEvent } from "@/bus/bus-event"
 import { SyncEvent } from "@/sync"
+import { AudioApi } from "./groups/audio"
 import { ConfigApi } from "./groups/config"
 import { ControlApi } from "./groups/control"
 import { EventApi } from "./event"
@@ -29,6 +30,7 @@ const SyncEventSchemas = SyncEvent.effectPayloads()
 export const RootHttpApi = HttpApi.make("opencode-root").addHttpApi(ControlApi).addHttpApi(GlobalApi)
 
 export const InstanceHttpApi = HttpApi.make("opencode-instance")
+  .addHttpApi(AudioApi)
   .addHttpApi(ConfigApi)
   .addHttpApi(ExperimentalApi)
   .addHttpApi(FileApi)
