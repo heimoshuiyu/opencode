@@ -1191,6 +1191,14 @@ export function smallOptions(model: Provider.Model) {
     return { veniceParameters: { disableThinking: true } }
   }
 
+  if (model.api.npm === "@ai-sdk/openai-compatible") {
+    // MiMo thinks by default unless explicitly disabled.
+    if (model.api.id.toLowerCase().includes("mimo")) {
+      return { thinking: { type: "disabled" } }
+    }
+    return {}
+  }
+
   return small
 }
 
