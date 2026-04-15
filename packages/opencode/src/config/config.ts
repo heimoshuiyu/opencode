@@ -91,10 +91,37 @@ export const Layout = z.enum(["auto", "stretch"]).meta({
 })
 export type Layout = z.infer<typeof Layout>
 
+export const Voice = z
+  .object({
+    type: z.enum(["whisper", "alm"]).optional().describe("Transcription provider type"),
+    whisper: z
+      .object({
+        url: z.string().optional().describe("Whisper API URL"),
+        apiKey: z.string().optional().describe("Whisper API key"),
+        model: z.string().optional().describe("Whisper model name"),
+        language: z.string().optional().describe("Whisper language code"),
+      })
+      .optional()
+      .describe("Whisper transcription settings"),
+    alm: z
+      .object({
+        url: z.string().optional().describe("Audio LM API URL"),
+        apiKey: z.string().optional().describe("Audio LM API key"),
+        model: z.string().optional().describe("Audio LM model name"),
+        prompt: z.string().optional().describe("Audio LM base prompt"),
+        system: z.string().optional().describe("Audio LM system prompt"),
+      })
+      .optional()
+      .describe("Audio language model transcription settings"),
+  })
+  .describe("Voice transcription settings")
+export type Voice = z.infer<typeof Voice>
+
 export const Info = z
   .object({
     $schema: z.string().optional().describe("JSON schema reference for configuration validation"),
     logLevel: Log.Level.optional().describe("Log level"),
+    voice: Voice.optional().describe("Voice transcription settings"),
     server: Server.optional().describe("Server configuration for opencode serve and web commands"),
     command: z
       .record(z.string(), ConfigCommand.Info)

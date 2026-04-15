@@ -1,0 +1,104 @@
+import z from "zod"
+import { Service, type Info } from "@/config/config"
+import { buildPrompt, getLastAssistantText, prepareAudio, buildTranscriptionContext } from "@/voice/common"
+import { SessionID } from "@/session/schema"
+import { AppRuntime } from "@/effect/app-runtime"
+
+const buildMessages = (input: {
+  system?: string
+  context?: string
+  audio: string
+}) => {
+  const system = (input.system ?? "You are a professional speech-to-text transcriber. Your task is to transcribe the audio into text.").trim()
+  const context = input.context?.trim()
+  const text = context
+    ? `${system}\n<context>\n${context}\n</context>\nDO NOT answer user's question, just transcribe the audio into text.`
+    : system
+  return [
+    {
+      role: "system" as const,
+      content: text,
+    },
+    {
+      role: "user" as const,
+      content: [
+        { type: "audio_url", audio_url: { url: input.audio } },
+        { type: "text", text: "you are a professional speech to text transcriber, your task is to transcribe the audio into text." },
+      ],
+    },
+  ]
+}
+
+export namespace Alm {
+  export const Request = z.object({
+    file: z.instanceof(File),
+    mime: z.string(),
+    sessionID: SessionID.zod.optional(),
+    prompt: z.string().optional(),
+  })
+
+  export const Response = z.object({
+    text: z.string().default(""),
+  })
+
+  export type Response = z.infer<typeof Response>
+
+  export async function transcribe(
+    input: z.infer<typeof Request> & { signal?: AbortSignal; voice?: Info["voice"] },
+  ) {
+    const voice = input.voice ?? (await AppRuntime.runPromise(Service.use((cfg) => cfg.get()))).voice
+    const alm = voice?.alm
+    const apiKey = alm?.apiKey
+    if (!apiKey) {
+      throw new Error("Missing voice.alm.apiKey")
+    }
+
+    const prepared = await prepareAudio(input.file, input.mime)
+    const audio = `data:${prepared.mime};base64,${Buffer.from(prepared.buffer).toString("base64")}`
+
+    const context = await buildTranscriptionContext({
+      sessionID: input.sessionID,
+      userPrompt: input.prompt,
+      systemPrompt: alm?.prompt,
+    })
+    const messages = buildMessages({
+      system: alm?.system,
+      context,
+      audio,
+    })
+
+    const payload = {
+      model: alm?.model ?? "gpt-4o-mini-transcribe",
+      messages,
+      temperature: 0,
+    }
+
+    const url = alm?.url ?? "https://api.openai.com/v1/chat/completions"
+    console.log("alm request", {
+      url,
+      model: payload.model,
+      bytes: prepared.buffer.byteLength,
+    })
+
+    const result = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: input.signal,
+    })
+
+    if (!result.ok) {
+      const message = await result.text().catch(() => "")
+      throw new Error(message || "ALM request failed")
+    }
+
+    const body = await result.text().catch(() => "")
+    console.log("alm response", { body })
+    const parsed = body ? JSON.parse(body) : {}
+    const text = parsed?.choices?.[0]?.message?.content
+    return Response.parse({ text: typeof text === "string" ? text : "" })
+  }
+}
