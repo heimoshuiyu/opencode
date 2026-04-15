@@ -24,7 +24,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { editorSelectionKey, useEditorContext, type EditorSelection } from "@tui/context/editor"
-import { MessageID, PartID } from "@/session/schema"
+import { MessageID, PartID, SessionID } from "@/session/schema"
 import { createStore, produce, unwrap } from "solid-js/store"
 import { usePromptHistory, type PromptInfo } from "./history"
 import { computePromptTraits } from "./traits"
@@ -49,6 +49,7 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
+import { useVoice } from "./voice"
 import {
   confirmWorkspaceFileChanges,
   openWorkspaceSelect,
@@ -192,7 +193,8 @@ export function Prompt(props: PromptProps) {
     if (!file) return
     return Locale.truncateMiddle(file, Math.max(12, Math.min(48, Math.floor(dimensions().width / 3))))
   })
-  const editorContextLabelState = createMemo(() => editor.labelState())
+  const [editorContextHover, setEditorContextHover] = createSignal(false)
+  let lastSubmittedEditorSelectionKey: string | undefined
   const [auto, setAuto] = createSignal<AutocompleteRef>()
   const [workspaceSelection, setWorkspaceSelection] = createSignal<WorkspaceSelection>()
   const [workspaceCreating, setWorkspaceCreating] = createSignal(false)
@@ -302,6 +304,21 @@ export function Prompt(props: PromptProps) {
     setDismissedEditorSelectionKey(editorSelectionKey(editorContext()))
     editor.clearSelection()
   }
+  const voiceWorkspaceID = () => {
+    const sessionID = props.sessionID
+    if (sessionID) return sync.session.get(sessionID)?.workspaceID ?? project.workspace.current()
+    const workspace = workspaceSelection()
+    if (!workspace) return defaultWorkspaceID()
+    if (workspace.type === "none") return undefined
+    if (workspace.type === "existing") return workspace.workspaceID
+    return undefined
+  }
+  const voice = useVoice({
+    input: () => input,
+    promptInput: () => store.prompt.input,
+    sessionID: () => props.sessionID,
+    workspaceID: voiceWorkspaceID,
+  })
   const fileStyleId = syntax().getStyleId("extmark.file")!
   const agentStyleId = syntax().getStyleId("extmark.agent")!
   const pasteStyleId = syntax().getStyleId("extmark.paste")!
@@ -437,6 +454,18 @@ export function Prompt(props: PromptProps) {
         run: () => {
           dismissEditorContext()
           dialog.clear()
+        },
+      },
+      {
+        title: "Voice input",
+        name: "prompt.voice",
+        category: "Prompt",
+        run: async () => {
+          if (voice.pendingRetry()) {
+            await voice.confirmRetry()
+          } else {
+            await voice.toggle()
+          }
         },
       },
       {
@@ -632,6 +661,7 @@ export function Prompt(props: PromptProps) {
       "prompt.submit",
       "prompt.editor",
       "prompt.editor_context.clear",
+      "prompt.voice",
       "prompt.stash",
       "prompt.stash.pop",
       "prompt.stash.list",
@@ -877,6 +907,14 @@ export function Prompt(props: PromptProps) {
   useBindings(() => {
     return {
       target: inputTarget,
+      enabled: inputTarget() !== undefined && !props.disabled,
+      bindings: tuiConfig.keybinds.get("prompt.voice"),
+    }
+  })
+
+  useBindings(() => {
+    return {
+      target: inputTarget,
       enabled: (() => {
         cursorVersion()
         return (
@@ -1116,8 +1154,9 @@ export function Prompt(props: PromptProps) {
     // Capture mode before it gets reset
     const currentMode = store.mode
     const editorSelection = editorContext()
+    const currentEditorSelectionKey = editorSelectionKey(editorSelection)
     const editorParts =
-      editorSelection && editor.labelState() === "pending"
+      editorSelection && currentEditorSelectionKey !== lastSubmittedEditorSelectionKey
         ? [
             {
               id: PartID.ascending(),
@@ -1195,7 +1234,7 @@ export function Prompt(props: PromptProps) {
           ],
         })
         .catch(() => {})
-      if (editorParts.length > 0) editor.markSelectionSent()
+      lastSubmittedEditorSelectionKey = currentEditorSelectionKey
     }
     history.append({
       ...store.prompt,
@@ -1210,15 +1249,13 @@ export function Prompt(props: PromptProps) {
     props.onSubmit?.()
 
     // temporary hack to make sure the message is sent
-    if (!props.sessionID) {
-      if (editorParts.length > 0) editor.preserveSelectionFromNewSession()
+    if (!props.sessionID)
       setTimeout(() => {
         route.navigate({
           type: "session",
           sessionID,
         })
       }, 50)
-    }
     input.clear()
     return true
   }
@@ -1415,7 +1452,6 @@ export function Prompt(props: PromptProps) {
     if (!list().length) return undefined
     return `Ask anything... "${list()[store.placeholder % list().length]}"`
   })
-
   const workspaceLabel = createMemo<
     | { type: "new"; workspaceType: string }
     | { type: "existing"; workspaceType: string; workspaceName: string; status?: WorkspaceStatus }
@@ -1598,6 +1634,33 @@ export function Prompt(props: PromptProps) {
                   {props.right}
                 </box>
               </Show>
+              <Show
+                when={voice.pendingRetry()}
+                fallback={
+                  <box
+                    flexDirection="row"
+                    onMouseUp={async () => {
+                      if (!voice.enabled() && !voice.recording() && !voice.processing()) return
+                      await voice.toggle()
+                    }}
+                  >
+                    <text fg={voice.color()}>{voice.label()}</text>
+                  </box>
+                }
+              >
+                <box flexDirection="row" gap={1}>
+                  <box
+                    onMouseUp={() => voice.confirmRetry()}
+                  >
+                    <text fg={theme.warning}>Retry</text>
+                  </box>
+                  <box
+                    onMouseUp={() => voice.cancelRetry()}
+                  >
+                    <text fg={theme.textMuted}>Cancel</text>
+                  </box>
+                </box>
+              </Show>
             </box>
           </box>
         </box>
@@ -1748,9 +1811,16 @@ export function Prompt(props: PromptProps) {
           </Switch>
           <Show when={status().type !== "retry"}>
             <box gap={2} flexDirection="row">
-              <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
+              <Show when={editorFileLabelDisplay()}>
                 {(file) => (
-                  <text fg={editorContextLabelState() === "pending" ? theme.secondary : theme.textMuted}>{file()}</text>
+                  <text
+                    fg={theme.secondary}
+                    onMouseOver={() => setEditorContextHover(true)}
+                    onMouseOut={() => setEditorContextHover(false)}
+                    onMouseUp={dismissEditorContext}
+                  >
+                    {editorContextHover() ? `x ${file()}` : file()}
+                  </text>
                 )}
               </Show>
               <Switch>

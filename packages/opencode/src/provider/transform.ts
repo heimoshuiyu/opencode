@@ -1191,6 +1191,10 @@ export function smallOptions(model: Provider.Model) {
     return { veniceParameters: { disableThinking: true } }
   }
 
+  if (model.api.npm === "@ai-sdk/openai-compatible") {
+    return { reasoningEffort: WIDELY_SUPPORTED_EFFORTS[0] }
+  }
+
   return small
 }
 
