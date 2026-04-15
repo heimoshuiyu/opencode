@@ -47,6 +47,7 @@ import { Snapshot } from "@/snapshot"
 import { Storage } from "@/storage/storage"
 import { ToolRegistry } from "@/tool/registry"
 import { Truncate } from "@/tool/truncate"
+import { Voice } from "@/voice"
 import { Worktree } from "@/worktree"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { MoveSession } from "@opencode-ai/core/control-plane/move-session"
@@ -77,6 +78,7 @@ import {
 import { EventApi } from "./groups/event"
 import { PtyConnectApi } from "./groups/pty"
 import { eventHandlers } from "./handlers/event"
+import { audioHandlers } from "./handlers/audio"
 import { configHandlers } from "./handlers/config"
 import { controlHandlers } from "./handlers/control"
 import { controlPlaneHandlers } from "./handlers/control-plane"
@@ -144,6 +146,7 @@ const ptyConnectApiRoutes = HttpApiBuilder.layer(PtyConnectApi).pipe(
 )
 const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
   Layer.provide([
+    audioHandlers,
     configHandlers,
     experimentalHandlers,
     fileHandlers,
@@ -245,6 +248,7 @@ const app = LayerNode.group([
   Format.node,
   Project.node,
   Vcs.node,
+  Voice.node,
   Workspace.node,
   Worktree.node,
   Installation.node,
