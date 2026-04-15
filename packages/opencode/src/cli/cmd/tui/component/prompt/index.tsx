@@ -13,7 +13,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { editorSelectionKey, useEditorContext, type EditorSelection } from "@tui/context/editor"
-import { MessageID, PartID } from "@/session/schema"
+import { MessageID, PartID, SessionID } from "@/session/schema"
 import { createStore, produce, unwrap } from "solid-js/store"
 import { useKeybind } from "@tui/context/keybind"
 import { usePromptHistory, type PromptInfo } from "./history"
@@ -40,6 +40,9 @@ import { useKV } from "../../context/kv"
 import { createFadeIn } from "../../util/signal"
 import { useTextareaKeybindings } from "../textarea-keybindings"
 import { DialogSkill } from "../dialog-skill"
+import { Voice } from "../../util/voice"
+import type { Info } from "@/config/config"
+import { useTuiConfig } from "@tui/context/tui-config"
 import { DialogWorkspaceCreate, restoreWorkspaceSession } from "../dialog-workspace-create"
 import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
@@ -174,6 +177,7 @@ export function Prompt(props: PromptProps) {
   const [auto, setAuto] = createSignal<AutocompleteRef>()
   const currentProviderLabel = createMemo(() => local.model.parsed().provider)
   const hasRightContent = createMemo(() => Boolean(props.right))
+  const tuiConfig = useTuiConfig()
 
   function promptModelWarning() {
     toast.show({
@@ -192,6 +196,20 @@ export function Prompt(props: PromptProps) {
   }
 
   const textareaKeybindings = useTextareaKeybindings()
+  const voiceConfig = createMemo(() => tuiConfig.voice)
+  const voice = Voice.create({
+    config: voiceConfig,
+    transcription: () => (sync.data.config as Record<string, unknown>).voice as Info["voice"] | undefined,
+    sessionID: () => props.sessionID as SessionID | undefined,
+    prompt: () => store.prompt.input,
+    server: {
+      transcribe: (params) =>
+        sdk.client.audio.transcribe(
+          { audio: params.audio, mime: params.mime, sessionID: params.sessionID, prompt: params.prompt },
+          { throwOnError: true, signal: params.signal },
+        ) as Promise<{ data?: { text: string }; error?: unknown }>,
+    },
+  })
 
   const fileStyleId = syntax().getStyleId("extmark.file")!
   const agentStyleId = syntax().getStyleId("extmark.agent")!
@@ -248,6 +266,8 @@ export function Prompt(props: PromptProps) {
     extmarkToPartIndex: Map<number, number>
     interrupt: number
     placeholder: number
+    recording: boolean
+    processing: boolean
   }>({
     placeholder: randomIndex(list().length),
     prompt: {
@@ -257,6 +277,8 @@ export function Prompt(props: PromptProps) {
     mode: "normal",
     extmarkToPartIndex: new Map(),
     interrupt: 0,
+    recording: false,
+    processing: false,
   })
 
   createEffect(
@@ -328,6 +350,15 @@ export function Prompt(props: PromptProps) {
         onSelect: (dialog) => {
           dismissEditorContext()
           dialog.clear()
+        },
+      },
+      {
+        title: "Voice input",
+        value: "prompt.voice",
+        keybind: "input_voice",
+        category: "Prompt",
+        onSelect: async () => {
+          await toggleVoice()
         },
       },
       {
@@ -940,6 +971,82 @@ export function Prompt(props: PromptProps) {
     )
   }
 
+  async function toggleVoice() {
+    if (store.processing) {
+      const cancelled = voice.cancel()
+      if (cancelled) {
+        setStore("processing", false)
+        toast.show({
+          message: "Transcription cancelled",
+          variant: "info",
+          duration: 1500,
+        })
+      }
+      return
+    }
+
+    if (store.recording) {
+      setStore("recording", false)
+      setStore("processing", true)
+      const result = await voice.stop().catch((error) => {
+        toast.show({ variant: "error", message: error instanceof Error ? error.message : String(error), duration: 5000 })
+        return null
+      })
+      setStore("processing", false)
+      if (result?.cancelled) return
+      if (!result) {
+        return
+      }
+      if (!result.text.trim()) {
+        toast.show({
+          message: "No speech detected (transcription returned empty text)",
+          variant: "warning",
+        })
+        return
+      }
+
+      input.insertText(result.text)
+      input.getLayoutNode().markDirty()
+      input.gotoBufferEnd()
+      renderer.requestRender()
+      return
+    }
+
+    const enabled = voice.isEnabled()
+    if (!enabled) {
+      toast.show({
+        message: "Voice input unavailable (missing transcription API key)",
+        variant: "warning",
+      })
+      return
+    }
+
+    setStore("recording", true)
+    toast.show({
+      message: "Recording... press keybind again to stop",
+      variant: "info",
+      duration: 2000,
+    })
+    const ok = await voice.start().catch((error) => {
+      toast.show({ variant: "error", message: error instanceof Error ? error.message : String(error), duration: 5000 })
+      return "error"
+    })
+    if (ok === true) return
+    setStore("recording", false)
+    if (ok === false) {
+      toast.show({
+        message: "Failed to start recording",
+        variant: "error",
+      })
+    }
+  }
+
+  onCleanup(() => {
+    voice.destroy()
+    setStore("processing", false)
+    setStore("recording", false)
+  })
+
   async function pasteAttachment(file: { filename?: string; filepath?: string; content: string; mime: string }) {
     const currentOffset = input.visualCursor.offset
     const extmarkStart = currentOffset
@@ -1020,6 +1127,18 @@ export function Prompt(props: PromptProps) {
     }
     if (!list().length) return undefined
     return `Ask anything... "${list()[store.placeholder % list().length]}"`
+  })
+  const voiceEnabled = createMemo(() => voice.isEnabled())
+  const voiceLabel = createMemo(() => {
+    if (store.processing) return "Transcribing"
+    if (store.recording) return "Stop"
+    return "Record"
+  })
+  const voiceColor = createMemo(() => {
+    if (store.processing) return theme.warning
+    if (store.recording) return theme.warning
+    if (!voiceEnabled()) return theme.textMuted
+    return theme.text
   })
 
   const spinnerDef = createMemo(() => {
@@ -1119,6 +1238,11 @@ export function Prompt(props: PromptProps) {
                     return
                   }
                   // If no image, let the default paste behavior continue
+                }
+                if (keybind.match("input_voice", e)) {
+                  e.preventDefault()
+                  await toggleVoice()
+                  return
                 }
                 if (keybind.match("input_clear", e) && store.prompt.input !== "") {
                   input.clear()
@@ -1318,6 +1442,15 @@ export function Prompt(props: PromptProps) {
                   {props.right}
                 </box>
               </Show>
+              <box
+                flexDirection="row"
+                onMouseUp={async () => {
+                  if (!voiceEnabled() && !store.recording && !store.processing) return
+                  await toggleVoice()
+                }}
+              >
+                <text fg={voiceColor()}>{voiceLabel()}</text>
+              </box>
             </box>
           </box>
         </box>
