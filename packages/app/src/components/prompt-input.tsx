@@ -1725,7 +1725,6 @@ const handleCompositionStart = () => {
                 <div class="size-4 shrink-0" />
               </div>
               <div class="flex items-center gap-1.5 min-w-max">
-                <div class="flex items-center gap-1.5">
                 <Show when={!agentsLoading()}>
                   <div data-component="prompt-agent-control">
                     <TooltipKeybind
@@ -1850,24 +1849,23 @@ const handleCompositionStart = () => {
                     </div>
                   </Show>
                 </Show>
-                </div>
+                <TooltipKeybind placement="top" title={voiceTitle()} keybind={command.keybind("prompt.voice")}>
+                  <Button type="button" variant="ghost" class="h-6 w-6 shrink-0" onClick={toggleVoice}>
+                    <Switch>
+                      <Match when={transcribing()}>
+                        <Spinner class="size-4 text-icon-base" />
+                      </Match>
+                      <Match when={recording()}>
+                        <Icon name="stop" size="small" />
+                      </Match>
+                      <Match when={true}>
+                        <Icon name="mic" size="small" />
+                      </Match>
+                    </Switch>
+                  </Button>
+                </TooltipKeybind>
               </div>
             </div>
-            <TooltipKeybind placement="top" title={voiceTitle()} keybind={command.keybind("prompt.voice")}>
-              <Button type="button" variant="ghost" class="h-6 w-6 shrink-0" onClick={toggleVoice}>
-                <Switch>
-                  <Match when={transcribing()}>
-                    <Spinner class="size-4 text-icon-base" />
-                  </Match>
-                  <Match when={recording()}>
-                    <Icon name="stop" size="small" />
-                  </Match>
-                  <Match when={true}>
-                    <Icon name="mic" size="small" />
-                  </Match>
-                </Switch>
-              </Button>
-            </TooltipKeybind>
           </div>
         </DockTray>
       </Show>
