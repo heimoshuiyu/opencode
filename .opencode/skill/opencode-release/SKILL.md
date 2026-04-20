@@ -29,29 +29,37 @@ description: OpenCode 完整版本发布流程：构建、压缩二进制、分�
 
 ### 1. 构建项目
 
-使用 turbo 构建所有包和预编译二进制。需要指定 `OPENCODE_CHANNEL` 和 `OPENCODE_VERSION` 环境变量，使用 `--env-mode loose` 绕过 turbo strict 模式的环境变量过滤，并跳过 electron 桌面包的构建：
+使用 turbo 构建所有包和预编译二进制。需要指定 `OPENCODE_CHANNEL` 和 `OPENCODE_VERSION` 环境变量，使用 `--env-mode loose` 绕过 turbo strict 模式的环境变量过滤，并跳过 electron 桌面包的构建。
 
 **重要**:
 - `OPENCODE_VERSION` 应该与即将创建的 tag 名称一致（即上一个 tag 加 `-hmsy` 后缀）
 - 例如上一个 tag 是 `v1.1.35`，则 `OPENCODE_VERSION=v1.1.35-hmsy`
 
+**必须分两步构建**：由于 `turbo.json` 中 `build` 任务的 `dependsOn` 为空（没有声明 `"^build"` 依赖），turbo 会并行构建所有包，导致 SDK 的代码生成产物尚未写入磁盘时 app 的 vite 就开始解析，引发 `Could not resolve` 错误。分两步构建可以确保依赖包先完成，opencode 再使用缓存。
+
 ```bash
 PREV_TAG=$(git describe --tags --abbrev=0)
 NEW_TAG="${PREV_TAG}-hmsy"
-mkdir -p packages/opencode/dist
-sudo mount -t tmpfs -o size=512m tmpfs packages/opencode/dist
-OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" bun turbo build --env-mode loose --filter='!@opencode-ai/desktop-electron' --filter='!@opencode-ai/desktop'
-```
 
-**必须挂载 tmpfs 到 `packages/opencode/dist`**：构建会生成约 1.5GB 的二进制文件，全部写入磁盘会造成不必要的 SSD 磨损。挂载 tmpfs 后写入都在内存中完成，构建结束后 unmount 即自动释放。构建脚本是逐平台串行编译的，峰值占用约 300MB，因此 512MB 的 tmpfs 足够。
+# 第一步：构建所有依赖包（SDK、app、web 等），跳过 opencode
+OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" \
+  bun turbo build --env-mode loose \
+  --filter='!@opencode-ai/desktop-electron' \
+  --filter='!@opencode-ai/desktop' \
+  --filter='!opencode'
+
+# 第二步：单独构建 opencode（此时依赖包的 turbo 缓存已就绪）
+OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" \
+  bun turbo build --env-mode loose --filter=opencode
+```
 
 **不要使用 `--force`**：`--force` 会清空所有包的 turbo 缓存，导致 SDK 等依赖包同时从零开始构建，引发竞态条件（详见下方「构建排错」）。
 
-tmpfs 无需手动释放，重启后自动消失，下次构建前重新挂载即可。
+**不要挂载 tmpfs 到 `packages/opencode/dist`**：构建脚本 `build.ts:165` 会执行 `rm -rf dist`，tmpfs 挂载点无法被删除，会导致 `rm: dist: Device or resource busy` 错误。构建产物直接写入磁盘即可（约 1.5GB）。
 
 这会：
-- 构建 SDK、Web UI、Plugin 等依赖包
-- 在 `./packages/opencode/dist` 目录生成预编译二进制文件
+- 第一步构建 SDK、Web UI、Plugin 等依赖包
+- 第二步在 `./packages/opencode/dist` 目录生成预编译二进制文件（构建脚本内部也会重新构建 Web UI 并嵌入二进制）
 - 跳过 `@opencode-ai/desktop-electron` 和 `@opencode-ai/desktop`（Tauri）的构建，因为它们需要额外依赖且在本地 Linux 环境下无法构建
 
 ### 2. 查找构建产物
@@ -63,9 +71,10 @@ ls ./packages/opencode/dist/
 ```
 
 典型的平台包括：
-- Linux: `opencode-linux-x64`, `opencode-linux-arm64`
-- macOS: `opencode-darwin-x64`, `opencode-darwin-arm64`
-- Windows: `opencode-windows-x64`
+- Linux: `opencode-linux-x64`, `opencode-linux-arm64`, `opencode-linux-x64-baseline`
+- Linux (musl): `opencode-linux-x64-musl`, `opencode-linux-arm64-musl`, `opencode-linux-x64-baseline-musl`
+- macOS: `opencode-darwin-x64`, `opencode-darwin-arm64`, `opencode-darwin-x64-baseline`
+- Windows: `opencode-windows-x64`, `opencode-windows-arm64`, `opencode-windows-x64-baseline`
 
 ### 3. 压缩二进制文件
 
@@ -231,9 +240,17 @@ rm -f ./opencode-linux-x64.zst \
 ```bash
 PREV_TAG=$(git describe --tags --abbrev=0)
 NEW_TAG="${PREV_TAG}-hmsy"
-mkdir -p packages/opencode/dist
-sudo mount -t tmpfs -o size=512m tmpfs packages/opencode/dist
-OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" bun turbo build --env-mode loose --filter='!@opencode-ai/desktop-electron' --filter='!@opencode-ai/desktop'
+
+# 第一步：构建所有依赖包
+OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" \
+  bun turbo build --env-mode loose \
+  --filter='!@opencode-ai/desktop-electron' \
+  --filter='!@opencode-ai/desktop' \
+  --filter='!opencode'
+
+# 第二步：单独构建 opencode
+OPENCODE_CHANNEL=local OPENCODE_VERSION="$NEW_TAG" \
+  bun turbo build --env-mode loose --filter=opencode
 ```
 
 ### 压缩 (ZSTD)
@@ -270,7 +287,9 @@ gh release create <tag> \
 4. **权限问题**: 如果无法推送到 `origin`，使用 `hmsy` 远程仓库
 5. **CloudFront**: Invalidation 通常需要几分钟才能完成
 6. **并行处理**: 代码分析阶段可以并发启动多个 sub-agents 以提高效率
-7. **删除 dist 而非 `--force`**: 构建前必须 `rm -rf packages/opencode/dist` 强制 opencode 重新构建。不要使用 `--force`，会触发 SDK 竞态条件
+7. **必须分两步构建**: `turbo.json` 中 `build` 的 `dependsOn` 为空，所有包会并行构建。必须先构建依赖包再构建 opencode，否则 SDK 竞态会导致 `Could not resolve` 错误
+8. **不要使用 `--force`**: 会清空所有包的 turbo 缓存，加剧竞态条件
+9. **不要挂载 tmpfs 到 dist**: 构建脚本会 `rm -rf dist`，tmpfs 挂载点无法删除
 
 ## 构建排错
 
@@ -280,27 +299,40 @@ gh release create <tag> \
 
 **原因**：turbo 缓存命中了 opencode 包的 build 产物。opencode 的 build 脚本（`packages/opencode/script/build.ts`）内部会调用 `bun run --cwd packages/app build` 重新构建 Web UI 并通过 `import ... with { type: "file" }` 嵌入二进制。如果缓存命中，这一步被跳过，二进制中的 Web 资源是上一次构建时的版本。
 
-**解决**：构建前挂载 tmpfs 到 `packages/opencode/dist`，turbo 检测到空目录会强制重新构建 opencode（包括内部的 Web UI 构建），同时保留其他包的缓存。
+**解决**：使用两步构建法。第二步单独构建 opencode 时，如果之前的 dist 已存在且 turbo 缓存命中，可以先删除 dist 目录（`rm -rf packages/opencode/dist`）强制 opencode 重新构建，同时保留其他包的缓存。
 
 ### 错误：`Could not resolve "./gen/types.gen.js"`
 
 **现象**：构建失败，报错 `Could not resolve "./gen/types.gen.js" from "../sdk/js/src/v2/client.ts"`。
 
-**原因**：使用了 `--force` 参数导致所有包的 turbo 缓存被清空，SDK 和 opencode 同时从零开始构建。opencode 的 build 脚本内部执行 `bun run --cwd packages/app build`（即 vite build），vite 解析 app 代码时会 import SDK client，而 SDK 的编译产物（`.js` 文件）尚未生成（SDK build 只生成了 `.ts` 源文件，`.js` 编译输出在 turbo 缓存中）。由于 `--force` 清空了缓存，SDK 的 `.js` 文件不存在，导致 vite 解析失败。
+**原因**：`turbo.json` 中 `build` 任务的 `dependsOn` 为空数组，没有声明 `"^build"` 依赖，导致所有包并行构建。SDK 的代码生成（`@hey-api/openapi-ts`）尚未将 `types.gen.ts` 等文件写入磁盘时，app 的 vite 已经开始解析 SDK client 中的 import（`from "./gen/types.gen.js"` 是 ESM 扩展名约定，Bun/Vite 会自动映射到 `.ts`）。由于文件还不存在，vite 解析失败。使用 `--force` 会加剧此问题（清空所有缓存，使竞态更易触发）。
 
-**解决**：不要使用 `--force`。改为挂载 tmpfs 到 `packages/opencode/dist` 后正常构建。这样 SDK 等依赖包使用缓存（`.js` 文件存在），只有 opencode 被强制重建。
+**解决**：使用两步构建法。先构建除 opencode 外的所有包（确保 SDK gen 文件已生成），再单独构建 opencode。不要使用 `--force`。
+
+### 错误：`rm: dist: Device or resource busy`
+
+**现象**：构建 opencode 时失败，报错 `rm: dist: Device or resource busy`。
+
+**原因**：`packages/opencode/dist` 上挂载了 tmpfs，构建脚本 `build.ts:165` 执行 `rm -rf dist` 时无法删除 tmpfs 挂载点本身。
+
+**解决**：不要挂载 tmpfs 到 `packages/opencode/dist`。直接使用磁盘目录即可。
 
 ### 验证 Web 资源是否最新
 
-构建完成后，检查二进制时间戳应晚于源码修改时间：
+构建完成后，比较时间戳确认二进制中嵌入了最新的 Web 资源：
 
 ```bash
-# 检查二进制时间戳
-stat -c '%Y %n' packages/opencode/dist/opencode-linux-x64/bin/opencode
+# 检查 app dist 产物时间戳
+stat -c '%Y %n' packages/app/dist/index.html
 
-# 在构建产物中搜索特征字符串（会被 minified）
-# 例如 recorder.start(1000) 会被压缩为 start(1e3)
-grep -rl "start(1e3)" packages/opencode/dist/ 2>/dev/null
+# 检查二进制时间戳（应晚于 app dist 产物）
+stat -c '%Y %n' packages/opencode/dist/opencode-linux-x64/bin/opencode
+```
+
+也可以搜索二进制中的版本号特征字符串：
+
+```bash
+strings packages/opencode/dist/opencode-linux-x64/bin/opencode | grep -c "$NEW_TAG"
 ```
 
 ## 资源
