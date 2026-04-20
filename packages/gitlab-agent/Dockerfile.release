@@ -1,0 +1,28 @@
+FROM oven/bun:1-alpine AS build
+WORKDIR /app
+COPY package.json ./
+RUN bun install --production
+
+FROM alpine:3.20
+RUN apk add --no-cache libgcc libstdc++ ripgrep git ca-certificates curl
+
+ARG OPENCODE_VERSION
+RUN if [ -n "$OPENCODE_VERSION" ]; then \
+      curl -fsSL "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-x64.tar.gz" \
+      | tar xz -C /usr/local/bin opencode; \
+    else \
+      curl -fsSL https://opencode.ai/install | sh; \
+    fi && \
+    opencode --version
+
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
+COPY src/ ./src/
+COPY config.json ./
+
+RUN mkdir -p /tmp/opencode-workspaces
+
+EXPOSE 3000
+
+CMD ["bun", "run", "src/index.ts"]
