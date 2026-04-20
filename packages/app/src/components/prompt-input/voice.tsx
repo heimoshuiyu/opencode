@@ -124,7 +124,12 @@ export function createVoiceInput(input: VoiceInput) {
     const mime = blob.type || "audio/webm"
     const promptText = input.promptText()
     const arrayBuffer = await blob.arrayBuffer()
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    const bytes = new Uint8Array(arrayBuffer)
+    const chunks: string[] = []
+    for (let i = 0; i < bytes.length; i += 8192) {
+      chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)))
+    }
+    const base64 = btoa(chunks.join(""))
 
     const controller = new AbortController()
     audio.controller = controller
