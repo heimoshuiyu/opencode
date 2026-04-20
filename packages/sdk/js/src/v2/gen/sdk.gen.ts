@@ -8,6 +8,7 @@ import type {
   AppLogErrors,
   AppLogResponses,
   AppSkillsResponses,
+  AudioTranscribeResponses,
   Auth as Auth3,
   AuthRemoveErrors,
   AuthRemoveResponses,
@@ -3686,6 +3687,51 @@ export class Mcp extends HeyApiClient {
   }
 }
 
+export class Audio extends HeyApiClient {
+  /**
+   * Transcribe audio
+   *
+   * Transcribe base64-encoded audio data with Whisper or an audio language model
+   */
+  public transcribe<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      audio?: string
+      mime?: string
+      sessionID?: string
+      prompt?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "audio" },
+            { in: "body", key: "mime" },
+            { in: "body", key: "sessionID" },
+            { in: "body", key: "prompt" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<AudioTranscribeResponses, unknown, ThrowOnError>({
+      url: "/voice/transcribe",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
 export class Control extends HeyApiClient {
   /**
    * Get next TUI request
@@ -4458,6 +4504,11 @@ export class OpencodeClient extends HeyApiClient {
   private _mcp?: Mcp
   get mcp(): Mcp {
     return (this._mcp ??= new Mcp({ client: this.client }))
+  }
+
+  private _audio?: Audio
+  get audio(): Audio {
+    return (this._audio ??= new Audio({ client: this.client }))
   }
 
   private _tui?: Tui
