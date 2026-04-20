@@ -1,0 +1,24 @@
+{
+  "port": 3000,
+  "workspaceBase": "/tmp/opencode-workspaces",
+  "opencodeModel": "anthropic/claude-sonnet-4-20250514",
+  "mention": "@opencode",
+  "auth": {
+    "anthropic": {
+      "type": "api",
+      "key": "$ANTHROPIC_API_KEY"
+    }
+  },
+  "projects": {
+    "group/project-a": {
+      "gitlabUrl": "https://gitlab.example.com",
+      "gitlabToken": "$PROJECT_A_GITLAB_TOKEN",
+      "webhookSecret": "$PROJECT_A_WEBHOOK_SECRET"
+    },
+    "group/project-b": {
+      "gitlabUrl": "https://gitlab.example.com",
+      "gitlabToken": "$PROJECT_B_GITLAB_TOKEN",
+      "webhookSecret": "$PROJECT_B_WEBHOOK_SECRET"
+    }
+  }
+}
