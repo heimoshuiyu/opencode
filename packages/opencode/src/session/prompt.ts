@@ -1584,7 +1584,6 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               messages: [...modelMsgs, ...(isLastStep ? [{ role: "assistant" as const, content: MAX_STEPS }] : [])],
               tools,
               model,
-              toolChoice: format.type === "json_schema" ? "required" : undefined,
             })
 
             if (structured !== undefined) {
