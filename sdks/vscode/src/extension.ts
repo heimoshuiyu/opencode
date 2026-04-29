@@ -1,137 +1,200 @@
-// This method is called when your extension is deactivated
-export function deactivate() {}
+import * as vscode from "vscode";
+import { type ChildProcess, spawn } from "child_process";
 
-import * as vscode from "vscode"
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
 
-const TERMINAL_NAME = "opencode"
+/** Active opencode server processes keyed by cwd */
+const servers = new Map<string, { process: ChildProcess; port: number }>();
+
+/** Tracked webview panels keyed by cwd */
+const panels = new Map<string, vscode.WebviewPanel>();
+
+// ---------------------------------------------------------------------------
+// Activate / Deactivate
+// ---------------------------------------------------------------------------
+
+export function deactivate() {
+  for (const [, entry] of servers) {
+    entry.process.kill();
+  }
+  servers.clear();
+  panels.clear();
+}
 
 export function activate(context: vscode.ExtensionContext) {
-  const openNewTerminalDisposable = vscode.commands.registerCommand("opencode.openNewTerminal", async () => {
-    await openTerminal()
-  })
+  context.subscriptions.push(
+    vscode.commands.registerCommand("opencode.openWebview", () => openWebview(context)),
+    vscode.commands.registerCommand("opencode.openNewWebview", () => openWebview(context, { forceNew: true })),
+    vscode.commands.registerCommand("opencode.addFilepathToWebview", () => addFilepathToWebview()),
+  );
+}
 
-  const openTerminalDisposable = vscode.commands.registerCommand("opencode.openTerminal", async () => {
-    // An opencode terminal already exists => focus it
-    const existingTerminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME)
-    if (existingTerminal) {
-      existingTerminal.show()
-      return
+// ---------------------------------------------------------------------------
+// Server lifecycle
+// ---------------------------------------------------------------------------
+
+/** Start (or reuse) an opencode server for the given cwd and return its port. */
+async function ensureServer(cwd: string): Promise<number> {
+  const existing = servers.get(cwd);
+  if (existing && existing.process.exitCode === null) {return existing.port;}
+
+  const port = Math.floor(Math.random() * (65535 - 16384 + 1)) + 16384;
+
+  let spawnError: Error | undefined;
+  let stderr = "";
+
+  const { OPENCODE_SERVER_PASSWORD, ...envWithoutPassword } = process.env;
+  const proc = spawn("opencode", ["serve", "--port", String(port)], {
+    cwd,
+    env: {
+      ...envWithoutPassword,
+      OPENCODE_CALLER: "vscode",
+    },
+    stdio: "pipe",
+    detached: false,
+  });
+
+  proc.on("error", (err) => { spawnError = err; });
+  proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
+
+  proc.on("exit", (code, signal) => {
+    servers.delete(cwd);
+    if (code !== 0 && code !== null) {
+      const detail = stderr.trim() || `exit code ${code}, signal ${signal}`;
+      vscode.window.showErrorMessage(`opencode exited: ${detail}`);
     }
+  });
 
-    await openTerminal()
-  })
+  await waitForServer(port, () => spawnError);
 
-  let addFilepathDisposable = vscode.commands.registerCommand("opencode.addFilepathToTerminal", async () => {
-    const fileRef = getActiveFile()
-    if (!fileRef) {
-      return
-    }
+  servers.set(cwd, { process: proc, port });
+  return port;
+}
 
-    const terminal = vscode.window.activeTerminal
-    if (!terminal) {
-      return
-    }
+/** Poll until the server responds. */
+async function waitForServer(port: number, getSpawnError: () => Error | undefined, maxTries = 15) {
+  for (let i = 0; i < maxTries; i++) {
+    const err = getSpawnError();
+    if (err) {throw new Error(`Failed to start opencode: ${err.message}`);}
+    await new Promise((r) => setTimeout(r, 200));
+    try {
+      const res = await fetch(`http://localhost:${port}/global/health`);
+      if (res.ok) {return;}
+    } catch {}
+  }
+  const err = getSpawnError();
+  if (err) {throw new Error(`Failed to start opencode: ${err.message}`);}
+  throw new Error(`opencode server did not start on port ${port}`);
+}
 
-    if (terminal.name === TERMINAL_NAME) {
-      // @ts-ignore
-      const port = terminal.creationOptions.env?.["_EXTENSION_OPENCODE_PORT"]
-      port ? await appendPrompt(parseInt(port), fileRef) : terminal.sendText(fileRef, false)
-      terminal.show()
-    }
-  })
+// ---------------------------------------------------------------------------
+// Webview
+// ---------------------------------------------------------------------------
 
-  context.subscriptions.push(openNewTerminalDisposable, openTerminalDisposable, addFilepathDisposable)
+async function openWebview(context: vscode.ExtensionContext, opts?: { forceNew?: boolean }) {
+  const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!cwd) {
+    vscode.window.showErrorMessage("Open a workspace folder first.");
+    return;
+  }
 
-  async function openTerminal() {
-    // Create a new terminal in split screen
-    const port = Math.floor(Math.random() * (65535 - 16384 + 1)) + 16384
-    const terminal = vscode.window.createTerminal({
-      name: TERMINAL_NAME,
-      iconPath: {
-        light: vscode.Uri.file(context.asAbsolutePath("images/button-dark.svg")),
-        dark: vscode.Uri.file(context.asAbsolutePath("images/button-light.svg")),
-      },
-      location: {
-        viewColumn: vscode.ViewColumn.Beside,
-        preserveFocus: false,
-      },
-      env: {
-        _EXTENSION_OPENCODE_PORT: port.toString(),
-        OPENCODE_CALLER: "vscode",
-      },
-    })
+  const port = await ensureServer(cwd);
 
-    terminal.show()
-    terminal.sendText(`opencode --port ${port}`)
-
-    const fileRef = getActiveFile()
-    if (!fileRef) {
-      return
-    }
-
-    // Wait for the terminal to be ready
-    let tries = 10
-    let connected = false
-    do {
-      await new Promise((resolve) => setTimeout(resolve, 200))
-      try {
-        await fetch(`http://localhost:${port}/app`)
-        connected = true
-        break
-      } catch {}
-
-      tries--
-    } while (tries > 0)
-
-    // If connected, append the prompt to the terminal
-    if (connected) {
-      await appendPrompt(port, `In ${fileRef}`)
-      terminal.show()
+  // Reuse existing panel for this workspace unless forceNew
+  if (!opts?.forceNew) {
+    const existing = panels.get(cwd);
+    if (existing) {
+      existing.reveal(vscode.ViewColumn.Beside);
+      return;
     }
   }
 
-  async function appendPrompt(port: number, text: string) {
-    await fetch(`http://localhost:${port}/tui/append-prompt`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text }),
-    })
+  const panel = vscode.window.createWebviewPanel("opencode", "opencode", vscode.ViewColumn.Beside, {
+    enableScripts: true,
+    retainContextWhenHidden: true,
+    localResourceRoots: [],
+  });
+
+  panel.iconPath = {
+    light: vscode.Uri.file(context.asAbsolutePath("images/button-dark.svg")),
+    dark: vscode.Uri.file(context.asAbsolutePath("images/button-light.svg")),
+  };
+
+  panel.onDidDispose(() => panels.delete(cwd));
+
+  panels.set(cwd, panel);
+  panel.webview.html = getWebviewHtml(port);
+}
+
+function getWebviewHtml(port: number): string {
+  const url = `http://localhost:${port}`;
+  return /* html */ `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="
+      default-src http://localhost:${port} ws://localhost:${port} http://127.0.0.1:${port} ws://127.0.0.1:${port} data: blob: 'unsafe-inline' 'unsafe-eval';
+      style-src http://localhost:${port} 'unsafe-inline';
+      script-src http://localhost:${port} 'unsafe-inline' 'unsafe-eval';
+      img-src http://localhost:${port} data: https:;
+      font-src http://localhost:${port} data:;
+      connect-src http://localhost:${port} ws://localhost:${port} http://127.0.0.1:${port} ws://127.0.0.1:${port} data:;
+      media-src http://localhost:${port} data:;
+    "
+  />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, iframe { width: 100%; height: 100vh; border: none; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <iframe src="${url}" allow="clipboard-read; clipboard-write" />
+</body>
+</html>`;
+}
+
+// ---------------------------------------------------------------------------
+// File-reference injection
+// ---------------------------------------------------------------------------
+
+async function addFilepathToWebview() {
+  const fileRef = getActiveFile();
+  if (!fileRef) {return;}
+
+  const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const entry = cwd ? servers.get(cwd) : undefined;
+  if (!entry) {
+    vscode.window.showWarningMessage("No running opencode server for this workspace.");
+    return;
   }
 
-  function getActiveFile() {
-    const activeEditor = vscode.window.activeTextEditor
-    if (!activeEditor) {
-      return
-    }
+  await fetch(`http://localhost:${entry.port}/tui/append-prompt`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: fileRef }),
+  });
+}
 
-    const document = activeEditor.document
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri)
-    if (!workspaceFolder) {
-      return
-    }
+function getActiveFile() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {return;}
 
-    // Get the relative path from workspace root
-    const relativePath = vscode.workspace.asRelativePath(document.uri)
-    let filepathWithAt = `@${relativePath}`
+  const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+  if (!folder) {return;}
 
-    // Check if there's a selection and add line numbers
-    const selection = activeEditor.selection
-    if (!selection.isEmpty) {
-      // Convert to 1-based line numbers
-      const startLine = selection.start.line + 1
-      const endLine = selection.end.line + 1
+  const relativePath = vscode.workspace.asRelativePath(editor.document.uri);
+  let ref = `@${relativePath}`;
 
-      if (startLine === endLine) {
-        // Single line selection
-        filepathWithAt += `#L${startLine}`
-      } else {
-        // Multi-line selection
-        filepathWithAt += `#L${startLine}-${endLine}`
-      }
-    }
-
-    return filepathWithAt
+  const sel = editor.selection;
+  if (!sel.isEmpty) {
+    const start = sel.start.line + 1;
+    const end = sel.end.line + 1;
+    ref += start === end ? `#L${start}` : `#L${start}-${end}`;
   }
+
+  return ref;
 }
