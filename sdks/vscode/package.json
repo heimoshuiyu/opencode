@@ -25,7 +25,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "opencode.openTerminal",
+        "command": "opencode.openWebview",
         "title": "Open opencode",
         "icon": {
           "light": "images/button-dark.svg",
@@ -33,7 +33,7 @@
         }
       },
       {
-        "command": "opencode.openNewTerminal",
+        "command": "opencode.openNewWebview",
         "title": "Open opencode in new tab",
         "icon": {
           "light": "images/button-dark.svg",
@@ -41,38 +41,38 @@
         }
       },
       {
-        "command": "opencode.addFilepathToTerminal",
-        "title": "Add Filepath to Terminal"
+        "command": "opencode.addFilepathToWebview",
+        "title": "Add Filepath to opencode"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "opencode.openNewTerminal",
+          "command": "opencode.openNewWebview",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "opencode.openTerminal",
-        "title": "Run opencode",
+        "command": "opencode.openWebview",
+        "title": "Open opencode",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
         "linux": "ctrl+escape"
       },
       {
-        "command": "opencode.openNewTerminal",
-        "title": "Run opencode",
+        "command": "opencode.openNewWebview",
+        "title": "Open opencode (new tab)",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "opencode.addFilepathToTerminal",
-        "title": "opencode: Insert At-Mentioned",
+        "command": "opencode.addFilepathToWebview",
+        "title": "opencode: Insert File Reference",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
         "win": "ctrl+alt+K",
