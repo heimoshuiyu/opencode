@@ -1,0 +1,37 @@
+{
+  "name": "@opencode-ai/pet",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://opencode.ai",
+  "author": {
+    "name": "OpenCode",
+    "email": "hello@opencode.ai"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "electron-builder --config electron-builder.config.ts",
+    "package:mac": "electron-builder --mac --config electron-builder.config.ts",
+    "package:win": "electron-builder --win --config electron-builder.config.ts",
+    "package:linux": "electron-builder --linux --config electron-builder.config.ts"
+  },
+  "main": "./out/main/index.js",
+  "dependencies": {
+    "@opencode-ai/sdk": "workspace:*",
+    "electron-store": "^10",
+    "live2dcubismcore": "1.0.2",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6"
+  },
+  "devDependencies": {
+    "electron": "^35",
+    "electron-builder": "^26",
+    "electron-vite": "^5",
+    "typescript": "~5.6.2",
+    "vite": "catalog:"
+  }
+}
