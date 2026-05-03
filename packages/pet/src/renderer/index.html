@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenCode Pet</title>
+  <style>
+    /* Root font-size drives all rem values — scaled by --pet-scale (dampened 25% in JS).
+       At 1x pet: 1rem = 10px.  At 2x pet: 1rem = 12.5px. */
+    html { font-size: calc(10px * var(--pet-scale, 1)); }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: transparent; overflow: hidden;
+      user-select: none;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    #pet-container {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; cursor: grab;
+    }
+    #pet-container:active { cursor: grabbing; }
+
+    /* ── Status Bubble ──────────────────────── */
+
+    #status-bubble {
+      position: absolute; z-index: 20;
+      top: 0.4rem; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 0.5rem;
+      padding: 0.15rem 0.45rem;
+      font-size: 0.75rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #333;
+      box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.15);
+      display: none; opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      -webkit-app-region: no-drag;
+      max-width: 18rem;
+      white-space: normal; word-break: break-word;
+      text-align: center; line-height: 1.3;
+    }
+    #status-bubble::after {
+      content: ""; position: absolute;
+      bottom: -0.35rem; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 0.35rem solid transparent;
+      border-right: 0.35rem solid transparent;
+      border-top: 0.35rem solid rgba(255, 255, 255, 0.95);
+    }
+
+    /* ── Chat Input ──────────────────────────── */
+
+    #chat-input {
+      display: none; position: absolute; z-index: 10;
+      bottom: 25%; left: 50%; transform: translateX(-50%);
+      width: 80%;
+      background: rgba(30, 30, 40, 0.65);
+      backdrop-filter: blur(0.6rem);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.7rem;
+      padding: 0.3rem 0.6rem;
+      font-size: 1rem;
+      color: #eee; outline: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      cursor: text;
+      transition: border-color 0.15s, background 0.15s, opacity 0.2s ease;
+      opacity: 0;
+    }
+    #chat-input::placeholder { color: rgba(255,255,255,0.25); }
+    #chat-input:focus {
+      border-color: rgba(100, 160, 255, 0.5);
+      background: rgba(30, 30, 40, 0.85);
+    }
+
+    /* ── Settings Panel ──────────────────────── */
+
+    #settings-overlay {
+      display: none; flex-direction: column;
+      width: 100%; flex: 1; min-height: 0;
+    }
+
+    #settings-panel {
+      background: rgba(30, 30, 40, 0.96);
+      backdrop-filter: blur(1rem);
+      border-radius: 0.7rem;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 1rem;
+      padding: 0.6rem 0.8rem;
+      display: flex; flex-direction: column;
+      gap: 0.5rem;
+      flex: 1; min-height: 0; overflow: hidden;
+      box-shadow: 0 0.6rem 2rem rgba(0, 0, 0, 0.5);
+      margin: 0 0.3rem 0.3rem 0.3rem;
+    }
+
+    #settings-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    #settings-header h2 { font-size: 1.1rem; font-weight: 600; color: #fff; }
+
+    #settings-close {
+      background: rgba(255, 255, 255, 0.1); border: none;
+      color: #aaa;
+      width: 2rem; height: 2rem;
+      border-radius: 0.4rem;
+      cursor: pointer; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    #settings-close:hover { background: rgba(255, 80, 80, 0.3); color: #fff; }
+
+    .settings-section {
+      display: flex; flex-direction: column;
+      gap: 0.4rem; flex-shrink: 0;
+    }
+
+    .debug-info {
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      font-size: 0.9rem; color: #8cf;
+      line-height: 1.5; word-break: break-all;
+    }
+
+    .settings-section h3 {
+      font-size: 0.9rem; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: 0.04rem;
+    }
+
+    .option-row { display: flex; align-items: center; }
+
+    .toggle-label {
+      display: flex; align-items: center;
+      gap: 0.4rem; cursor: pointer;
+      font-size: 1rem; color: #ccc;
+    }
+    .toggle-label input[type="checkbox"] {
+      accent-color: #64a0ff;
+      width: 1.2rem; height: 1.2rem; cursor: pointer;
+    }
+
+    .scale-control {
+      display: flex; align-items: center;
+      gap: 0.5rem; width: 100%;
+    }
+    .scale-label { font-size: 1rem; color: #ccc; flex-shrink: 0; }
+
+    .scale-control input[type="range"] {
+      flex: 1; accent-color: #64a0ff;
+      height: 0.4rem; cursor: pointer; min-width: 0;
+    }
+
+    #scale-value {
+      min-width: 2.8rem; text-align: right;
+      font-size: 0.9rem; color: #8cf;
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      flex-shrink: 0;
+    }
+
+    .skin-buttons { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+    .skin-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ccc;
+      padding: 0.3rem 0.7rem;
+      border-radius: 0.4rem;
+      cursor: pointer; font-size: 0.9rem; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .skin-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+    .skin-btn.active {
+      background: rgba(100, 160, 255, 0.25);
+      border-color: rgba(100, 160, 255, 0.5); color: #8cf;
+    }
+
+    .state-buttons { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+    .state-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ccc;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.4rem;
+      cursor: pointer; font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+    .state-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+    /* ── Motion List ─────────────────────────── */
+
+    .motion-section {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .motion-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+
+    .motion-filter {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ddd;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.9rem; font-family: inherit; outline: none;
+      width: 10rem;
+    }
+    .motion-filter::placeholder { color: #666; }
+    .motion-filter:focus { border-color: rgba(100, 160, 255, 0.5); }
+
+    #motion-count { font-size: 0.8rem; color: #666; }
+
+    #motion-list {
+      flex: 1; overflow-y: auto; overflow-x: auto;
+      display: flex; flex-direction: column;
+      gap: 0.15rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    #motion-list::-webkit-scrollbar { width: 3px; }
+    #motion-list::-webkit-scrollbar-track { background: transparent; }
+    #motion-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+    .motion-item {
+      background: rgba(255, 255, 255, 0.04); border: none;
+      color: #aaa;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      text-align: left;
+      transition: all 0.1s;
+      white-space: nowrap; width: 100%;
+    }
+    .motion-item:hover { background: rgba(100, 160, 255, 0.2); color: #fff; }
+    .motion-item.face { color: #887; }
+    .motion-item.w-body { color: #8cb4e0; }
+    .motion-item.special { color: #e0a0c0; }
+
+    /* ── Server Config ──────────────────────── */
+
+    .config-row { display: flex; gap: 0.4rem; align-items: center; }
+
+    .config-field {
+      display: flex; flex-direction: column;
+      gap: 0.15rem; flex: 1;
+    }
+    .config-field label {
+      font-size: 0.8rem; color: #888;
+      text-transform: uppercase; letter-spacing: 0.02rem;
+    }
+    .config-field input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ddd;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.9rem;
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      outline: none; width: 100%;
+    }
+    .config-field input::placeholder { color: #555; }
+    .config-field input:focus { border-color: rgba(100, 160, 255, 0.5); }
+
+    .config-actions { display: flex; gap: 0.4rem; align-items: center; }
+
+    .config-status {
+      font-size: 0.8rem; color: #888;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .config-status .dot {
+      width: 0.5rem; height: 0.5rem;
+      border-radius: 50%; background: #666;
+    }
+    .config-status .dot.connected { background: #4f8; }
+    .config-status .dot.connecting { background: #fa0; animation: pulse-dot 1s infinite; }
+    .config-status .dot.disconnected { background: #f55; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .config-btn {
+      background: rgba(100, 160, 255, 0.2);
+      border: 1px solid rgba(100, 160, 255, 0.4);
+      color: #8cf;
+      padding: 0.3rem 0.8rem;
+      border-radius: 0.3rem;
+      cursor: pointer; font-size: 0.9rem; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .config-btn:hover { background: rgba(100, 160, 255, 0.35); }
+    .config-btn.disconnect-btn {
+      background: rgba(255, 80, 80, 0.15);
+      border-color: rgba(255, 80, 80, 0.3); color: #f88;
+    }
+    .config-btn.disconnect-btn:hover { background: rgba(255, 80, 80, 0.3); }
+  </style>
+</head>
+<body>
+  <div id="pet-container">
+    <div id="status-bubble"></div>
+    <input id="chat-input" type="text" placeholder="说点什么..." />
+  </div>
+  <div id="settings-overlay">
+    <div id="settings-panel">
+      <div id="settings-header">
+        <h2>⚙ Settings</h2>
+        <button id="settings-close">✕</button>
+      </div>
+
+      <div class="settings-section" id="debug-section">
+        <h3>Debug</h3>
+        <div id="debug-info" class="debug-info"></div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Server</h3>
+        <div class="config-field">
+          <label>URL</label>
+          <input type="text" id="config-url" placeholder="http://127.0.0.1:4096" />
+        </div>
+        <div class="config-row">
+          <div class="config-field">
+            <label>Username</label>
+            <input type="text" id="config-username" placeholder="opencode" />
+          </div>
+          <div class="config-field">
+            <label>Password</label>
+            <input type="password" id="config-password" placeholder="optional" />
+          </div>
+        </div>
+        <div class="config-actions">
+          <div class="config-status">
+            <span class="dot" id="config-dot"></span>
+            <span id="config-status-text">disconnected</span>
+          </div>
+          <button class="config-btn" id="btn-connect">Connect</button>
+          <button class="config-btn disconnect-btn" id="btn-disconnect" style="display:none">Disconnect</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Model</h3>
+        <div id="skin-list" class="skin-buttons"></div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Options</h3>
+        <div class="option-row">
+          <label class="toggle-label">
+            <input type="checkbox" id="toggle-always-on-top" checked />
+            <span>Always on top</span>
+          </label>
+        </div>
+        <div class="option-row scale-control">
+          <span class="scale-label">缩放</span>
+          <input type="range" id="scale-slider" min="5" max="30" step="1" value="10" />
+          <span id="scale-value">1.0x</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>State</h3>
+        <div class="state-buttons">
+          <!-- Activity states -->
+          <button class="state-btn" data-state="idle">😺 空闲</button>
+          <button class="state-btn" data-state="thinking">🤔 AI思考中</button>
+          <button class="state-btn" data-state="generating">💬 AI输出中</button>
+          <button class="state-btn" data-state="acting">🔧 工具执行</button>
+          <button class="state-btn" data-state="waiting-user">👀 等待用户</button>
+          <button class="state-btn" data-state="retrying">🔄 重试中</button>
+          <button class="state-btn" data-state="sleeping">😴 休眠</button>
+          <button class="state-btn" data-state="disconnected">📡 断开连接</button>
+          <!-- Reaction states -->
+          <button class="state-btn" data-state="greeting">👋 打招呼</button>
+          <button class="state-btn" data-state="file-written">📝 文件已保存</button>
+          <button class="state-btn" data-state="completed">🎉 任务完成</button>
+          <button class="state-btn" data-state="upgraded">🆙 已升级</button>
+          <button class="state-btn" data-state="error">❌ 出错</button>
+          <button class="state-btn" data-state="pty-exited">💻 终端退出</button>
+          <button class="state-btn" data-state="compacted">📦 已压缩</button>
+          <button class="state-btn" data-state="env-changed">🌐 环境变化</button>
+        </div>
+      </div>
+
+      <div class="motion-section">
+        <div class="motion-header">
+          <h3>Motions</h3>
+          <span id="motion-count"></span>
+          <input type="text" id="motion-filter" class="motion-filter" placeholder="filter..." />
+        </div>
+        <div id="motion-list"></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
