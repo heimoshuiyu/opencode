@@ -1105,6 +1105,23 @@ export type Config = {
   $schema?: string
   shell?: string
   logLevel?: LogLevel
+  /**
+   * Voice transcription settings
+   */
+  voice?: {
+    type?: "whisper" | "lalm"
+    whisper?: {
+      url?: string
+      apiKey?: string
+      model?: string
+      language?: string
+    }
+    lalm?: {
+      model?: string
+      prompt?: string
+      system?: string
+    }
+  }
   server?: ServerConfig
   command?: {
     [key: string]: {
@@ -3496,6 +3513,41 @@ export type EventSubscribeResponses = {
 }
 
 export type EventSubscribeResponse = EventSubscribeResponses[keyof EventSubscribeResponses]
+
+export type AudioTranscribeData = {
+  body?: {
+    audio: string
+    mime: string
+    sessionID?: string
+    prompt?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type AudioTranscribeError = AudioTranscribeErrors[keyof AudioTranscribeErrors]
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text: string
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type ConfigGetData = {
   body?: never
