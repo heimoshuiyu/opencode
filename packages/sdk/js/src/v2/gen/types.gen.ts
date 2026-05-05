@@ -1159,6 +1159,23 @@ export type Config = {
   $schema?: string
   shell?: string
   logLevel?: LogLevel
+  /**
+   * Voice transcription settings
+   */
+  voice?: {
+    type?: "whisper" | "lalm"
+    whisper?: {
+      url?: string
+      apiKey?: string
+      model?: string
+      language?: string
+    }
+    lalm?: {
+      model?: string
+      prompt?: string
+      system?: string
+    }
+  }
   server?: ServerConfig
   command?: {
     [key: string]: {
@@ -1291,6 +1308,13 @@ export type Config = {
     primary_tools?: Array<string>
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
+  }
+}
+
+export type AudioError = {
+  name: "AudioError"
+  data: {
+    message: string
   }
 }
 
@@ -3913,6 +3937,40 @@ export type EventSubscribeResponses = {
 }
 
 export type EventSubscribeResponse = EventSubscribeResponses[keyof EventSubscribeResponses]
+
+export type AudioTranscribeData = {
+  body?: {
+    audio: string
+    mime: string
+    prompt?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeErrors = {
+  /**
+   * AudioError
+   */
+  400: AudioError
+}
+
+export type AudioTranscribeError = AudioTranscribeErrors[keyof AudioTranscribeErrors]
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text: string
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type ConfigGetData = {
   body?: never
