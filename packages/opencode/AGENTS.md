@@ -129,3 +129,46 @@ Use `Effect.cached` when multiple concurrent callers should share a single in-fl
 Use `EffectBridge` for native or external callbacks (`@parcel/watcher`, `node-pty`, native `fs.watch`, plugin callbacks, etc.) that need to re-enter Effect services with instance/workspace context.
 
 Plain async code should pass explicit context or stay inside an Effect fiber; do not add ambient instance context shims.
+
+# Docker 镜像构建与推送（Podman 多架构）
+
+## 一次性准备：安装 QEMU
+
+```bash
+# Arch Linux
+sudo pacman -S qemu-user-static qemu-user-static-binfmt
+
+# Debian/Ubuntu
+sudo apt-get install qemu-user-static
+```
+
+验证：
+
+```bash
+podman run --rm --arch arm64 docker.io/library/debian:bookworm uname -m
+# 应输出 aarch64
+```
+
+## 构建流程
+
+Fork 版本使用 `Dockerfile.hmsy`（基于 `debian:trixie`），包含 ffmpeg 和 ripgrep。
+
+```bash
+# 1. 分别构建两个架构
+podman build --arch amd64 -f Dockerfile.hmsy --target slim -t docker.io/heimoshuiyu/opencode:latest-amd64 .
+podman build --arch arm64 -f Dockerfile.hmsy --target slim -t docker.io/heimoshuiyu/opencode:latest-arm64 .
+
+# 2. 创建多架构 manifest
+podman manifest create docker.io/heimoshuiyu/opencode:latest \
+  docker.io/heimoshuiyu/opencode:latest-amd64 \
+  docker.io/heimoshuiyu/opencode:latest-arm64
+
+# 3. 推送（必须用 --all）
+podman manifest push --all docker.io/heimoshuiyu/opencode:latest
+```
+
+## 注意事项
+
+- **必须使用 `podman manifest push --all`**，而不是 `podman push`。`podman push` 只推送 manifest 本身，不保证推送所有架构的镜像层，会导致 Docker Hub 上缺少某些架构。
+- 同一个 tag（如 `latest`）通过 manifest list 同时包含 amd64 和 arm64，客户端 pull 时自动选择匹配当前机器架构的版本。
+- 登录 Docker Hub：`podman login docker.io`。
