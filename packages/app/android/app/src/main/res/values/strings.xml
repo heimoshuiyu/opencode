@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OpenCode</string>
+    <string name="title_activity_main">OpenCode</string>
+    <string name="package_name">ai.opencode.app</string>
+    <string name="custom_url_scheme">ai.opencode.app</string>
+</resources>
