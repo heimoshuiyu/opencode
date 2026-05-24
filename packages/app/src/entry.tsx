@@ -51,6 +51,81 @@ const setStorage = (key: string, value: string | null) => {
   }
 }
 
+type CapacitorWindow = Window & {
+  Capacitor?: {
+    getPlatform?: () => string
+    isNativePlatform?: () => boolean
+  }
+}
+
+function patchAndroidCapacitorJsonFetch() {
+  const capacitor = (window as CapacitorWindow).Capacitor
+  if (capacitor?.getPlatform?.() !== "android" && !(capacitor?.isNativePlatform?.() && /Android/i.test(navigator.userAgent))) return
+
+  const originalFetch = window.fetch.bind(window)
+  window.fetch = Object.assign(async (input: Parameters<typeof window.fetch>[0], init?: Parameters<typeof window.fetch>[1]) => {
+    const response = await originalFetch(input, init)
+    const contentLength = response.headers.get("content-length")
+    if (!contentLength?.split(",").every((part) => part.trim() === "0")) return response
+    if (!response.headers.get("content-type")?.toLowerCase().includes("application/json")) return response
+
+    // CapacitorHttp can return a native-intercepted JSON response with
+    // `Content-Length: 0` even when the body contains JSON. The generated SDK
+    // treats that header as an empty response, so normalize the header only in
+    // the Android WebView runtime.
+    const text = await response.clone().text().catch(() => undefined)
+    if (text === undefined) return response
+
+    const headers = new Headers(response.headers)
+    headers.delete("content-length")
+    return new Response(text, {
+      headers,
+      status: response.status,
+      statusText: response.statusText,
+    })
+  }, window.fetch)
+}
+
+patchAndroidCapacitorJsonFetch()
+
+async function patchAndroidNotificationApi() {
+  const capacitor = (window as CapacitorWindow).Capacitor
+  if (capacitor?.getPlatform?.() !== "android" && !(capacitor?.isNativePlatform?.() && /Android/i.test(navigator.userAgent))) return
+  if ("Notification" in window) return
+
+  // WebView does not provide the Web Notification API. Polyfill it so the
+  // existing notify() function (and any other code checking
+  // `"Notification" in window`) works via Capacitor LocalNotifications.
+  const { LocalNotifications } = await import("@capacitor/local-notifications")
+
+  let notificationId = 0
+
+  const PolyfilledNotification = function (this: any, title: string, options?: NotificationOptions) {
+    this.title = title
+    this.body = options?.body ?? ""
+    this.tag = options?.tag ?? ""
+    this.onclick = null as ((this: any, ev: Event) => any) | null
+
+    LocalNotifications.schedule({
+      notifications: [
+        {
+          title,
+          body: options?.body ?? "",
+          id: ++notificationId,
+        },
+      ],
+    }).catch(() => {})
+  } as any
+
+  PolyfilledNotification.permission = "granted" as NotificationPermission
+  PolyfilledNotification.requestPermission = () => Promise.resolve("granted" as NotificationPermission)
+  PolyfilledNotification.prototype.close = function () {}
+
+  ;(window as any).Notification = PolyfilledNotification
+}
+
+patchAndroidNotificationApi()
+
 const readDefaultServerUrl = () => getStorage(DEFAULT_SERVER_URL_KEY)
 const writeDefaultServerUrl = (url: string | null) => setStorage(DEFAULT_SERVER_URL_KEY, url)
 
