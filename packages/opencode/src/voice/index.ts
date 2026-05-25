@@ -83,21 +83,6 @@ function buildPrompt(input: { prompt?: string; assistant?: string }) {
   return `${head} ${tail}`
 }
 
-function mapUsage(value: unknown) {
-  if (!value || typeof value !== "object") return undefined
-  const item = value as {
-    promptTokens?: number
-    completionTokens?: number
-    totalTokens?: number
-  }
-  const entries = Object.entries({
-    inputTokens: item.promptTokens,
-    outputTokens: item.completionTokens,
-    totalTokens: item.totalTokens,
-  }).filter((entry) => entry[1] !== undefined)
-  return entries.length === 0 ? undefined : (Object.fromEntries(entries) as ConstructorParameters<typeof LLMUsage>[0])
-}
-
 export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
@@ -358,7 +343,10 @@ export const layer = Layer.effect(
         },
       })
 
-      return { text: result.text ?? "", usage: mapUsage(result.usage) }
+      return {
+        text: result.text ?? "",
+        usage: result.usage ? LLMUsage.from(result.usage) : undefined,
+      }
     })
 
     // --- Main transcribe ---
