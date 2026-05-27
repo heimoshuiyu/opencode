@@ -646,6 +646,7 @@ export class Audio extends HeyApiClient {
       mime?: string
       prompt?: string
       sessionID?: string
+      images?: Array<string>
       voice?: {
         type?: "whisper" | "lalm"
         whisper?: {
@@ -679,6 +680,7 @@ export class Audio extends HeyApiClient {
             { in: "body", key: "mime" },
             { in: "body", key: "prompt" },
             { in: "body", key: "sessionID" },
+            { in: "body", key: "images" },
             { in: "body", key: "voice" },
           ],
         },

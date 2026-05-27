@@ -4156,6 +4156,7 @@ export type AudioTranscribeData = {
     mime: string
     prompt?: string
     sessionID?: string
+    images?: Array<string>
     /**
      * Voice transcription settings override
      */
