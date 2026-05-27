@@ -50,6 +50,10 @@ export const TranscribeRequest = Schema.Struct({
   sessionID: Schema.optional(SessionID).annotate({
     description: "Session ID to build conversation context from (directory, branch, recent messages)",
   }),
+  images: Schema.optional(Schema.Array(Schema.String)).annotate({
+    description:
+      "Images to provide visual context for transcription. Each entry must be a data URL (data:image/...;base64,...).",
+  }),
   voice: Schema.optional(VoiceOverride),
 })
 

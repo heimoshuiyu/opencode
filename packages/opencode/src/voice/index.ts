@@ -59,6 +59,7 @@ export type TranscribeInput = {
   mime: string
   prompt?: string
   signal?: AbortSignal
+  images?: string[]
   voice?: Info["voice"]
 }
 
@@ -255,6 +256,7 @@ export const layer = Layer.effect(
       mime: string
       prompt?: string
       signal?: AbortSignal
+      images?: string[]
       voice?: Info["voice"]
     }) {
       const cfg = yield* config.get()
@@ -287,6 +289,15 @@ export const layer = Layer.effect(
             `Please use a model that supports the audio modality (e.g. openai/gpt-4o-audio-preview).`,
         })
       }
+
+      if (input.images?.length && !model.capabilities.input.image) {
+        return yield* new VoiceError({
+          message:
+            `Model "${model.id}" does not support image input. ` +
+            `Please use a model that supports the image modality to provide visual context.`,
+        })
+      }
+
       const rawLanguage = yield* provider.getLanguage(model).pipe(
         Effect.mapError((cause) =>
           new VoiceError({ message: errorMessage(cause), cause }),
@@ -306,6 +317,7 @@ export const layer = Layer.effect(
                 role: "user",
                 content: [
                   ...(context ? [{ type: "text" as const, text: `<TRANSCRIPTION_CONTEXT>\n${context}\n</TRANSCRIPTION_CONTEXT>` }] : []),
+                  ...(input.images?.map((img) => ({ type: "image" as const, image: img })) ?? []),
                   {
                     type: "text",
                     text: "<audio starts>",

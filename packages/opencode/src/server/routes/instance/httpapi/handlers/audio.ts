@@ -136,11 +136,14 @@ export const audioHandlers = HttpApiBuilder.group(InstanceHttpApi, "audio", (han
 
       const cfg = yield* config.get()
 
+      const images = ctx.payload.images?.length ? [...ctx.payload.images] : undefined
+
       return yield* voice.transcribe({
         file,
         mime: ctx.payload.mime,
         prompt,
         signal,
+        images,
         voice: toVoiceOverride(ctx.payload, cfg.voice),
       }).pipe(
         Effect.mapError((error) =>
