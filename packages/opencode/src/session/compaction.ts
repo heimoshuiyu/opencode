@@ -170,7 +170,7 @@ function splitTurn(input: {
     if (input.turn.end - input.turn.start <= 1) return undefined
     for (let start = input.turn.start + 1; start < input.turn.end; start++) {
       const size = yield* input.estimate({
-        messages: input.messages.slice(start, input.turn.end),
+        messages: MessageV2.filterTurnMessages(input.messages.slice(start, input.turn.end)),
         model: input.model,
       })
       if (size > input.budget) continue
@@ -257,7 +257,7 @@ export const layer = Layer.effect(
         recent,
         (turn) =>
           estimate({
-            messages: input.messages.slice(turn.start, turn.end),
+            messages: MessageV2.filterTurnMessages(input.messages.slice(turn.start, turn.end)),
             model: input.model,
           }),
         { concurrency: 1 },

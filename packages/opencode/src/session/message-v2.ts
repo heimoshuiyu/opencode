@@ -1011,6 +1011,23 @@ export const get = Effect.fn("MessageV2.get")(function* (input: { sessionID: Ses
   }
 })
 
+/** For each turn (user → next user), keep only the user message and the last assistant message. */
+export function filterTurnMessages(messages: WithParts[]) {
+  const result: WithParts[] = []
+  let turnAssistants: WithParts[] = []
+  for (const msg of messages) {
+    if (msg.info.role === "user") {
+      if (turnAssistants.length > 0) result.push(turnAssistants.at(-1)!)
+      turnAssistants = []
+      result.push(msg)
+    } else {
+      turnAssistants.push(msg)
+    }
+  }
+  if (turnAssistants.length > 0) result.push(turnAssistants.at(-1)!)
+  return result
+}
+
 export function filterCompacted(msgs: Iterable<WithParts>) {
   const result = [] as WithParts[]
   const completed = new Set<string>()
@@ -1057,7 +1074,7 @@ export function filterCompacted(msgs: Iterable<WithParts>) {
   if (tailIndex >= 0 && tailIndex < compactionIndex && summaryIndex > compactionIndex) {
     return [
       ...result.slice(compactionIndex, summaryIndex + 1),
-      ...result.slice(tailIndex, compactionIndex),
+      ...filterTurnMessages(result.slice(tailIndex, compactionIndex)),
       ...result.slice(summaryIndex + 1),
     ]
   }
