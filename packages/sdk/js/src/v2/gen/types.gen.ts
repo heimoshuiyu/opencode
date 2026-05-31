@@ -1189,6 +1189,26 @@ export type Config = {
   $schema?: string
   shell?: string
   logLevel?: LogLevel
+  /**
+   * Voice transcription settings
+   */
+  voice?: {
+    type?: "whisper" | "lalm"
+    whisper?: {
+      url?: string
+      apiKey?: string
+      model?: string
+      language?: string
+    }
+    lalm?: {
+      model?: string
+      prompt?: string
+      system?: string
+      instruction?: string
+      audio_input_format?: "input_audio" | "audio_url"
+    }
+    context_pairs?: number
+  }
   server?: ServerConfig
   command?: {
     [key: string]: {
@@ -1322,6 +1342,13 @@ export type Config = {
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
     policies?: Array<ConfigV2ExperimentalPolicy>
+  }
+}
+
+export type AudioError = {
+  name: "AudioError"
+  data: {
+    message: string
   }
 }
 
@@ -3444,6 +3471,21 @@ export type ConfigV2ExperimentalPolicy = {
   resource: string
 }
 
+export type LlmUsage = {
+  inputTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  outputTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  nonCachedInputTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  cacheReadInputTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  cacheWriteInputTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  reasoningTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  totalTokens?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  providerMetadata?: {
+    [key: string]: {
+      [key: string]: unknown
+    }
+  }
+}
+
 export type SessionInfo = {
   id: string
   parentID?: string
@@ -4142,6 +4184,65 @@ export type EventSubscribeResponses = {
 }
 
 export type EventSubscribeResponse = EventSubscribeResponses[keyof EventSubscribeResponses]
+
+export type AudioTranscribeData = {
+  body?: {
+    audio: string
+    mime: string
+    prompt?: string
+    sessionID?: string
+    images?: Array<string>
+    /**
+     * Voice transcription settings override
+     */
+    voice?: {
+      type?: "whisper" | "lalm"
+      whisper?: {
+        url?: string
+        apiKey?: string
+        model?: string
+        language?: string
+      }
+      lalm?: {
+        model?: {
+          providerID: string
+          modelID: string
+        }
+        prompt?: string
+        system?: string
+        instruction?: string
+        audio_input_format?: "input_audio" | "audio_url"
+      }
+    }
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type AudioTranscribeErrors = {
+  /**
+   * AudioError | InvalidRequestError
+   */
+  400: AudioError | InvalidRequestError
+}
+
+export type AudioTranscribeError = AudioTranscribeErrors[keyof AudioTranscribeErrors]
+
+export type AudioTranscribeResponses = {
+  /**
+   * Transcription result
+   */
+  200: {
+    text: string
+    usage?: LlmUsage
+  }
+}
+
+export type AudioTranscribeResponse = AudioTranscribeResponses[keyof AudioTranscribeResponses]
 
 export type ConfigGetData = {
   body?: never
