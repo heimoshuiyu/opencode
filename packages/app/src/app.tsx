@@ -40,6 +40,7 @@ import { ModelsProvider } from "@/context/models"
 import { NotificationProvider } from "@/context/notification"
 import { PermissionProvider } from "@/context/permission"
 import { PromptProvider } from "@/context/prompt"
+import { RelayProvider } from "@/context/relay"
 import { ServerConnection, ServerProvider, serverName, useServer } from "@/context/server"
 import { SettingsProvider, useSettings } from "@/context/settings"
 import { TerminalProvider } from "@/context/terminal"
@@ -438,29 +439,31 @@ export function AppInterface(props: {
       canonicalLocalServer={props.canonicalLocalServer}
       servers={props.servers}
     >
-      <GlobalProvider>
-        <ConnectionGate disableHealthCheck={props.disableHealthCheck}>
-          <Dynamic
-            component={props.router ?? Router}
-            root={(routerProps) => (
-              <TabsProvider>
-                <ServerShell>{routerProps.children}</ServerShell>
-              </TabsProvider>
-            )}
-          >
-            <Route component={SelectedServerLayout}>
-              <Route path="/" component={HomeRoute} />
-              <Route path="/:dir" component={DirectoryLayout}>
-                <Route path="/" component={() => <Navigate href="session" />} />
-                <Route path="/session/:id?" component={SessionRoute} />
+      <RelayProvider>
+        <GlobalProvider>
+          <ConnectionGate disableHealthCheck={props.disableHealthCheck}>
+            <Dynamic
+              component={props.router ?? Router}
+              root={(routerProps) => (
+                <TabsProvider>
+                  <ServerShell>{routerProps.children}</ServerShell>
+                </TabsProvider>
+              )}
+            >
+              <Route component={SelectedServerLayout}>
+                <Route path="/" component={HomeRoute} />
+                <Route path="/:dir" component={DirectoryLayout}>
+                  <Route path="/" component={() => <Navigate href="session" />} />
+                  <Route path="/session/:id?" component={SessionRoute} />
+                </Route>
               </Route>
-            </Route>
-            <Route component={DraftServerLayout}>
-              <Route path="/new-session" component={DraftRoute} />
-            </Route>
-          </Dynamic>
-        </ConnectionGate>
-      </GlobalProvider>
+              <Route component={DraftServerLayout}>
+                <Route path="/new-session" component={DraftRoute} />
+              </Route>
+            </Dynamic>
+          </ConnectionGate>
+        </GlobalProvider>
+      </RelayProvider>
     </ServerProvider>
   )
 }
