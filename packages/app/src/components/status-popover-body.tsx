@@ -16,6 +16,7 @@ import { type ServerHealth } from "@/utils/server-health"
 import { useGlobal } from "@/context/global"
 import { useSettings } from "@/context/settings"
 import { useMcpToggle } from "@/context/mcp"
+import { RelaySection } from "./server-relay-section"
 
 const pluginEmptyMessage = (value: string, file: string): JSXElement => {
   const parts = value.split(file)
@@ -240,6 +241,7 @@ function ServerStatusList(props: { state: ServerStatusState }) {
           }}
         </For>
 
+        <RelaySection />
         <Button variant="secondary" class="mt-3 self-start h-8 px-3 py-1.5" onClick={props.state.onManage}>
           {props.state.manageLabel}
         </Button>

@@ -10,6 +10,7 @@ import { ServerConnection, useServer } from "./server"
 import { createRefCountMap } from "@/utils/refcount"
 import { useGlobal } from "./global"
 import { ServerScope } from "@/utils/server-scope"
+import { useRelay } from "./relay"
 
 const isAbortError = (error: unknown) =>
   error !== null && typeof error === "object" && "name" in error && error.name === "AbortError"
@@ -54,16 +55,19 @@ export function resumeStreamAfterPageShow(event: PageTransitionEvent, start: () 
   start()
 }
 
-function createServerSdkContextBase(server: ServerConnection.Any, scope: ServerScope) {
+function createServerSdkContextBase(server: ServerConnection.Any, scope: ServerScope, customFetch?: typeof fetch) {
   const platform = usePlatform()
   const abort = new AbortController()
 
+  const fetchFn = customFetch ?? platform.fetch
+
   const eventFetch = (() => {
-    if (!platform.fetch || !server) return
+    if (!fetchFn || !server) return
+    if (customFetch) return customFetch
     try {
       const url = new URL(server.http.url)
       const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "::1"
-      if (url.protocol === "http:" && !loopback) return platform.fetch
+      if (url.protocol === "http:" && !loopback) return fetchFn
     } catch {
       return
     }
@@ -264,7 +268,7 @@ function createServerSdkContextBase(server: ServerConnection.Any, scope: ServerS
 
   const sdk = createSdkForServer({
     server: server.http,
-    fetch: platform.fetch,
+    fetch: fetchFn,
     throwOnError: true,
   })
 
@@ -280,7 +284,7 @@ function createServerSdkContextBase(server: ServerConnection.Any, scope: ServerS
     createClient(opts: Omit<Parameters<typeof createSdkForServer>[0], "server" | "fetch">) {
       return createSdkForServer({
         server: server.http,
-        fetch: platform.fetch,
+        fetch: fetchFn,
         ...opts,
       })
     },
@@ -292,8 +296,12 @@ export type ServerSDK = ServerSDKBase & {
   createDirSdkContext: (directory: string) => ReturnType<typeof createDirSdkContext>
 }
 
-export function createServerSdkContext(server: ServerConnection.Any, scope: ServerScope): ServerSDK {
-  const sdk = createServerSdkContextBase(server, scope)
+export function createServerSdkContext(
+  server: ServerConnection.Any,
+  scope: ServerScope,
+  customFetch?: typeof fetch,
+): ServerSDK {
+  const sdk = createServerSdkContextBase(server, scope, customFetch)
   return Object.assign(sdk, {
     createDirSdkContext: createRefCountMap((dir) => createDirSdkContext(dir, sdk)),
   })
@@ -307,10 +315,16 @@ export const { use: useServerSDK, provider: ServerSDKProvider } = createSimpleCo
     const global = useGlobal()
     const language = useLanguage()
     const server = useServer()
+    const relay = useRelay()
 
     return createMemo<ServerSDK>(() => {
       const conn = props.server?.() ?? server.current
       if (!conn) throw new Error(language.t("error.serverSDK.noServerAvailable"))
+
+      // If relay intercepts this connection, create SDK with custom fetch
+      const resolved = relay.resolveConnection(server.key, conn)
+      if (resolved.fetch) return createServerSdkContext(resolved.conn, server.scope(), resolved.fetch)
+
       return global.createServerCtx(conn).sdk
     })
   },
