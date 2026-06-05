@@ -48,6 +48,7 @@ import DirectoryLayout from "@/pages/directory-layout"
 import Layout from "@/pages/layout"
 import { ErrorPage } from "./pages/error"
 import { useCheckServerHealth } from "./utils/server-health"
+import { RelayProvider } from "./context/relay"
 
 const HomeRoute = lazy(() => import("@/pages/home"))
 const Session = lazy(() => import("@/pages/session"))
@@ -316,6 +317,7 @@ export function AppInterface(props: {
 }) {
   return (
     <ServerProvider defaultServer={props.defaultServer} servers={props.servers}>
+      <RelayProvider>
       <GlobalProvider defaultServer={props.defaultServer} servers={props.servers}>
         <ConnectionGate disableHealthCheck={props.disableHealthCheck}>
           <ServerKey>
@@ -338,6 +340,7 @@ export function AppInterface(props: {
           </ServerKey>
         </ConnectionGate>
       </GlobalProvider>
+      </RelayProvider>
     </ServerProvider>
   )
 }

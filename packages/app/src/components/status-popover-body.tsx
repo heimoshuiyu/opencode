@@ -19,6 +19,7 @@ import { useQueryOptions } from "@/context/server-sync"
 import { pathKey } from "@/utils/path-key"
 import { useGlobal } from "@/context/global"
 import { useSettings } from "@/context/settings"
+import { RelaySection } from "./server-relay-section"
 
 const pollMs = 10_000
 
@@ -279,6 +280,7 @@ function ServerStatusList(props: { state: ServerStatusState }) {
           }}
         </For>
 
+        <RelaySection />
         <Button variant="secondary" class="mt-3 self-start h-8 px-3 py-1.5" onClick={props.state.onManage}>
           {props.state.manageLabel}
         </Button>
