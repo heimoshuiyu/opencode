@@ -48,6 +48,7 @@
     "@capacitor/local-notifications": "8.2.0",
     "@kobalte/core": "catalog:",
     "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/crypto-e2ee": "workspace:*",
     "@opencode-ai/sdk": "workspace:*",
     "@opencode-ai/ui": "workspace:*",
     "@sentry/solid": "catalog:",
