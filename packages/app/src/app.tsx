@@ -40,6 +40,7 @@ import { ModelsProvider } from "@/context/models"
 import { NotificationProvider } from "@/context/notification"
 import { PermissionProvider } from "@/context/permission"
 import { PromptProvider } from "@/context/prompt"
+import { RelayProvider } from "@/context/relay"
 import { ServerConnection, ServerProvider, serverName, useServer } from "@/context/server"
 import { SettingsProvider, useSettings } from "@/context/settings"
 import { TerminalProvider } from "@/context/terminal"
@@ -315,32 +316,34 @@ export function AppInterface(props: {
       canonicalLocalServer={props.canonicalLocalServer}
       servers={props.servers}
     >
-      <GlobalProvider>
-        <ConnectionGate disableHealthCheck={props.disableHealthCheck}>
-          <Dynamic
-            component={props.router ?? Router}
-            root={(routerProps) => (
-              <TabsProvider>
-                <ServerKey>
-                  <QueryProvider>
-                    <ServerSDKProvider>
-                      <ServerSyncProvider>
-                        <RouterRoot appChildren={props.children}>{routerProps.children}</RouterRoot>
-                      </ServerSyncProvider>
-                    </ServerSDKProvider>
-                  </QueryProvider>
-                </ServerKey>
-              </TabsProvider>
-            )}
-          >
-            <Route path="/" component={HomeRoute} />
-            <Route path="/:dir" component={DirectoryLayout}>
-              <Route path="/" component={() => <Navigate href="session" />} />
-              <Route path="/session/:id?" component={SessionRoute} />
-            </Route>
-          </Dynamic>
-        </ConnectionGate>
-      </GlobalProvider>
+      <RelayProvider>
+        <GlobalProvider>
+          <ConnectionGate disableHealthCheck={props.disableHealthCheck}>
+            <Dynamic
+              component={props.router ?? Router}
+              root={(routerProps) => (
+                <TabsProvider>
+                  <ServerKey>
+                    <QueryProvider>
+                      <ServerSDKProvider>
+                        <ServerSyncProvider>
+                          <RouterRoot appChildren={props.children}>{routerProps.children}</RouterRoot>
+                        </ServerSyncProvider>
+                      </ServerSDKProvider>
+                    </QueryProvider>
+                  </ServerKey>
+                </TabsProvider>
+              )}
+            >
+              <Route path="/" component={HomeRoute} />
+              <Route path="/:dir" component={DirectoryLayout}>
+                <Route path="/" component={() => <Navigate href="session" />} />
+                <Route path="/session/:id?" component={SessionRoute} />
+              </Route>
+            </Dynamic>
+          </ConnectionGate>
+        </GlobalProvider>
+      </RelayProvider>
     </ServerProvider>
   )
 }
