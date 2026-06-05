@@ -2,6 +2,7 @@ import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
 import { Flag } from "@opencode-ai/core/flag/flag"
+import { loadConfig as loadRelayConfig, RelayClient } from "../../server/relay"
 
 export const ServeCommand = effectCmd({
   command: "serve",
@@ -18,6 +19,13 @@ export const ServeCommand = effectCmd({
     const opts = yield* resolveNetworkOptions(args)
     const server = yield* Effect.promise(() => Server.listen(opts))
     console.log(`opencode server listening on http://${server.hostname}:${server.port}`)
+
+    const relayConfig = yield* Effect.promise(() => loadRelayConfig())
+    if (relayConfig) {
+      const client = new RelayClient(relayConfig)
+      yield* Effect.promise(() => client.start())
+      console.log(`relay client connecting to ${relayConfig.url} as ${relayConfig.instanceId}`)
+    }
 
     yield* Effect.never
   }),
