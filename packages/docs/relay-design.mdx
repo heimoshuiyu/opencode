@@ -1,0 +1,699 @@
+---
+title: Relay 中转服务设计文档
+description: OpenCode 端到端加密中转服务的完整设计方案
+---
+
+# Relay 中转服务 — 端到端加密设计文档
+
+## 1. 概述
+
+Relay 是一个轻量级的公网中转服务，让远程客户端通过公网安全地访问内网中的 OpenCode 实例。所有流量使用 **AES-256-GCM 对称加密**，Relay 本身持有零密钥（Zero-Knowledge），无法解密任何经过它的流量。
+
+### 设计目标
+
+- **端到端加密**：客户端和 OpenCode 服务端之间的所有通信都加密，中转服务无法读取内容
+- **零知识中转**：Relay 不持有加密密钥，只能看到密文和最少量的路由元数据
+- **无需开放端口**：OpenCode 实例主动连接 Relay（出站连接），适合 NAT / 家庭网络 / 企业内网环境
+- **多实例支持**：一个 Relay 可同时服务多个 OpenCode 实例
+- **全协议覆盖**：支持 HTTP REST、SSE 实时流、WebSocket 终端
+
+### 不包含的范围
+
+- 客户端 SDK 集成方式（后续单独讨论）
+- Relay 自身的用户认证/限流（当前不需要）
+- 密钥轮换和密钥管理基础设施
+
+---
+
+## 2. 架构
+
+### 2.1 整体拓扑
+
+```
+                       公网 (Internet)                        内网 (Private Network)
+                ┌─────────────────────────┐            ┌──────────────────────────┐
+                │                         │            │                          │
+  [Client] ────►│     Relay Server        │◄──WS长连接──│    OpenCode Server       │
+   (有 PSK)     │     (无 PSK)            │  主动外连   │    (有 PSK)              │
+                │     端口 :443           │            │    无需开放端口           │
+                │     纯密文中转           │            │    解密→处理→加密         │
+                │                         │            │                          │
+                └─────────────────────────┘            └──────────────────────────┘
+                      ▲      ▲                                      ▲
+                      │      │                                      │
+                ┌─────┘      └───────┐                    ┌─────────┴─────────┐
+                │                    │                    │                   │
+           [Client A]          [Client B]          [OpenCode-1]       [OpenCode-2]
+           (有 PSK)             (有 PSK)           (有 PSK)           (有 PSK)
+```
+
+### 2.2 核心原则
+
+| 原则 | 说明 |
+|------|------|
+| **零知识** | Relay 不持有 PSK，无法解密任何流量 |
+| **反向隧道** | OpenCode 主动连接 Relay，无需开放入站端口 |
+| **对称加密** | 使用预共享密钥（PSK），无需 PKI / 证书体系 |
+| **流式保持** | SSE 和 WebSocket 保持原有流式特性，逐事件 / 逐帧加密 |
+
+---
+
+## 3. 加密方案
+
+### 3.1 PSK（Pre-Shared Key，预共享密钥）
+
+PSK 是一个 256-bit（32 字节）的密钥，提前配置在客户端和 OpenCode 服务端。两边的密钥一样，用于对称加解密。Relay **不持有**此密钥。
+
+```bash
+# 生成一个 PSK
+openssl rand -hex 32
+# 输出示例: a3f8c2d1e5b7943f6d0a1c8b2e4d5f7a9b0c3d6e8f1a2b4c5d7e9f0a1b2c3d4
+```
+
+### 3.2 加密参数
+
+| 项目 | 选择 | 说明 |
+|------|------|------|
+| 算法 | AES-256-GCM | 认证加密，防篡改 |
+| 密钥长度 | 256 bit | PSK 本身 |
+| Nonce | 12 字节随机 | 每条消息独立 nonce |
+| 密钥派生 | HKDF-SHA256 | 从 PSK 派生子密钥，区分不同通道 |
+| Tag 长度 | 128 bit | GCM 认证标签 |
+
+### 3.3 密钥派生
+
+使用 HKDF 从 PSK 为不同通信通道派生独立的子密钥，防止 nonce 重用跨通道：
+
+```ts
+// 伪代码
+function deriveKey(psk: Uint8Array, context: "http" | "sse" | "ws"): Uint8Array {
+  return HKDF-SHA256(
+    ikm:  psk,
+    salt: `opencode-relay-${context}`,
+    info: "aes-256-gcm-key",
+    length: 32
+  )
+}
+```
+
+- HTTP 请求使用 `http` 子密钥
+- SSE 事件使用 `sse` 子密钥
+- WebSocket 帧使用 `ws` 子密钥
+
+### 3.4 加密信封格式
+
+所有加密数据使用统一的 Envelope 格式：
+
+```ts
+type Envelope = {
+  /** base64 编码的 12 字节随机 nonce */
+  nonce: string
+  /** base64 编码的密文 (ciphertext + GCM tag) */
+  ciphertext: string
+}
+```
+
+加密流程：
+
+```
+明文 JSON → JSON.stringify() → UTF-8 bytes → AES-256-GCM(密钥, 随机nonce) → nonce + ciphertext → Envelope
+```
+
+解密流程：
+
+```
+Envelope → 解码 nonce 和 ciphertext → AES-256-GCM-Decrypt(密钥, nonce, ciphertext) → UTF-8 bytes → JSON.parse() → 明文
+```
+
+GCM 模式自带认证标签（AEAD），密文被篡改时解密会失败并抛出异常。
+
+---
+
+## 4. 协议设计
+
+### 4.1 阶段 1：实例注册（OpenCode → Relay）
+
+OpenCode 启动时主动连接 Relay 并注册：
+
+```
+OpenCode                           Relay
+  │                                  │
+  │  WS CONNECT wss://relay.example.com/_register
+  │  { "instance": "prod-1", "version": "1.0.0" }
+  │─────────────────────────────────►│
+  │                                  │  记录连接映射
+  │  ◄── { "status": "registered" } │
+  │                                  │
+  │  ◄── ping ──────────────────────│  心跳 (每 30s)
+  │  ── pong ──────────────────────►│
+```
+
+- OpenCode 通过 WebSocket 长连接注册到 Relay
+- 心跳保持连接活跃
+- 连接断开时自动重连（指数退避：1s, 2s, 4s, 8s, ... 最大 30s）
+
+### 4.2 阶段 2：HTTP 请求
+
+```
+Client                              Relay                           OpenCode
+  │                                    │                                │
+  │  POST /relay/http                  │                                │
+  │  {                                 │                                │
+  │    "instance": "prod-1",    ─── 明文路由信息                       │
+  │    "envelope": {                   │                                │
+  │      "nonce": "base64...",         │                                │
+  │      "ciphertext": "base64..."     │                                │
+  │    }                               │                                │
+  │  }                                 │                                │
+  │───────────────────────────────────►│                                │
+  │                                    │  WS frame:                     │
+  │                                    │  { "type": "request",           │
+  │                                    │    "id": "req-123",             │
+  │                                    │    "envelope": {...} }          │
+  │                                    │───────────────────────────────►│
+  │                                    │                                │
+  │                                    │                     解密 envelope
+  │                                    │                 路由到内部 handler
+  │                                    │                 加密 response 为
+  │                                    │                 新 envelope      │
+  │                                    │                                │
+  │                                    │  WS frame:                     │
+  │                                    │  { "type": "response",          │
+  │                                    │    "id": "req-123",             │
+  │                                    │    "envelope": {...} }          │
+  │                                    │◄───────────────────────────────│
+  │  HTTP Response:                    │                                │
+  │  { "envelope": {...} }             │                                │
+  │◄───────────────────────────────────│                                │
+```
+
+**客户端发送的 Relay 请求**：
+
+```ts
+type RelayHttpRequest = {
+  /** 目标实例 ID（明文，用于 Relay 路由） */
+  instance: string
+  /** 加密信封 */
+  envelope: Envelope
+}
+```
+
+**Envelope 内部解密后的内容**：
+
+```ts
+type DecryptedRequest = {
+  /** HTTP 方法 */
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+  /** API 路径，如 /session, /config 等 */
+  path: string
+  /** 查询参数 */
+  query?: Record<string, string>
+  /** 请求头（含 Authorization） */
+  headers?: Record<string, string>
+  /** 请求体 */
+  body?: unknown
+}
+```
+
+**Envelope 内部解密后的响应**：
+
+```ts
+type DecryptedResponse = {
+  /** HTTP 状态码 */
+  status: number
+  /** 响应头 */
+  headers?: Record<string, string>
+  /** 响应体 */
+  body?: unknown
+}
+```
+
+### 4.3 阶段 3：SSE 实时流
+
+```
+Client                              Relay                           OpenCode
+  │                                    │                                │
+  │  GET /relay/sse?instance=prod-1    │                                │
+  │  Body: { "envelope": {...} }       │                                │
+  │───────────────────────────────────►│                                │
+  │                                    │  WS frame:                     │
+  │                                    │  { "type": "sse_subscribe",    │
+  │                                    │    "stream_id": "sse-456",     │
+  │                                    │    "envelope": {...} }          │
+  │                                    │───────────────────────────────►│
+  │                                    │                                │
+  │                                    │                   解密 → 订阅   │
+  │                                    │                   内部事件流     │
+  │                                    │                                │
+  │  SSE event:                        │  WS frame:                     │
+  │  data: {"envelope":{...}}          │  { "type": "sse_event",        │
+  │◄═══════════════════════════════════│    "stream_id": "sse-456",     │
+  │                                    │    "envelope": {...} }          │
+  │                                    │◄═══════════════════════════════│
+  │  SSE event:                        │  WS frame:                     │
+  │  data: {"envelope":{...}}          │  { "type": "sse_event",        │
+  │◄═══════════════════════════════════│    "stream_id": "sse-456",     │
+  │                                    │    "envelope": {...} }          │
+  │                                    │◄═══════════════════════════════│
+  │  ...持续流式传输...                  │  ...                           │
+```
+
+特点：
+- 每个独立 SSE event 加密为一个独立的 Envelope
+- Relay 逐个转发密文事件，保持流式特性
+- 客户端逐个解密，保持实时性
+- 背压控制：Relay 缓冲上限 1000 条事件，超出丢弃最早的
+
+### 4.4 阶段 4：WebSocket（PTY 终端）
+
+```
+Client                              Relay                           OpenCode
+  │                                    │                                │
+  │  WS CONNECT /relay/ws?instance=prod-1                              │
+  │───────────────────────────────────►│                                │
+  │                                    │  WS control:                   │
+  │                                    │  { "type": "ws_tunnel",        │
+  │                                    │    "tunnel_id": "tun-789" }    │
+  │                                    │───────────────────────────────►│
+  │                                    │                                │
+  │                                    │  WS control:                   │
+  │                                    │  { "type": "ws_tunnel_ready",  │
+  │                                    │    "tunnel_id": "tun-789" }    │
+  │                                    │◄───────────────────────────────│
+  │                                    │                                │
+  │  WS frame: { "envelope": {...} }   │         双向管道转发            │
+  │════════════════════════════════════►│════════════════════════════════►│
+  │  WS frame: { "envelope": {...} }   │                                │
+  │◄═══════════════════════════════════│◄════════════════════════════════│
+  │  ...双向持续通信...                  │  ...                           │
+```
+
+- 双向每帧加密
+- Relay 纯管道转发，不解密
+- 隧道建立需要先通过加密信封传递 PTY 连接参数
+
+### 4.5 Relay WebSocket 消息类型总览
+
+Relay 与 OpenCode 之间的长连接使用以下 WS 消息类型：
+
+| type | 方向 | 用途 |
+|------|------|------|
+| `request` | Relay → OpenCode | 转发客户端 HTTP 请求 |
+| `response` | OpenCode → Relay | 返回 HTTP 响应 |
+| `sse_subscribe` | Relay → OpenCode | 客户端订阅 SSE 流 |
+| `sse_event` | OpenCode → Relay | SSE 事件推送 |
+| `sse_close` | 双向 | SSE 流结束 |
+| `ws_tunnel` | Relay → OpenCode | 请求建立 WS 隧道 |
+| `ws_tunnel_ready` | OpenCode → Relay | 隧道已就绪 |
+| `ws_frame` | 双向 | WS 隧道数据帧 |
+| `ws_close` | 双向 | WS 隧道关闭 |
+| `ping` / `pong` | 双向 | 心跳 |
+
+消息格式：
+
+```ts
+type RelayMessage = {
+  type: string
+  id?: string        // request/response 匹配用
+  stream_id?: string // SSE 流标识
+  tunnel_id?: string // WS 隧道标识
+  envelope?: Envelope
+}
+```
+
+---
+
+## 5. Relay 服务内部设计
+
+### 5.1 连接注册表
+
+```ts
+type InstanceConnection = {
+  /** OpenCode 实例到 Relay 的长连接 */
+  ws: WebSocket
+  /** 等待响应的客户端 HTTP 请求 */
+  pendingRequests: Map<string, {
+    resolve: (response: RelayHttpResponse) => void
+    timer: Timer
+  }>
+  /** 活跃 SSE 流 */
+  pendingSSE: Map<string, {
+    clientResponse: ServerResponse
+  }>
+  /** 活跃 WebSocket 隧道 */
+  pendingWS: Map<string, {
+    clientWs: WebSocket
+  }>
+}
+
+// 全局注册表
+const connections: Map<string, InstanceConnection> = new Map()
+// key = instance ID
+```
+
+### 5.2 请求超时
+
+- 客户端 HTTP 请求：30 秒超时
+- SSE 流：无超时，由客户端断开或 OpenCode 实例断开时清理
+- WS 隧道：无超时，由任一侧关闭时清理
+
+### 5.3 背压控制
+
+SSE 流在 Relay 处缓冲。当客户端消费速度慢于 OpenCode 推送速度时：
+- 缓冲上限：1000 条加密事件
+- 超出上限：丢弃最早的事件（保持最新状态）
+
+### 5.4 错误处理
+
+| 场景 | 处理 |
+|------|------|
+| OpenCode WS 断开 | 清理该实例所有 pending 请求、SSE 流、WS 隧道；客户端收到 502 |
+| 客户端 SSE 断开 | 通知 OpenCode 停止对应事件流 |
+| 客户端 WS 断开 | 通知 OpenCode 关闭对应 PTY 隧道 |
+| 实例不存在 | 返回 HTTP 404 `{"error": "instance not found"}` |
+| 请求超时 | 返回 HTTP 504 `{"error": "gateway timeout"}` |
+
+---
+
+## 6. OpenCode 端集成
+
+### 6.1 Relay 客户端模块
+
+在 OpenCode 服务端新增 Relay 客户端模块，负责：
+- 启动时连接 Relay 并注册实例
+- 维持心跳和断线重连
+- 处理收到的加密请求并返回加密响应
+
+```
+packages/opencode/src/server/relay/
+  index.ts                # 导出
+  client.ts               # 连接 Relay、注册实例、心跳、重连
+  message-handler.ts      # 解密请求 → 调用内部 Service → 加密响应
+  sse-bridge.ts           # 订阅内部事件流 → 加密 → 通过 WS 发送给 Relay
+  ws-bridge.ts            # PTY WebSocket 桥接
+```
+
+### 6.2 内部路由
+
+收到加密请求后，不通过 HTTP 回环调用自身 API，而是直接调用 Effect Service 层：
+
+```ts
+// 伪代码：处理加密 HTTP 请求
+async function handleEncryptedRequest(envelope: Envelope): Promise<Envelope> {
+  // 1. 解密
+  const request: DecryptedRequest = decrypt(envelope, httpKey)
+
+  // 2. 直接调用 Service 层（不经过 HTTP）
+  const result = await SessionService.create(request.body)
+
+  // 3. 加密响应
+  return encrypt({ status: 200, body: result }, httpKey)
+}
+```
+
+对于 SSE 事件流，订阅内部的 Bus（pub/sub）系统：
+
+```ts
+// 伪代码：处理加密 SSE 订阅
+async function handleEncryptedSSE(envelope: Envelope, streamId: string) {
+  const request = decrypt(envelope, sseKey)
+
+  // 订阅内部事件总线
+  const bus = yield* Bus.subscribe()
+  for await (const event of bus) {
+    // 加密每个事件
+    const encrypted = encrypt(event, sseKey)
+    // 通过 WS 发送给 Relay
+    ws.send({ type: "sse_event", stream_id: streamId, envelope: encrypted })
+  }
+}
+```
+
+### 6.3 启动流程
+
+```
+opencode serve 启动
+    │
+    ├── 初始化 HTTP Server (port 4096)      ← 本地直连仍然可用
+    │
+    └── 初始化 Relay Client
+          │
+          ├── 读取 OPENCODE_RELAY_URL
+          ├── 读取 OPENCODE_RELAY_PSK
+          ├── 读取 OPENCODE_RELAY_INSTANCE_ID
+          │
+          ├── WS CONNECT → Relay
+          ├── 发送注册消息
+          │
+          ├── 启动心跳协程 (30s interval)
+          └── 启动断线重连监听
+```
+
+Relay 模块是可选的 —— 如果没有配置 `OPENCODE_RELAY_URL`，则不启动。
+
+---
+
+## 7. 配置参考
+
+### 7.1 Relay 服务端
+
+```bash
+# Relay 服务端配置（没有 PSK）
+RELAY_PORT=443                           # 监听端口
+RELAY_TLS_CERT=/path/to/cert.pem         # TLS 证书
+RELAY_TLS_KEY=/path/to/key.pem           # TLS 私钥
+RELAY_HEARTBEAT_INTERVAL=30000           # 心跳间隔 (ms)
+RELAY_HEARTBEAT_TIMEOUT=60000            # 心跳超时 (ms)，超时视为断开
+```
+
+### 7.2 OpenCode 服务端
+
+```bash
+# OpenCode 服务端配置
+OPENCODE_RELAY_URL=wss://relay.example.com   # Relay 地址
+OPENCODE_RELAY_INSTANCE_ID=prod-1            # 注册到 Relay 的实例 ID（唯一）
+OPENCODE_RELAY_PSK=a3f8c2d1e5b7...           # 预共享加密密钥 (hex, 64 字符)
+```
+
+### 7.3 客户端
+
+```bash
+# 客户端配置
+OPENCODE_RELAY_URL=wss://relay.example.com   # Relay 地址
+OPENCODE_RELAY_INSTANCE_ID=prod-1            # 目标实例 ID
+OPENCODE_RELAY_PSK=a3f8c2d1e5b7...           # 预共享加密密钥（与服务端相同）
+```
+
+---
+
+## 8. 包结构
+
+### 8.1 crypto-e2ee（共享加密库）
+
+```
+packages/crypto-e2ee/
+  src/
+    index.ts                # 导出
+    encrypt.ts              # encrypt() / decrypt() — AES-256-GCM
+    envelope.ts             # Envelope 类型定义 + 序列化
+    key.ts                  # PSK 加载 + HKDF 子密钥派生
+  package.json
+  tsconfig.json
+```
+
+### 8.2 relay（中转服务）
+
+```
+packages/relay/
+  src/
+    index.ts                # 入口，启动 Bun.serve()
+    server.ts               # Bun HTTP + WS server
+    connection-registry.ts  # 实例连接注册表
+    handlers/
+      register.ts           # OpenCode 实例注册 (WS)
+      http.ts               # 客户端 HTTP 请求 → 转发到 OpenCode WS
+      sse.ts                # 客户端 SSE 订阅 → 流式转发
+      ws.ts                 # 客户端 WS 隧道 → 双向转发
+    config.ts               # 端口、TLS 配置
+  package.json
+  tsconfig.json
+```
+
+### 8.3 opencode relay 集成
+
+```
+packages/opencode/src/server/relay/
+  index.ts                  # 导出
+  client.ts                 # 连接 Relay、注册实例、心跳、重连
+  message-handler.ts        # 解密请求 → 调用 Service → 加密响应
+  sse-bridge.ts             # 内部事件 → 加密 → WS 发送
+  ws-bridge.ts              # PTY WebSocket 桥接
+```
+
+---
+
+## 9. 加密代码示例
+
+### 9.1 加密
+
+```ts
+function encrypt(key: Uint8Array, plaintext: unknown): Envelope {
+  const nonce = crypto.getRandomValues(new Uint8Array(12))
+  const data = new TextEncoder().encode(JSON.stringify(plaintext))
+
+  // AES-256-GCM
+  const aesKey = crypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt"])
+  const result = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce, tagLength: 128 },
+    aesKey,
+    data,
+  )
+
+  return {
+    nonce: Buffer.from(nonce).toString("base64"),
+    ciphertext: Buffer.from(result).toString("base64"),
+  }
+}
+```
+
+### 9.2 解密
+
+```ts
+function decrypt(key: Uint8Array, envelope: Envelope): unknown {
+  const nonce = Buffer.from(envelope.nonce, "base64")
+  const ciphertext = Buffer.from(envelope.ciphertext, "base64")
+
+  const aesKey = await crypto.subtle.importKey("raw", key, "AES-GCM", false, ["decrypt"])
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: nonce, tagLength: 128 },
+    aesKey,
+    ciphertext,
+  )
+
+  return JSON.parse(new TextDecoder().decode(plaintext))
+}
+```
+
+### 9.3 HKDF 密钥派生
+
+```ts
+function deriveKey(psk: Uint8Array, context: "http" | "sse" | "ws"): Uint8Array {
+  const prk = await crypto.subtle.importKey(
+    "raw",
+    psk,
+    { name: "HKDF", hash: "SHA-256" },
+    false,
+    ["deriveBits"],
+  )
+
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: new TextEncoder().encode(`opencode-relay-${context}`),
+      info: new TextEncoder().encode("aes-256-gcm-key"),
+    },
+    prk,
+    256, // 32 bytes = 256 bits
+  )
+
+  return new Uint8Array(bits)
+}
+```
+
+---
+
+## 10. 部署示例
+
+### 10.1 典型部署拓扑
+
+```
+[用户 A] ──HTTPS──┐                         ┌──WS── [内网 OpenCode-1]
+                  │    ┌──────────────┐      │
+[用户 B] ──HTTPS──┼───►│  Relay :443  │◄─────┤
+                  │    │  公网 VPS     │      │
+[用户 C] ──HTTPS──┘    └──────────────┘      └──WS── [内网 OpenCode-2]
+```
+
+### 10.2 Relay 部署步骤
+
+```bash
+# 1. 部署 Relay 到公网 VPS
+git clone ... && cd packages/relay
+RELAY_PORT=443 \
+RELAY_TLS_CERT=/etc/letsencrypt/live/relay.example.com/fullchain.pem \
+RELAY_TLS_KEY=/etc/letsencrypt/live/relay.example.com/privkey.pem \
+bun run src/index.ts
+
+# 2. 配置 OpenCode 实例（内网机器）
+export OPENCODE_RELAY_URL=wss://relay.example.com
+export OPENCODE_RELAY_INSTANCE_ID=prod-1
+export OPENCODE_RELAY_PSK=$(openssl rand -hex 32)
+opencode serve
+```
+
+---
+
+## 11. 安全性分析
+
+### 11.1 Relay 能看到什么
+
+| 数据 | Relay 是否可见 | 说明 |
+|------|----------------|------|
+| 客户端 IP | 是 | 网络层元数据 |
+| 实例 ID | 是 | 明文路由信息 |
+| 协议类型 | 是 | HTTP / SSE / WS |
+| 请求时间 | 是 | 网络层元数据 |
+| 请求频率 | 是 | 流量模式 |
+| **请求内容** | **否** | 加密 |
+| **响应内容** | **否** | 加密 |
+| **API 路径** | **否** | 加密在 envelope 内 |
+| **认证凭据** | **否** | 加密在 envelope 内 |
+| **会话数据** | **否** | 加密 |
+| **代码内容** | **否** | 加密 |
+
+### 11.2 威胁模型
+
+| 威胁 | 防护措施 |
+|------|----------|
+| Relay 被入侵 | 零知识设计，无 PSK，无法解密 |
+| 中间人攻击 | TLS + AES-256-GCM 双层保护 |
+| 重放攻击 | 每条消息独立随机 nonce，GCM 认证失败 |
+| 数据篡改 | GCM AEAD 认证标签验证 |
+| PSK 泄露（客户端） | 单个客户端受影响，不影响其他客户端 |
+| PSK 泄露（服务端） | 需要立即轮换 PSK |
+
+### 11.3 已知限制
+
+- **PSK 是对称的**：客户端泄露 PSK 等同于服务端泄露，无法区分方向
+- **无前向保密**（Forward Secrecy）：如果 PSK 泄露，历史流量可被解密（如果被录制的话）
+- **流量模式可见**：Relay 可以观察到请求频率和大小模式
+- **路由元数据明文**：实例 ID 是明文的
+
+---
+
+## 12. 实现计划
+
+### Phase 1：基础设施
+- [ ] `packages/crypto-e2ee` — 加密库（encrypt, decrypt, deriveKey, Envelope 类型）
+- [ ] 单元测试：加密/解密往返、密钥派生确定性
+
+### Phase 2：Relay 服务
+- [ ] `packages/relay` — Bun HTTP Server
+- [ ] 实例注册和心跳
+- [ ] HTTP 请求中转
+- [ ] SSE 流中转
+- [ ] WebSocket 隧道中转
+- [ ] 断线清理和错误处理
+
+### Phase 3：OpenCode 集成
+- [ ] `packages/opencode/src/server/relay/` — Relay 客户端
+- [ ] 加密请求处理（Service 层直接调用）
+- [ ] SSE 事件桥接
+- [ ] PTY WebSocket 桥接
+- [ ] 断线重连
+
+### Phase 4：集成测试
+- [ ] 端到端测试：客户端 → Relay → OpenCode 完整链路
+- [ ] 断线重连测试
+- [ ] 多实例并发测试
