@@ -149,7 +149,14 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
   //
   // Only apply this workaround if the model actually supports that media input -
   // otherwise unsupportedParts() will turn it into a user-visible error.
-  const supportsMediaInToolResult = (attachment: { mime: string }) => {
+  const keepMediaInToolResult = (part: SessionV1.ToolPart, attachment: { mime: string }) => {
+    if (
+      model.api.npm === "@ai-sdk/openai" &&
+      part.tool === "image_generation" &&
+      part.metadata?.providerExecuted === true &&
+      attachment.mime.startsWith("image/")
+    )
+      return false
     if (model.api.npm === "@ai-sdk/anthropic") return true
     if (model.api.npm === "@ai-sdk/openai") return true
     if (model.api.npm === "@ai-sdk/amazon-bedrock/mantle") return true
@@ -300,14 +307,13 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
               : truncateToolOutput(part.state.output, options?.toolOutputMaxChars)
             const attachments = part.state.time.compacted || options?.stripMedia ? [] : (part.state.attachments ?? [])
 
-            // For providers that don't support media in tool results, extract media files
-            // (images, PDFs) to be sent as a separate user message
+            // Extract media files that need to be replayed as a separate user message.
             const mediaAttachments = attachments.filter((a) => isMedia(a.mime))
-            const extractedMedia = mediaAttachments.filter((a) => !supportsMediaInToolResult(a))
+            const extractedMedia = mediaAttachments.filter((a) => !keepMediaInToolResult(part, a))
             if (extractedMedia.length > 0) {
               media.push(...extractedMedia)
             }
-            const finalAttachments = attachments.filter((a) => !isMedia(a.mime) || supportsMediaInToolResult(a))
+            const finalAttachments = attachments.filter((a) => !isMedia(a.mime) || keepMediaInToolResult(part, a))
 
             const output =
               finalAttachments.length > 0
