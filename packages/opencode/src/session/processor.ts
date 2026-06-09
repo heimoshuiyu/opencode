@@ -4,6 +4,7 @@ import { Image } from "@/image/image"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { Cause, Deferred, Effect, Exit, Layer, Context, Scope, Schema } from "effect"
 import * as Stream from "effect/Stream"
+import path from "path"
 import { Agent } from "@/agent/agent"
 import { Config } from "@/config/config"
 import { Permission } from "@/permission"
@@ -24,7 +25,14 @@ import { errorMessage } from "@/util/error"
 import { isRecord } from "@/util/record"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
+import { SessionEvent } from "@opencode-ai/core/session/event"
+import { SessionMessage } from "@opencode-ai/core/session/message"
+import { ModelV2 } from "@opencode-ai/core/model"
+import { ProviderV2 } from "@opencode-ai/core/provider"
+import * as DateTime from "effect/DateTime"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Usage, type LLMEvent } from "@opencode-ai/llm"
+import { write } from "@/util/filesystem"
 
 const DOOM_LOOP_THRESHOLD = 3
 export type Result = "compact" | "stop" | "continue"
@@ -255,6 +263,28 @@ const layer = Layer.effect(
       const toolResultOutput = (
         value: Extract<StreamEvent, { type: "tool-result" }>,
       ): { title: string; metadata: Record<string, any>; output: string; attachments?: SessionV1.FilePart[] } => {
+        if (value.name === "image_generation" && isRecord(value.result.value)) {
+          const result = value.result.value.result
+          if (typeof result === "string" && result.length > 0) {
+            return {
+              title: value.name,
+              metadata: value.result.value,
+              output: "Generated image attached.",
+              attachments: [
+                {
+                  id: PartID.ascending(),
+                  messageID: ctx.assistantMessage.id,
+                  sessionID: ctx.sessionID,
+                  type: "file",
+                  mime: "image/png",
+                  filename: "generated-image.png",
+                  url: `data:image/png;base64,${result}`,
+                },
+              ],
+            }
+          }
+        }
+
         if (isRecord(value.result.value) && typeof value.result.value.output === "string") {
           return {
             title: typeof value.result.value.title === "string" ? value.result.value.title : value.name,
@@ -272,6 +302,38 @@ const layer = Layer.effect(
             typeof value.result.value === "string" ? value.result.value : (JSON.stringify(value.result.value) ?? ""),
         }
       }
+
+      const persistGeneratedImage = Effect.fn("SessionProcessor.persistGeneratedImage")(function* (
+        value: Extract<StreamEvent, { type: "tool-result" }>,
+        output: { title: string; metadata: Record<string, any>; output: string; attachments?: SessionV1.FilePart[] },
+      ) {
+        if (value.name !== "image_generation" || !isRecord(value.result.value)) return output
+        const result = value.result.value.result
+        if (typeof result !== "string" || result.length === 0) return output
+
+        const filename = `generated-image-${value.id.replace(/[^a-zA-Z0-9._-]/g, "-")}.png`
+        const savedPath = yield* Effect.gen(function* () {
+          const info = yield* session.get(ctx.sessionID)
+          const filePath = path.join(info.directory, filename)
+          yield* Effect.tryPromise(() => write(filePath, Buffer.from(result, "base64")))
+          return filePath
+        }).pipe(
+          Effect.catch((error) =>
+            Effect.sync(() => {
+              Effect.logWarning("failed to save generated image", { error })
+              return undefined
+            }),
+          ),
+        )
+        if (!savedPath) return output
+
+        return {
+          ...output,
+          metadata: { ...output.metadata, savedPath },
+          output: `${output.output}\nSaved image to ${savedPath}`,
+          attachments: output.attachments?.map((attachment) => ({ ...attachment, filename })),
+        }
+      })
 
       const handleEvent = Effect.fnUntraced(function* (value: StreamEvent) {
         switch (value.type) {
@@ -385,7 +447,7 @@ const layer = Layer.effect(
               yield* failToolCall(value.id, value.result.value)
               return
             }
-            const rawOutput = toolResultOutput(value)
+            const rawOutput = yield* persistGeneratedImage(value, toolResultOutput(value))
             const normalized = yield* Effect.forEach(rawOutput.attachments ?? [], (attachment) =>
               attachment.mime.startsWith("image/")
                 ? image.normalize(attachment).pipe(
