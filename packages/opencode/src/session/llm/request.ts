@@ -145,7 +145,25 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
     },
   )
 
-  const tools = resolveTools(input)
+  const requestTools = yield* Effect.gen(function* () {
+    if (
+      input.provider.id !== "openai" ||
+      input.auth?.type !== "api" ||
+      input.model.api.npm !== "@ai-sdk/openai" ||
+      !input.model.api.id.startsWith("gpt-5.") ||
+      input.model.capabilities?.input?.image !== true ||
+      input.flags.experimentalNativeLlm
+    ) {
+      return input.tools
+    }
+
+    const { openai } = yield* Effect.promise(() => import("@ai-sdk/openai"))
+    return {
+      ...input.tools,
+      image_generation: openai.tools.imageGeneration({ outputFormat: "png" }),
+    }
+  })
+  const tools = resolveTools({ ...input, tools: requestTools })
   if (
     input.model.providerID.includes("github-copilot") &&
     Object.keys(tools).length === 0 &&
