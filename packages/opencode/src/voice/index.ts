@@ -10,7 +10,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
-import { httpClient } from "@opencode-ai/core/effect/layer-node-platform"
+import { httpClient } from "@opencode-ai/core/effect/app-node-platform"
 import { serviceUse } from "@opencode-ai/core/effect/service-use"
 import { generateText } from "ai"
 import PROMPT from "./lalm.txt"
@@ -378,6 +378,6 @@ export const layer = Layer.effect(
   }),
 )
 
-export const node = LayerNode.make(layer, [CrossSpawnSpawner.node, Provider.node, Config.node, httpClient])
+export const node = LayerNode.make({ service: Service, layer, deps: [CrossSpawnSpawner.node, Provider.node, Config.node, httpClient] })
 
 export * as Voice from "."
