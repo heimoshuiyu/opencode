@@ -1795,6 +1795,40 @@ ToolRegistry.register({
 })
 
 ToolRegistry.register({
+  name: "image_generation",
+  render(props) {
+    const dialog = useDialog()
+    const image = createMemo(() => {
+      const result = props.metadata.result
+      if (typeof result === "string" && result.length > 0) return `data:image/png;base64,${result}`
+    })
+    const openImagePreview = () => {
+      const src = image()
+      if (!src) return
+      dialog.show(() => <ImagePreview src={src} alt="Generated image" />)
+    }
+
+    return (
+      <BasicTool
+        {...props}
+        icon="window-cursor"
+        trigger={{ title: "Image generation" }}
+        defaultOpen={props.defaultOpen ?? Boolean(image())}
+        forceOpen={Boolean(image())}
+      >
+        <Show when={image()}>
+          {(src) => (
+            <button type="button" data-component="image-generation-output" onClick={openImagePreview}>
+              <img data-slot="image-generation-image" src={src()} alt="Generated image" />
+            </button>
+          )}
+        </Show>
+      </BasicTool>
+    )
+  },
+})
+
+ToolRegistry.register({
   name: "task",
   render(props) {
     const data = useData()
