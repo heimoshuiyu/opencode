@@ -717,6 +717,30 @@
   width: 100%;
 }
 
+[data-component="image-generation-output"] {
+  display: block;
+  width: min(360px, 100%);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-weak-base);
+  border-radius: 6px;
+  background: var(--surface-weak);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-strong-base);
+  }
+
+  [data-slot="image-generation-image"] {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--surface-strong);
+  }
+}
+
 [data-component="dock-prompt"][data-kind="permission"] {
   position: relative;
   display: flex;
