@@ -1,0 +1,117 @@
+<resources>
+    <string name="app_name">OpenCode</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="error">Error</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+
+    <!-- Server List -->
+    <string name="servers_title">OpenCode Servers</string>
+    <string name="add_server">Add Server</string>
+    <string name="no_servers_title">No Servers Configured</string>
+    <string name="no_servers_hint">Add a remote OpenCode server to get started</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="menu">Menu</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_connecting">Connecting</string>
+    <string name="status_error">Error</string>
+    <string name="status_offline">Offline</string>
+
+    <!-- Add/Edit Server -->
+    <string name="add_server_title">Add Server</string>
+    <string name="edit_server_title">Edit Server</string>
+    <string name="server_name">Server Name</string>
+    <string name="server_url">Server URL</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="test_connection">Test Connection</string>
+    <string name="save_server">Save Server</string>
+    <string name="update_server">Update Server</string>
+    <string name="server_name_placeholder">My OpenCode Server</string>
+    <string name="server_url_placeholder">http://192.168.1.100:4096</string>
+    <string name="connection_failed">Connection failed</string>
+
+    <!-- Projects -->
+    <string name="projects_title">Projects</string>
+    <string name="opened">Opened</string>
+    <string name="recent_projects">Recent Projects</string>
+    <string name="running">Running</string>
+    <string name="type_path_hint">Type a path above to open a project</string>
+
+    <!-- Sessions -->
+    <string name="sessions_title">Sessions</string>
+    <string name="search_sessions">Search sessions...</string>
+    <string name="new_session">New Session</string>
+    <string name="archive">Archive</string>
+    <string name="no_sessions">No sessions in %1$s</string>
+    <string name="no_sessions_hint">This directory has no sessions yet</string>
+    <string name="sessions_count">%1$d sessions in %2$s</string>
+
+    <!-- Chat -->
+    <string name="message_placeholder">Message...</string>
+    <string name="generating">Generating...</string>
+    <string name="chat_settings">Chat Settings</string>
+    <string name="show_reasoning">Show reasoning</string>
+    <string name="show_reasoning_hint">Display AI thinking process</string>
+    <string name="default_model">Default Model</string>
+    <string name="send">Send</string>
+    <string name="stop">Stop</string>
+
+    <!-- Tool calls -->
+    <string name="tool_shell">Shell</string>
+    <string name="tool_read">Read</string>
+    <string name="tool_write">Write</string>
+    <string name="tool_edit">Edit</string>
+    <string name="tool_patch">Patch</string>
+    <string name="tool_glob">Glob</string>
+    <string name="tool_grep">Grep</string>
+    <string name="tool_list">List</string>
+    <string name="tool_task">Task</string>
+    <string name="tool_webfetch">WebFetch</string>
+    <string name="tool_websearch">Web Search</string>
+    <string name="tool_todos">Todos</string>
+    <string name="tool_question">Question</string>
+    <string name="tool_skill">Skill</string>
+    <string name="tool_pending">Pending...</string>
+    <string name="tool_running">Running...</string>
+    <string name="tool_used">Used %1$s</string>
+    <string name="tool_running_summary">Running: %1$s</string>
+    <string name="thinking">Thinking</string>
+    <string name="compaction">Compaction</string>
+    <string name="input_label">Input</string>
+    <string name="truncated">... (truncated)</string>
+
+    <!-- Model selector -->
+    <string name="search_models">Search models...</string>
+    <string name="manage_models">Manage Models</string>
+    <string name="reasoning">Reasoning</string>
+
+    <!-- Permission -->
+    <string name="permission_required">Permission Required</string>
+    <string name="permission_allow_once">Allow Once</string>
+    <string name="permission_deny">Deny</string>
+    <string name="permission_always">Always</string>
+    <string name="permission_edit">AI wants to edit a file</string>
+    <string name="permission_bash">AI wants to run a shell command</string>
+    <string name="permission_write">AI wants to create/write a file</string>
+    <string name="permission_read">AI wants to read a file</string>
+    <string name="permission_webfetch">AI wants to fetch a web page</string>
+    <string name="permission_websearch">AI wants to search the web</string>
+    <string name="permission_task">AI wants to run a subtask</string>
+
+    <!-- Voice -->
+    <string name="start_recording">Start recording</string>
+    <string name="stop_recording">Stop recording</string>
+
+    <!-- Errors -->
+    <string name="transcription_failed">Transcription failed: %1$d</string>
+    <string name="microphone_error">Microphone error: %1$s</string>
+    <string name="load_projects_failed">Failed to load projects: %1$d</string>
+</resources>
