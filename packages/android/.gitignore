@@ -1,0 +1,18 @@
+# Build outputs
+build/
+api-gen/build/
+
+# Gradle
+.gradle/
+local.properties
+gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Keystore
+*.keystore
+*.jks
