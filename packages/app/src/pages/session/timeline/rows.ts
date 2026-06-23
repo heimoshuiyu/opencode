@@ -197,8 +197,8 @@ export namespace Timeline {
     if (isActive && status === "busy" && !error && (showReasoning ? assistantPartRefs.length === 0 : true)) {
       const heading = assistantMessages
         .flatMap((message) => getMessageParts(message.id))
-        .map((part) => (part.type === "reasoning" && part.text ? reasoningHeading(part.text) : undefined))
-        .find((value): value is string => !!value)
+        .map((part) => (part.type === "reasoning" && part.text ? reasoningLead(part.text) : undefined))
+        .findLast((value): value is string => !!value)
 
       rows.push(
         new TimelineRow.Thinking({
@@ -246,31 +246,22 @@ export namespace Timeline {
     return typeof value.file === "string"
   }
 
-  function reasoningHeading(text: string) {
-    const markdown = text.replace(/\r\n?/g, "\n")
-    const html = markdown.match(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/i)
-    if (html?.[1]) {
-      const value = cleanHeading(html[1].replace(/<[^>]+>/g, " "))
-      if (value) return value
-    }
+  const MAX_LEAD = 60
 
-    const atx = markdown.match(/^\s{0,3}#{1,6}[ \t]+(.+?)(?:[ \t]+#+[ \t]*)?$/m)
-    if (atx?.[1]) {
-      const value = cleanHeading(atx[1])
-      if (value) return value
-    }
+  function reasoningLead(text: string) {
+    const line = text
+      .replace(/\r\n?/g, "\n")
+      .split("\n")
+      .map(stripLeadingMarkers)
+      .findLast((l): l is string => l.length > 0)
+    if (!line) return
+    const value = cleanHeading(line)
+    if (!value) return
+    return value.length > MAX_LEAD ? value.slice(0, MAX_LEAD).trimEnd() + "…" : value
+  }
 
-    const setext = markdown.match(/^([^\n]+)\n(?:=+|-+)\s*$/m)
-    if (setext?.[1]) {
-      const value = cleanHeading(setext[1])
-      if (value) return value
-    }
-
-    const strong = markdown.match(/^\s*(?:\*\*|__)(.+?)(?:\*\*|__)\s*$/m)
-    if (strong?.[1]) {
-      const value = cleanHeading(strong[1])
-      if (value) return value
-    }
+  function stripLeadingMarkers(line: string) {
+    return line.replace(/^\s{0,3}(?:#{1,6}|[-*+]|\d+[.)]|>)+[ \t]*/, "").trim()
   }
 
   function cleanHeading(value: string) {
