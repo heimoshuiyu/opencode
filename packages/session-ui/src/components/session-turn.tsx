@@ -121,32 +121,22 @@ function clean(value: string) {
     .trim()
 }
 
-function heading(text: string) {
-  const markdown = text.replace(/\r\n?/g, "\n")
+const MAX_LEAD = 60
 
-  const html = markdown.match(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/i)
-  if (html?.[1]) {
-    const value = clean(html[1].replace(/<[^>]+>/g, " "))
-    if (value) return value
-  }
+function reasoningLead(text: string) {
+  const line = text
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map(stripLeadingMarkers)
+    .findLast((l): l is string => l.length > 0)
+  if (!line) return
+  const value = clean(line)
+  if (!value) return
+  return value.length > MAX_LEAD ? value.slice(0, MAX_LEAD).trimEnd() + "…" : value
+}
 
-  const atx = markdown.match(/^\s{0,3}#{1,6}[ \t]+(.+?)(?:[ \t]+#+[ \t]*)?$/m)
-  if (atx?.[1]) {
-    const value = clean(atx[1])
-    if (value) return value
-  }
-
-  const setext = markdown.match(/^([^\n]+)\n(?:=+|-+)\s*$/m)
-  if (setext?.[1]) {
-    const value = clean(setext[1])
-    if (value) return value
-  }
-
-  const strong = markdown.match(/^\s*(?:\*\*|__)(.+?)(?:\*\*|__)\s*$/m)
-  if (strong?.[1]) {
-    const value = clean(strong[1])
-    if (value) return value
-  }
+function stripLeadingMarkers(line: string) {
+  return line.replace(/^\s{0,3}(?:#{1,6}|[-*+]|\d+[.)]|>)+[ \t]*/, "").trim()
 }
 
 export function SessionTurn(
@@ -359,7 +349,7 @@ export function SessionTurn(
           visible++
         }
         if (part.type === "reasoning" && part.text) {
-          const h = heading(part.text)
+          const h = reasoningLead(part.text)
           if (h) reason = h
         }
       }
