@@ -220,6 +220,7 @@ export default function () {
                       const model = createMemo(() => data().model[data().sessionID]?.find((m) => m.id === modelID()))
                       const diffs = createMemo(() => data().session_diff[data().sessionID] ?? [])
                       const [diffStyle, setDiffStyle] = createSignal<"unified" | "split">("unified")
+                      const [showReasoning, setShowReasoning] = createSignal(false)
 
                       const title = () => (
                         <div class="flex flex-col gap-4">
@@ -253,6 +254,7 @@ export default function () {
                                 <SessionTurn
                                   sessionID={data().sessionID}
                                   messageID={message.id}
+                                  showReasoningSummaries={showReasoning()}
                                   classes={{
                                     root: "min-w-0 w-full relative",
                                     content: "flex flex-col justify-between !overflow-visible",
@@ -279,6 +281,13 @@ export default function () {
                               </a>
                             </div>
                             <div class="flex gap-3 items-center">
+                              <IconButton
+                                icon="brain"
+                                variant={showReasoning() ? "secondary" : "ghost"}
+                                title="显示/隐藏思考"
+                                aria-label="Toggle reasoning"
+                                onClick={() => setShowReasoning((v) => !v)}
+                              />
                               <IconButton
                                 as={"a"}
                                 href="https://github.com/anomalyco/opencode"
@@ -334,6 +343,7 @@ export default function () {
                                   <SessionTurn
                                     sessionID={data().sessionID}
                                     messageID={store.messageId ?? firstUserMessage()!.id!}
+                                    showReasoningSummaries={showReasoning()}
                                     classes={{
                                       root: "grow",
                                       content: "flex flex-col justify-between",
