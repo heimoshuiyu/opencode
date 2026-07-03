@@ -9,8 +9,8 @@ export namespace Storage {
     list(options?: { prefix?: string; limit?: number; after?: string; before?: string }): Promise<string[]>
   }
 
-  function createAdapter(client: AwsClient, endpoint: string, bucket: string): Adapter {
-    const base = `${endpoint}/${bucket}`
+  function createAdapter(client: AwsClient, endpoint: string, bucket: string, pathStyle = true): Adapter {
+    const base = pathStyle ? `${endpoint}/${bucket}` : endpoint
     return {
       async read(path: string): Promise<string | undefined> {
         const response = await client.fetch(`${base}/${path}`)
@@ -66,12 +66,15 @@ export namespace Storage {
   function s3(): Adapter {
     const bucket = process.env.OPENCODE_STORAGE_BUCKET!
     const region = process.env.OPENCODE_STORAGE_REGION || "us-east-1"
+    const endpoint = (process.env.OPENCODE_STORAGE_ENDPOINT ?? `https://s3.${region}.amazonaws.com`).replace(/\/$/, "")
+    const pathStyle = process.env.OPENCODE_STORAGE_PATH_STYLE !== "false"
     const client = new AwsClient({
+      service: "s3",
       region,
       accessKeyId: process.env.OPENCODE_STORAGE_ACCESS_KEY_ID!,
       secretAccessKey: process.env.OPENCODE_STORAGE_SECRET_ACCESS_KEY!,
     })
-    return createAdapter(client, `https://s3.${region}.amazonaws.com`, bucket)
+    return createAdapter(client, endpoint, bucket, pathStyle)
   }
 
   function r2() {
