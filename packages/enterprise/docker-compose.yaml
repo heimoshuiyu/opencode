@@ -1,0 +1,42 @@
+services:
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio12345
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  createbucket:
+    image: minio/mc
+    depends_on: [minio]
+    entrypoint: >
+      /bin/sh -c "
+      sleep 2;
+      mc alias set local http://minio:9000 minio minio12345;
+      mc mb local/opencode-share --ignore-existing;
+      "
+
+  app:
+    build: { context: ., dockerfile: Dockerfile }
+    environment:
+      OPENCODE_STORAGE_ADAPTER: s3
+      OPENCODE_STORAGE_ENDPOINT: http://minio:9000
+      OPENCODE_STORAGE_BUCKET: opencode-share
+      OPENCODE_STORAGE_REGION: us-east-1
+      OPENCODE_STORAGE_ACCESS_KEY_ID: minio
+      OPENCODE_STORAGE_SECRET_ACCESS_KEY: minio12345
+      # Optional: authorizes the admin remove-share endpoint.
+      # Leave unset to disable only that endpoint; core share endpoints are unaffected.
+      SST_RESOURCE_SUPPORT_API_KEY: '{"value":"change-me-support-key"}'
+      PORT: "3002"
+      HOST: 0.0.0.0
+    ports:
+      - "3002:3002"
+    depends_on: [minio]
+    restart: unless-stopped
+
+volumes:
+  minio_data:
