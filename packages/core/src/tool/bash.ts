@@ -7,6 +7,7 @@ import { ChildProcess } from "effect/unstable/process"
 import { Config } from "../config"
 import { makeLocationNode } from "../effect/app-node"
 import { FSUtil } from "../fs-util"
+import { Location } from "../location"
 import { LocationMutation } from "../location-mutation"
 import { AppProcess } from "../process"
 import { PermissionV2 } from "../permission"
@@ -99,6 +100,7 @@ const layer = Layer.effectDiscard(
     const tools = yield* Tools.Service
     const mutation = yield* LocationMutation.Service
     const fs = yield* FSUtil.Service
+    const location = yield* Location.Service
     const appProcess = yield* AppProcess.Service
     const config = yield* Config.Service
     const permission = yield* PermissionV2.Service
@@ -161,6 +163,11 @@ const layer = Layer.effectDiscard(
                 stdin: "ignore",
                 detached: process.platform !== "win32",
                 forceKillAfter: Duration.seconds(3),
+                extendEnv: true,
+                env: {
+                  OPENCODE_SESSION_ID: context.sessionID,
+                  OPENCODE_PROJECT_ID: location.project.id,
+                },
               })
               const timeout = input.timeout ?? DEFAULT_TIMEOUT_MS
               const result = yield* appProcess
@@ -203,5 +210,5 @@ const layer = Layer.effectDiscard(
 export const node = makeLocationNode({
   name: "tool/bash",
   layer,
-  deps: [ToolRegistry.node, LocationMutation.node, FSUtil.node, AppProcess.node, Config.node, PermissionV2.node],
+  deps: [ToolRegistry.node, LocationMutation.node, FSUtil.node, AppProcess.node, Config.node, PermissionV2.node, Location.node],
 })
