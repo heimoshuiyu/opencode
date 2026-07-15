@@ -11,7 +11,7 @@ import { ProviderTransform } from "@/provider/transform"
 import { SystemPrompt } from "../system"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { Effect, Record } from "effect"
-import { jsonSchema, tool as aiTool, type ModelMessage, type Tool } from "ai"
+import { jsonSchema, tool as aiTool, type ModelMessage, type ToolSet } from "ai"
 import type { Plugin } from "@/plugin"
 import { mergeDeep } from "remeda"
 
@@ -27,7 +27,7 @@ type PrepareInput = {
   readonly system: string[]
   readonly messages: ModelMessage[]
   readonly small?: boolean
-  readonly tools: Record<string, Tool>
+  readonly tools: ToolSet
   readonly provider: Provider.Info
   readonly auth: Auth.Info | undefined
   readonly plugin: Plugin.Interface
@@ -38,7 +38,7 @@ type PrepareInput = {
 export type Prepared = {
   readonly system: string[]
   readonly messages: ModelMessage[]
-  readonly tools: Record<string, Tool>
+  readonly tools: ToolSet
   readonly params: {
     readonly temperature?: number
     readonly topP?: number
@@ -157,10 +157,24 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
       return input.tools
     }
 
-    const { openai } = yield* Effect.promise(() => import("@ai-sdk/openai"))
     return {
       ...input.tools,
-      image_generation: openai.tools.imageGeneration({ outputFormat: "png" }),
+      image_generation: aiTool({
+        type: "provider",
+        id: "openai.image_generation",
+        args: { outputFormat: "png" },
+        inputSchema: jsonSchema<Record<string, never>>({
+          type: "object",
+          properties: {},
+          additionalProperties: false,
+        }),
+        outputSchema: jsonSchema<{ result: string }>({
+          type: "object",
+          properties: { result: { type: "string" } },
+          required: ["result"],
+          additionalProperties: false,
+        }),
+      }),
     }
   })
   const tools = resolveTools({ ...input, tools: requestTools })
