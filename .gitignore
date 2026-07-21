@@ -29,6 +29,9 @@ target
 .cache
 .direnv/
 
+# Compiled CLI binary used by v2-bin/Dockerfile.v2
+/v2-bin/opencode2-*
+
 # Local dev files
 opencode-dev
 UPCOMING_CHANGELOG.md
