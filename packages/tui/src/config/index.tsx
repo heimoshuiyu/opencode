@@ -65,6 +65,13 @@ export const Cursor = Schema.Struct({
     description: "Whether the cursor blinks. Has no effect when style is 'default'",
   }),
 }).annotate({ description: "Terminal cursor settings" })
+export const VoiceConfig = Schema.optional(
+  Schema.Struct({
+    channels: Schema.optional(Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: 2 }))).annotate({
+      description: "Native capture channel count: 1=mono, 2=stereo (default 1)",
+    }),
+  }),
+).annotate({ description: "Voice input recorder settings" })
 
 export const Info = Schema.Struct({
   theme: Schema.optional(
@@ -246,6 +253,7 @@ export const Info = Schema.Struct({
   animations: Schema.optional(Schema.Boolean).annotate({ description: "Enable interface animations" }),
   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable terminal mouse capture" }),
   cursor: Schema.optional(Cursor),
+  voice: VoiceConfig,
 })
 export type Info = Schema.Schema.Type<typeof Info>
 
@@ -276,6 +284,7 @@ export type Resolved = Omit<Info, "attention" | "cursor" | "keybinds" | "leader"
     layout: "horizontal" | "vertical"
     indicators: "status" | "numbers"
   }
+  voice: Info["voice"]
 }
 
 export function resolve(
@@ -329,6 +338,7 @@ export function resolve(
       layout: input.tabs?.layout ?? "horizontal",
       indicators: input.tabs?.indicators ?? "status",
     },
+    voice: input.voice,
   }
 }
 

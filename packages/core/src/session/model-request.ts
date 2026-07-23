@@ -200,6 +200,23 @@ export const boundImages = (messages: LLMRequest["messages"]) => {
 
 type Definitions = PluginHooks.Domains["session"]["context"]["tools"]
 
+/** Identity headers for outbound session-scoped LLM requests; shared by other session-aware callers such as voice transcription. */
+export const sessionHeaders = (session: Pick<SessionSchema.Info, "id" | "parentID" | "projectID" | "fork">, app: App.Info) => {
+  // Affinity groups provider cache routing: children share the parent's ID, forks the fork source's.
+  const affinity = SessionAffinity.get(session)
+  return {
+    "x-opencode-session-id": session.id,
+    ...(session.parentID ? { "x-opencode-parent-session-id": session.parentID } : {}),
+    "x-session-affinity": affinity,
+    "X-Session-Id": affinity,
+    ...(session.parentID ? { "x-parent-session-id": session.parentID } : {}),
+    "User-Agent": App.useragent(app),
+    "x-opencode-project": session.projectID,
+    "x-opencode-session": affinity,
+    "x-opencode-client": app.name,
+  }
+}
+
 /** Builds the model request for each session flow. Each entry runs its own plugin hook. */
 export interface Interface {
   readonly primary: (input: Input) => Effect.Effect<Prepared<SessionContext>>
@@ -261,19 +278,7 @@ export const layer = Layer.effect(
       const affinity = SessionAffinity.get(session)
       const base = LLM.request({
         model: model.model,
-        http: {
-          headers: {
-            "x-opencode-session-id": session.id,
-            ...(session.parentID ? { "x-opencode-parent-session-id": session.parentID } : {}),
-            "x-session-affinity": affinity,
-            "X-Session-Id": affinity,
-            ...(session.parentID ? { "x-parent-session-id": session.parentID } : {}),
-            "User-Agent": App.useragent(app),
-            "x-opencode-project": session.projectID,
-            "x-opencode-session": affinity,
-            "x-opencode-client": app.name,
-          },
-        },
+        http: { headers: sessionHeaders(session, app) },
         // TODO: Persist cache lineage so nested forks reuse the root session's cache key.
         promptCacheKey: /^ses_[0-9a-f]{64}$/.test(affinity) ? affinity.slice(4) : affinity,
         system: shaped.system,

@@ -12318,6 +12318,136 @@
         "summary": "VCS diff"
       }
     },
+    "/api/voice/transcribe": {
+      "post": {
+        "tags": ["voice"],
+        "operationId": "v2.voice.transcribe",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "$ref": "#/components/schemas/Location.PublicRef"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/VoiceTranscribeResponse"
+                    }
+                  },
+                  "required": ["location", "data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "SessionNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "ServiceUnavailableError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Transcribe base64-encoded audio data using Whisper or a Large Audio Language Model (Gemini, OpenAI Responses, or OpenAI-compatible). Builds optional conversation context from the requested session.",
+        "summary": "Transcribe audio",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceTranscribeRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/debug/location": {
       "get": {
         "tags": ["debug"],
@@ -13427,6 +13557,9 @@
             },
             "additionalProperties": false
           },
+          "voice": {
+            "$ref": "#/components/schemas/Config.Voice"
+          },
           "compaction": {
             "type": "object",
             "properties": {
@@ -13927,6 +14060,50 @@
           }
         },
         "required": ["path"],
+        "additionalProperties": false
+      },
+      "Config.Voice": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/Voice.Backend"
+          },
+          "whisper": {
+            "$ref": "#/components/schemas/Config.Voice.Whisper"
+          },
+          "lalm": {
+            "$ref": "#/components/schemas/Voice.Lalm"
+          },
+          "hot_words": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "context_pairs": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "additionalProperties": false
+      },
+      "Config.Voice.Whisper": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
         "additionalProperties": false
       },
       "Config.WarmingEncoded": {
@@ -19556,6 +19733,118 @@
         "required": ["_tag", "providerID", "message"],
         "additionalProperties": false
       },
+      "Voice.Backend": {
+        "type": "string",
+        "enum": ["whisper", "lalm"]
+      },
+      "Voice.Lalm": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "audio_input_format": {
+            "type": "string",
+            "enum": ["input_audio", "audio_url"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Voice.Settings": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/Voice.Backend"
+          },
+          "whisper": {
+            "$ref": "#/components/schemas/Voice.Whisper"
+          },
+          "lalm": {
+            "$ref": "#/components/schemas/Voice.Lalm"
+          },
+          "hot_words": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Voice.Usage": {
+        "type": "object",
+        "properties": {
+          "input_tokens": {
+            "type": "number"
+          },
+          "output_tokens": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Voice.Whisper": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VoiceTranscribeRequest": {
+        "type": "object",
+        "properties": {
+          "audio": {
+            "type": "string",
+            "description": "Base64-encoded audio data to transcribe"
+          },
+          "mime": {
+            "type": "string",
+            "description": "MIME type of the audio data, e.g. audio/webm or audio/wav"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "contextSessionID": {
+            "type": "string",
+            "pattern": "^ses"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "voice": {
+            "$ref": "#/components/schemas/Voice.Settings"
+          }
+        },
+        "required": ["audio", "mime"],
+        "additionalProperties": false
+      },
+      "VoiceTranscribeResponse": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Voice.Usage"
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      },
       "WebSearch.Provider": {
         "type": "object",
         "properties": {
@@ -19816,6 +20105,10 @@
     {
       "name": "vcs",
       "description": "Location-scoped version control routes."
+    },
+    {
+      "name": "voice",
+      "description": "Audio transcription routes."
     },
     {
       "name": "debug"

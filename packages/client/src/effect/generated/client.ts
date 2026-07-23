@@ -254,6 +254,8 @@ import type {
   VcsBranchListOutput,
   VcsDiffInput,
   VcsDiffOutput,
+  VoiceTranscribeInput,
+  VoiceTranscribeOutput,
   DebugLocationListOutput,
   DebugLocationEvictInput,
   DebugLocationEvictOutput,
@@ -1528,6 +1530,23 @@ const adaptGroupVcs = (raw: RawClient["server.vcs"]) => ({
   diff: EndpointVcsDiff(raw),
 })
 
+const EndpointVoiceTranscribe = (raw: RawClient["server.voice"]) => (input: VoiceTranscribeInput) =>
+  preserveEffect<VoiceTranscribeOutput>()(
+    raw["voice.transcribe"]({
+      query: { location: input["location"] },
+      payload: {
+        audio: input["audio"],
+        mime: input["mime"],
+        prompt: input["prompt"],
+        contextSessionID: input["contextSessionID"],
+        images: input["images"],
+        voice: input["voice"],
+      },
+    }).pipe(Effect.mapError(mapClientError)),
+  )
+
+const adaptGroupVoice = (raw: RawClient["server.voice"]) => ({ transcribe: EndpointVoiceTranscribe(raw) })
+
 const EndpointDebugLocationList = (raw: RawClient["server.debug"]) => () =>
   preserveEffect<DebugLocationListOutput>()(raw["debug.location"]({}).pipe(Effect.mapError(mapClientError)))
 
@@ -1609,6 +1628,7 @@ const adaptClient = (raw: RawClient) => ({
   reference: adaptGroupReference(raw["server.reference"]),
   worktree: adaptGroupWorktree(raw["server.worktree"]),
   vcs: adaptGroupVcs(raw["server.vcs"]),
+  voice: adaptGroupVoice(raw["server.voice"]),
   debug: adaptGroupDebug(raw["server.debug"]),
   migration: adaptGroupMigration(raw["server.migration"]),
   websearch: adaptGroupWebsearch(raw["server.websearch"]),

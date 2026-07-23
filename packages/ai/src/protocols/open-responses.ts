@@ -52,7 +52,11 @@ const OpenResponsesInputVideo = Schema.Struct({
   type: Schema.tag("input_video"),
   video_url: Schema.String,
 })
-const MediaInput = Schema.Union([OpenResponsesInputImage, OpenResponsesInputFile])
+const OpenResponsesInputAudio = Schema.Struct({
+  type: Schema.tag("input_audio"),
+  input_audio: Schema.Struct({ data: Schema.String, format: Schema.String }),
+})
+const MediaInput = Schema.Union([OpenResponsesInputImage, OpenResponsesInputAudio, OpenResponsesInputFile])
 export type MediaInput = Schema.Schema.Type<typeof MediaInput>
 const OpenResponsesInputContent = Schema.Union([OpenResponsesInputText, MediaInput])
 
@@ -148,6 +152,7 @@ export type HostedToolItem = Schema.Schema.Type<typeof HostedToolItem>
 const OpenResponsesFunctionCallOutputContent = Schema.Union([
   OpenResponsesInputText,
   OpenResponsesInputImage,
+  OpenResponsesInputAudio,
   OpenResponsesInputFile,
   OpenResponsesInputVideo,
 ])
@@ -533,6 +538,12 @@ const lowerMedia = Effect.fnUntraced(function* (
   const mime = part.media.mediaType.toLowerCase()
   const url = ProviderShared.mediaUrl(part.media)
   const location = url ?? (yield* ProviderShared.requireInlineMedia(adapter.name, part.media)).dataUrl
+  if (part.media.kind === "audio" && target === "message") {
+    // Responses audio input only accepts wav and mp3 payloads.
+    const inline = yield* ProviderShared.requireInlineMedia(adapter.name, part.media)
+    const format = inline.mime === "audio/wav" || inline.mime === "audio/wave" ? "wav" : "mp3"
+    return { type: "input_audio" as const, input_audio: { data: inline.base64, format } }
+  }
   if (part.media.kind !== "image") {
     if (target === "tool-result" && part.media.kind === "video")
       return { type: "input_video" as const, video_url: location }

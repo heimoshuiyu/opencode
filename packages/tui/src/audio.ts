@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises"
 let audio: Audio | null | undefined
 const sounds = new Map<string, Promise<AudioSound | null>>()
 
-function getAudio() {
+export function getAudio() {
   if (audio !== undefined) return audio
   try {
     const next = Audio.create({ autoStart: false })
