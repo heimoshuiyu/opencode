@@ -92,6 +92,7 @@ export type ComposerEditorProps = {
   class?: string
   modelControl?: JSX.Element
   modelControlsVisible?: boolean
+  voiceControl?: JSX.Element
   attachKeybind?: string[]
   attachShortcut?: string
   alternateKeybind?: string[]
@@ -215,6 +216,12 @@ export function ComposerEditor(props: ComposerEditorProps) {
       onKeyDown: props.controller.onKeyDown,
     }
   }
+
+  const touchBar = (docked: boolean) => (
+    <ComposerEditorTouchBar controller={props.controller} docked={docked}>
+      {props.voiceControl}
+    </ComposerEditorTouchBar>
+  )
 
   return (
     <div class={`relative size-full flex flex-col gap-0 ${props.class ?? ""}`}>
@@ -482,6 +489,7 @@ export function ComposerEditor(props: ComposerEditorProps) {
             style={buttons()}
           >
             <div ref={controlsContent} class="flex h-full w-max min-w-full items-center gap-0.5">
+              <Show when={!touch()}>{props.voiceControl}</Show>
               <Show when={view.agent} keyed>
                 {(control) => (
                   <ComposerEditorConfiguredSelect
@@ -553,12 +561,8 @@ export function ComposerEditor(props: ComposerEditorProps) {
         </div>
       </form>
       <Show when={touch()}>
-        <Show when={dock()} fallback={<ComposerEditorTouchBar controller={props.controller} />}>
-          {(mount) => (
-            <Portal mount={mount()}>
-              <ComposerEditorTouchBar controller={props.controller} docked />
-            </Portal>
-          )}
+        <Show when={dock()} fallback={touchBar(false)}>
+          {(mount) => <Portal mount={mount()}>{touchBar(true)}</Portal>}
         </Show>
       </Show>
     </div>
@@ -1566,7 +1570,7 @@ function ComposerEditorSubmitButton(props: {
 // The composer's actions on a touch device, where Return only adds a line: this bar is the one way to send, steer,
 // queue or stop, and every target is at least 44px. Docked, it spans the bottom of the shell, which is the top of the
 // keyboard while one is open. Buttons keep the editor focused so the keyboard stays open.
-function ComposerEditorTouchBar(props: { controller: ComposerEditorModel; docked?: boolean }) {
+function ComposerEditorTouchBar(props: { controller: ComposerEditorModel; children?: JSX.Element; docked?: boolean }) {
   const i18n = useI18n()
   const view = props.controller.view
   const keep = (event: MouseEvent) => event.preventDefault()
@@ -1617,57 +1621,62 @@ function ComposerEditorTouchBar(props: { controller: ComposerEditorModel; docked
           !!props.docked,
       }}
     >
-      <Show
-        when={props.controller.mode() === "normal"}
-        fallback={
-          <Button
-            data-action="composer-exit-shell"
-            variant="ghost-muted"
-            class="h-11 rounded-lg px-3 text-[15px] leading-5"
-            onMouseDown={keep}
-            onClick={() => {
-              props.controller.dispatch({ type: "mode.normal" })
-              props.controller.restoreFocus()
-            }}
-          >
-            {i18n.t("ui.promptInput.exitShell")}
-          </Button>
-        }
+      <div
+        data-scrollable
+        class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto no-scrollbar [&>button]:shrink-0"
       >
-        <IconButton
-          data-action="composer-attach-file"
-          variant="ghost-muted"
-          class="size-11 rounded-lg"
-          icon={<Icon name="plus" />}
-          aria-label={i18n.t("ui.promptInput.add")}
-          disabled={view.draftOnly}
-          onMouseDown={keep}
-          onClick={props.controller.attach}
-        />
-        <For
-          each={
-            [
-              { action: "composer-commands", glyph: "/", label: "ui.promptInput.commands", run: "openCommands" },
-              { action: "composer-context", glyph: "@", label: "ui.promptInput.context", run: "openContext" },
-              { action: "composer-shell", glyph: "!", label: "ui.promptInput.shell", run: "openShell" },
-            ] as const
+        <Show
+          when={props.controller.mode() === "normal"}
+          fallback={
+            <Button
+              data-action="composer-exit-shell"
+              variant="ghost-muted"
+              class="h-11 rounded-lg px-3 text-[15px] leading-5"
+              onMouseDown={keep}
+              onClick={() => {
+                props.controller.dispatch({ type: "mode.normal" })
+                props.controller.restoreFocus()
+              }}
+            >
+              {i18n.t("ui.promptInput.exitShell")}
+            </Button>
           }
         >
-          {(key) => (
-            <IconButton
-              data-action={key.action}
-              variant="ghost-muted"
-              class="size-11 rounded-lg"
-              icon={<span class="font-mono text-[17px] leading-5">{key.glyph}</span>}
-              aria-label={i18n.t(key.label)}
-              disabled={view.draftOnly}
-              onMouseDown={keep}
-              onClick={() => props.controller[key.run]()}
-            />
-          )}
-        </For>
-      </Show>
-      <div class="flex-1" />
+          <IconButton
+            data-action="composer-attach-file"
+            variant="ghost-muted"
+            class="size-11 rounded-lg"
+            icon={<Icon name="plus" />}
+            aria-label={i18n.t("ui.promptInput.add")}
+            disabled={view.draftOnly}
+            onMouseDown={keep}
+            onClick={props.controller.attach}
+          />
+          <For
+            each={
+              [
+                { action: "composer-commands", glyph: "/", label: "ui.promptInput.commands", run: "openCommands" },
+                { action: "composer-context", glyph: "@", label: "ui.promptInput.context", run: "openContext" },
+                { action: "composer-shell", glyph: "!", label: "ui.promptInput.shell", run: "openShell" },
+              ] as const
+            }
+          >
+            {(key) => (
+              <IconButton
+                data-action={key.action}
+                variant="ghost-muted"
+                class="size-11 rounded-lg"
+                icon={<span class="font-mono text-[17px] leading-5">{key.glyph}</span>}
+                aria-label={i18n.t(key.label)}
+                disabled={view.draftOnly}
+                onMouseDown={keep}
+                onClick={() => props.controller[key.run]()}
+              />
+            )}
+          </For>
+        </Show>
+      </div>
+      <Show when={props.controller.mode() === "normal"}>{props.children}</Show>
       <Show
         when={!view.submit.stopping()}
         fallback={

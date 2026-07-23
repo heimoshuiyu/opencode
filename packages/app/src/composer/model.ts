@@ -35,9 +35,11 @@ import { createComposerSubmit } from "./submit"
 import { composerSubmitView } from "./machine"
 import { useAttachmentDestination } from "./attachments/destination"
 import { parseClientSlashCommand } from "./client-slash-command"
+import { createVoiceInput } from "./voice"
 
 export type ComposerModel = ComposerEditorModel & {
   readonly model: ComposerControls["model"]
+  readonly voice?: ReturnType<typeof createVoiceInput>
 }
 
 const sendFailedTitle = {
@@ -575,6 +577,21 @@ export function createComposerModel(adapter: ComposerAdapter, options?: { queue?
   })
 
   Object.defineProperty(controller, "model", { get: () => adapter.controls().model })
+
+  const voice = createVoiceInput({
+    sdk: useServerSDK(),
+    directory: () => sdk().directory,
+    sessionID: () => (adapter.kind === "active-session" ? adapter.session().id : undefined),
+    editorText: () =>
+      prompt
+        .current()
+        .map((p) => ("content" in p ? p.content : ""))
+        .join(""),
+    addPart: (part) => controller.addPart(part),
+    restoreFocus: controller.restoreFocus,
+    queueScroll: () => requestAnimationFrame(() => editor?.scrollIntoView({ block: "nearest" })),
+  })
+  Object.defineProperty(controller, "voice", { get: () => voice })
 
   command.register("composer-editor", () => [
     {

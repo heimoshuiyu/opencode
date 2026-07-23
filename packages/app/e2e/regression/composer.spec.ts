@@ -5,6 +5,105 @@ import { mockPluginsActivating, type MockServerConfig } from "../utils/mock-serv
 
 test.use({ permissions: ["clipboard-read", "clipboard-write"] })
 
+test("F8 and the voice button can stop recording and cancel a pending transcription", async ({ page }) => {
+  const sent: string[] = []
+  let advanced: 404 | 503 | 200 = 404
+
+  const view = await openSession(page, {
+    name: "Dictation",
+    advancedTranscriptionStatus: () => advanced,
+    onPrompt: ({ sessionID }) => void sent.push(sessionID),
+  })
+
+  await view.editor.focus()
+  // An in-memory tone drives the actual MediaRecorder and meter; never request the user's microphone.
+  await page.evaluate(() => {
+    navigator.mediaDevices.getUserMedia = async () => {
+      const context = new AudioContext()
+      const stream = context.createMediaStreamDestination()
+      const oscillator = context.createOscillator()
+      oscillator.connect(stream)
+      oscillator.start()
+      await context.resume()
+
+      return stream.stream
+    }
+  })
+  const api = await holdRoute(page, /\/api\/(?:experimental\/)?transcription(?:\?|$)/, { method: "POST" })
+
+  try {
+    await page.keyboard.down("F8")
+    await expect(page.getByRole("status").filter({ hasText: "Listening" })).toBeVisible()
+    await page.keyboard.down("F8") // OS key repeat, not a second take
+    await page.keyboard.up("F8")
+    await expect(page.getByRole("status").filter({ hasText: "Listening" })).toBeVisible()
+    expect(api.requests).toHaveLength(0)
+    await page.keyboard.press("F8")
+    await expect(page.getByRole("status").filter({ hasText: "Transcribing" })).toBeVisible()
+    const body = (await api.arrived).postDataJSON()
+    expect(body.contextSessionID).toBe(view.session.id)
+    expect(body.audio).toBeTruthy()
+    expect(body).not.toHaveProperty("settings")
+    await page.keyboard.press("F8")
+    await expect(
+      page.locator('[data-component="composer"]').getByRole("button", { name: "Voice input", exact: true }),
+    ).toBeVisible()
+    await expect(view.editor).toBeEmpty()
+    api.release()
+    await page.keyboard.press("Control+,")
+    const settings = page.getByTestId("settings-screen")
+    await settings.getByRole("tab", { name: "Models", exact: true }).click()
+    await settings.locator('[data-action="settings-transcription"]').click()
+    await page.getByRole("option", { name: "Whisper", exact: true }).click()
+    await settings.getByRole("textbox", { name: "Whisper model ID" }).fill("custom-asr")
+    await settings.getByRole("textbox", { name: "Hot words", exact: true }).fill("OpenCode\n语音输入")
+    await settings.locator('[data-component="select-v2"][aria-label="Whisper provider"]').click()
+    await page.getByRole("option", {name:"Custom endpoint", exact:true}).click()
+    await settings.getByRole("button", { name: "Back to app", exact: true }).click()
+    await page.getByRole("button", { name: "Voice input", exact: true }).click()
+    await expect(page.getByRole("status").filter({ hasText: "Listening" })).toBeVisible()
+    await page.keyboard.press("F8")
+    await expect(page.getByRole("alert")).toContainText("Enter a custom transcription URL")
+    expect(api.requests).toHaveLength(1) // Only the initial, cancelled request reached the server.
+    await page.keyboard.press("Control+,")
+    await settings.getByRole("tab", { name: "Models", exact: true }).click()
+    await settings.locator('[data-component="select-v2"][aria-label="Whisper provider"]').click()
+    await page.getByRole("option", {name:"Groq", exact:true}).click()
+    await settings.getByLabel("Provider API key", {exact:true}).fill("fixture-only")
+    await settings.getByText("Advanced transcription settings", {exact:true}).click()
+    await settings.locator('[data-component="select-v2"][aria-label="Conversation context"]').click()
+    await page.getByRole("option", {name:"Recording and hot words only", exact:true}).click()
+    await settings.getByRole("button", { name: "Back to app", exact: true }).click()
+    await view.editor.fill("[]")
+    await view.editor.press("End")
+    await view.editor.press("ArrowLeft")
+    await page.getByRole("button", { name: "Voice input", exact: true }).click()
+    await expect(page.getByRole("status").filter({ hasText: "Listening" })).toBeVisible()
+    await page.keyboard.press("F8")
+    await expect(page.getByRole("alert")).toContainText("Update the server")
+    expect(api.requests.map((r) => new URL(r.url()).pathname)).toEqual(["/api/transcription", "/api/experimental/transcription"])
+    const request = api.requests[1].postDataJSON()
+    expect(request).not.toHaveProperty("prompt")
+    expect(request).not.toHaveProperty("contextSessionID")
+    expect(request.overrides).toEqual({context_pairs:0, whisper:{url:"https://api.groq.com/openai/v1/audio/transcriptions", apiKey:"fixture-only"}})
+    advanced = 503
+    await page.getByRole("button", { name: "Retry transcription", exact: true }).click()
+    await expect(page.getByRole("alert")).toContainText("Retry when it’s ready")
+    advanced = 200
+    await page.getByRole("button", { name: "Retry transcription", exact: true }).click()
+    await expect(view.editor).toHaveText("[Dictated sentence.]")
+    await expect(page.getByRole("status").filter({ hasText: "Transcribing" })).toHaveCount(0)
+    await expect(view.editor).toBeFocused()
+    await page.keyboard.press("x")
+    await expect(view.editor).toHaveText("[Dictated sentence.x]")
+    expect(api.requests.map((r) => new URL(r.url()).pathname)).toEqual(["/api/transcription", "/api/experimental/transcription", "/api/experimental/transcription", "/api/experimental/transcription"])
+    expect(api.requests[1].postDataJSON().settings).toEqual({ type: "whisper", whisper: { model: "custom-asr" }, hot_words: ["OpenCode", "语音输入"] })
+    expect(sent).toEqual([])
+  } finally {
+    api.release()
+  }
+})
+
 test("mention a session by title, send its stable token, and open its own tab", async ({ page }) => {
   const target = "ses_0123456789abcdefghijklmnop"
   const prompts: Parameters<NonNullable<MockServerConfig["onPrompt"]>>[0]["body"][] = []
@@ -972,6 +1071,9 @@ test.describe("touch keyboard", () => {
     const bar = page.locator('[data-slot="composer-touch-bar"]')
 
     await expect(bar).toBeVisible()
+    const mic = page.getByRole("button", { name: "Voice input", exact: true })
+    await expect(bar.locator(mic)).toBeInViewport({ ratio: 1 })
+    await expect(mic).toHaveCount(1)
     await expect(page.locator('[data-action="composer-attach"]')).toHaveCount(0)
     await expect(view.editor).toHaveAttribute("enterkeyhint", "enter")
 

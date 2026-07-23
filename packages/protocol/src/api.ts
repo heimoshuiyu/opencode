@@ -4,6 +4,7 @@ import { SchemaErrorMiddleware } from "./middleware/schema-error.js"
 import { GenerateGroup } from "./groups/generate.js"
 import { ExperimentalGroup } from "./groups/experimental.js"
 import { VoiceGroup } from "./groups/voice.js"
+import { makeTranscriptionGroup } from "./groups/transcription.js"
 import { MessageGroup } from "./groups/message.js"
 import { ModelGroup } from "./groups/model.js"
 import { ProviderGroup } from "./groups/provider.js"
@@ -74,6 +75,10 @@ type FormGroups<LocationId extends HttpApiMiddleware.AnyId, LocationService> = R
   typeof makeFormGroup<LocationId, LocationService>
 >
 
+type TranscriptionGroups<LocationId extends HttpApiMiddleware.AnyId, LocationService> = ReturnType<
+  typeof makeTranscriptionGroup<LocationId, LocationService>
+>
+
 type LocationGroup<LocationId extends HttpApiMiddleware.AnyId, LocationService> = ReturnType<
   typeof makeLocationGroup<LocationId, LocationService>
 >
@@ -108,6 +113,7 @@ type ApiGroups<
   | PtyGroups<LocationId, LocationService>
   | McpGroups<LocationId, LocationService>
   | FormGroups<LocationId, LocationService>
+  | TranscriptionGroups<LocationId, LocationService>
   | SessionGroups<SessionLocationId, SessionLocationService, FormLocationId, FormLocationService>
   | MixedMiddlewareGroups<LocationId, LocationService, SessionLocationId, SessionLocationService>
   | Event
@@ -174,6 +180,7 @@ const makeApiFromGroup = <
     .add(ModelGroup.middleware(locationMiddleware))
     .add(GenerateGroup)
     .add(VoiceGroup)
+    .add(makeTranscriptionGroup(locationMiddleware))
     .add(ProviderGroup.middleware(locationMiddleware))
     .add(IntegrationGroup.middleware(locationMiddleware))
     .add(makeMcpGroup(locationMiddleware))

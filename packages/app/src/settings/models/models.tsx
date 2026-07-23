@@ -25,6 +25,7 @@ import { CONSOLE_GROUP_KEY, consoleModelGroup, ProviderModelSections } from "@/p
 import { SettingsSearchEmpty } from "@/settings/search-empty"
 import { SettingsSearchField } from "@/settings/search-field"
 import { settingsScroller } from "@/settings/scroller"
+import { VoiceInputSettings } from "./voice-input"
 import {
   createModelsRevealState,
   revealingModelProvider,
@@ -220,47 +221,50 @@ export const SettingsModels: Component<{
         />
       </div>
 
-      <div class="settings-tab-body settings-models">
-        <Show
-          when={!list.grouped.loading}
-          fallback={
-            <div class="settings-models-status">
-              {language.t("common.loading")}
-              {language.t("common.loading.ellipsis")}
-            </div>
-          }
-        >
+      <div class="settings-tab-body">
+        <VoiceInputSettings />
+        <div class="settings-models flex flex-col">
           <Show
-            when={list.flat().length > 0}
+            when={!list.grouped.loading}
             fallback={
-              <Show
-                when={list.filter()}
-                fallback={<div class="settings-models-status">{language.t("dialog.model.empty")}</div>}
-              >
-                <div class="settings-tab-search-empty">
-                  <SettingsSearchEmpty query={list.filter()} />
-                </div>
-              </Show>
+              <div class="settings-models-status">
+                {language.t("common.loading")}
+                {language.t("common.loading.ellipsis")}
+              </div>
             }
           >
-            <ProviderModelSections
-              groups={list.grouped.latest}
-              managed={managed()}
-              expanded={expanded}
-              disabled={searching()}
-              onExpandedChange={(key, value) => setStore("collapsed", key, !value)}
-              onSetVisibility={setProviderVisibility}
-              ref={(providerID, element) => {
-                sections.set(providerID, element)
-                // A ref runs before the section joins the document.
-                queueMicrotask(() => {
-                  if (element.isConnected) dispatch({ type: "section.ready", provider: providerID })
-                })
-              }}
-              rows={(items) => <ModelRows items={items} />}
-            />
+            <Show
+              when={list.flat().length > 0}
+              fallback={
+                <Show
+                  when={list.filter()}
+                  fallback={<div class="settings-models-status">{language.t("dialog.model.empty")}</div>}
+                >
+                  <div class="settings-tab-search-empty">
+                    <SettingsSearchEmpty query={list.filter()} />
+                  </div>
+                </Show>
+              }
+            >
+              <ProviderModelSections
+                groups={list.grouped.latest}
+                managed={managed()}
+                expanded={expanded}
+                disabled={searching()}
+                onExpandedChange={(key, value) => setStore("collapsed", key, !value)}
+                onSetVisibility={setProviderVisibility}
+                ref={(providerID, element) => {
+                  sections.set(providerID, element)
+                  // A ref runs before the section joins the document.
+                  queueMicrotask(() => {
+                    if (element.isConnected) dispatch({ type: "section.ready", provider: providerID })
+                  })
+                }}
+                rows={(items) => <ModelRows items={items} />}
+              />
+            </Show>
           </Show>
-        </Show>
+        </div>
       </div>
     </>
   )

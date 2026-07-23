@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { Schema } from "effect"
 import { timelinePresets } from "@opencode/session-ui/timeline/detail"
 import { Persistence } from "@/runtime/persistence/schema"
+import { transcriptionOptions } from "./transcription"
 import {
   settingsSchema,
   settingsPersistence,
@@ -113,6 +114,7 @@ describe("settings schema", () => {
       },
       keybinds: {},
       permissions: { autoApprove: false, autoApproveProjects: {} },
+      transcription: {},
       workspaces: { defaultDestination: "last-used", lastUsed: {} },
       notifications: { agent: false, permissions: true, questions: true, errors: false },
       sounds: {
@@ -183,6 +185,74 @@ describe("settings schema", () => {
     expect(settings.notifications).toEqual({ agent: false, permissions: true, questions: true, errors: true })
     expect(settings.sounds).toMatchObject({ agent: "custom", agentEnabled: false, permissions: "staplebops-02" })
     expect(decode(encode(settings))).toEqual(settings)
+  })
+
+  test("only the selected backend and model override the location's transcription settings", () => {
+    const models = { lalm: "custom/vendor/audio", variant: "low", whisper: " endpoint-model " }
+    const settings = decode(
+      encode(
+        decode({
+          transcription: {
+            a: { backend: "lalm", ...models },
+            b: { backend: "whisper", ...models },
+            c: { backend: "server", ...models },
+          },
+        }),
+      ),
+    ).transcription
+
+    expect(transcriptionOptions(settings.a)).toEqual({
+      settings: { type: "lalm", lalm: { model: "custom/vendor/audio", variant: "low" } },
+      overrides: {},
+    })
+    expect(transcriptionOptions(settings.b)).toEqual({
+      settings: { type: "whisper", whisper: { model: "endpoint-model" } },
+      overrides: {},
+    })
+    expect(transcriptionOptions(settings.c)).toEqual({})
+    expect(transcriptionOptions(settings.unset)).toEqual({})
+    expect(transcriptionOptions({ backend: "whisper", whisper: " " }).settings).toEqual({ type: "whisper" })
+    expect(transcriptionOptions({ backend: "lalm", variant: "low" }).settings).toEqual({ type: "lalm" })
+    expect(transcriptionOptions({ backend: "lalm", lalm: "custom/vendor/audio" }).settings).toEqual({
+      type: "lalm",
+      lalm: { model: "custom/vendor/audio", variant: "default" },
+    })
+  })
+
+  test("hot words can supplement, replace or clear the server vocabulary without leaking inactive settings", () => {
+    const saved = decode({
+      transcription: {
+        a: {
+          backend: "lalm",
+          words: " 术语 \nOpen Code\n术语",
+          system: "Dictate",
+          instruction: "Verbatim",
+          format: "audio_url",
+          language: "zh",
+          provider: "groq",
+          apiKey: "not-stored",
+        },
+      },
+    }).transcription.a
+    expect(saved).not.toHaveProperty("apiKey")
+    expect(transcriptionOptions(saved).settings).toEqual({
+      type: "lalm",
+      lalm: { system: "Dictate", instruction: "Verbatim", audio_input_format: "audio_url" },
+      hot_words: ["术语", "Open Code"],
+    })
+    expect(transcriptionOptions({ ...saved, backend: "server" }, "unused")).toEqual({
+      settings: { hot_words: ["术语", "Open Code"] },
+    })
+    const whisper = { ...saved, backend: "whisper", replaceWords: true, pairs: 2 } as const
+    expect(transcriptionOptions(whisper).settings).toEqual({ type: "whisper", whisper: { language: "zh" } })
+    expect(transcriptionOptions(whisper, "temporary").overrides).toEqual({
+      hot_words: ["术语", "Open Code"],
+      context_pairs: 2,
+      whisper: { url: "https://api.groq.com/openai/v1/audio/transcriptions", apiKey: "temporary" },
+    })
+    expect(transcriptionOptions({ ...whisper, words: "", pairs: 0, backend: "server" }, "unused")).toEqual({
+      overrides: { hot_words: [], context_pairs: 0 },
+    })
   })
 
   test.each([undefined, null, false, 7, "invalid", []].map((invalid) => [invalid]))(

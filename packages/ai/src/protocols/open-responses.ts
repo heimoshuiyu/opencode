@@ -62,7 +62,16 @@ const OpenResponsesInputVideo = Schema.Struct({
   type: Schema.tag("input_video"),
   video_url: Schema.String,
 })
-const MediaInput = Schema.Union([OpenResponsesInputImage, OpenResponsesInputFile, OpenResponsesInputVideo])
+const OpenResponsesInputAudio = Schema.Struct({
+  type: Schema.tag("input_audio"),
+  input_audio: Schema.Struct({ data: Schema.String, format: Schema.String }),
+})
+const MediaInput = Schema.Union([
+  OpenResponsesInputImage,
+  OpenResponsesInputAudio,
+  OpenResponsesInputFile,
+  OpenResponsesInputVideo,
+])
 export type MediaInput = Schema.Schema.Type<typeof MediaInput>
 const OpenResponsesInputContent = Schema.Union([OpenResponsesInputText, MediaInput])
 
@@ -158,6 +167,7 @@ export type HostedToolItem = Schema.Schema.Type<typeof HostedToolItem>
 const OpenResponsesFunctionCallOutputContent = Schema.Union([
   OpenResponsesInputText,
   OpenResponsesInputImage,
+  OpenResponsesInputAudio,
   OpenResponsesInputFile,
   OpenResponsesInputVideo,
 ])
@@ -580,7 +590,12 @@ const lowerReasoning = (part: ReasoningPart, providerMetadataKey: string): OpenR
 const decodeImageDetail = ProviderShared.validateWith(Schema.decodeUnknownEffect(OpenResponsesInputImage.fields.detail))
 const decodeMessageMetadata = ProviderShared.validateWith(Schema.decodeUnknownEffect(MessageMetadata))
 
-const lowerMedia = Effect.fnUntraced(function* (part: MediaPart, request: LLMRequest, adapter: ProviderAdapter) {
+const lowerMedia = Effect.fnUntraced(function* (
+  part: MediaPart,
+  request: LLMRequest,
+  adapter: ProviderAdapter,
+  target: "message" | "tool-result",
+) {
   const media = part.media.inline()
   const providerMedia = adapter.lowerMedia?.({ part, media, request })
   if (providerMedia) return providerMedia
@@ -589,6 +604,12 @@ const lowerMedia = Effect.fnUntraced(function* (part: MediaPart, request: LLMReq
   const mime = part.media.mediaType.toLowerCase()
   const url = ProviderShared.mediaUrl(part.media)
   const location = url ?? (yield* ProviderShared.requireInlineMedia(adapter.name, part.media)).dataUrl
+  if (part.media.kind === "audio" && target === "message") {
+    // Responses audio input only accepts wav and mp3 payloads.
+    const inline = yield* ProviderShared.requireInlineMedia(adapter.name, part.media)
+    const format = inline.mime === "audio/wav" || inline.mime === "audio/wave" ? "wav" : "mp3"
+    return { type: "input_audio" as const, input_audio: { data: inline.base64, format } }
+  }
   if (part.media.kind !== "image") {
     if (part.media.kind === "video") return { type: "input_video" as const, video_url: location }
     if (url) return { type: "input_file" as const, file_url: url, detail }
@@ -612,7 +633,7 @@ const lowerUserContent = Effect.fnUntraced(function* (
   adapter: ProviderAdapter,
 ) {
   if (part.type === "text") return { type: "input_text" as const, text: part.text }
-  return yield* lowerMedia(part, request, adapter)
+  return yield* lowerMedia(part, request, adapter, "message")
 })
 
 // Tool results may carry structured text, images, and files. Keep media as provider-native
@@ -623,7 +644,7 @@ const lowerToolResultContentItem = Effect.fnUntraced(function* (
   adapter: ProviderAdapter,
 ) {
   if (item.type === "text") return { type: "input_text" as const, text: item.text }
-  return yield* lowerMedia(ProviderShared.toolFileMedia(item), request, adapter)
+  return yield* lowerMedia(ProviderShared.toolFileMedia(item), request, adapter, "tool-result")
 })
 
 const lowerToolResultOutput = Effect.fnUntraced(function* (
@@ -777,7 +798,7 @@ const lowerMessages = Effect.fnUntraced(function* (request: LLMRequest, adapter:
           input.push({
             type: "message",
             role: "user",
-            content: [yield* lowerMedia(part, request, adapter)],
+            content: [yield* lowerMedia(part, request, adapter, "message")],
           })
           continue
         }

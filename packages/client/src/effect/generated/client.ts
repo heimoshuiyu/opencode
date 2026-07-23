@@ -124,6 +124,10 @@ import type {
   ExperimentalVoiceModelsOutput,
   ExperimentalVoiceSessionInput,
   ExperimentalVoiceSessionOutput,
+  TranscriptionTranscribeInput,
+  TranscriptionTranscribeOutput,
+  ExperimentalTranscriptionTranscribeWithOverridesInput,
+  ExperimentalTranscriptionTranscribeWithOverridesOutput,
   ProviderListInput,
   ProviderListOutput,
   ProviderGetInput,
@@ -988,6 +992,47 @@ const EndpointExperimentalVoiceSession = (raw: RawClient["server.voice"]) => (in
 const adaptGroupExperimentalVoice = (raw: RawClient["server.voice"]) => ({
   models: EndpointExperimentalVoiceModels(raw),
   session: EndpointExperimentalVoiceSession(raw),
+})
+
+const EndpointTranscriptionTranscribe =
+  (raw: RawClient["server.transcription"]) => (input: TranscriptionTranscribeInput) =>
+    preserveEffect<TranscriptionTranscribeOutput>()(
+      raw["transcribe"]({
+        query: { location: input["location"] },
+        payload: {
+          audio: input["audio"],
+          mime: input["mime"],
+          prompt: input["prompt"],
+          contextSessionID: input["contextSessionID"],
+          images: input["images"],
+          settings: input["settings"],
+        },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const adaptGroupTranscription = (raw: RawClient["server.transcription"]) => ({
+  transcribe: EndpointTranscriptionTranscribe(raw),
+})
+
+const EndpointExperimentalTranscriptionTranscribeWithOverrides =
+  (raw: RawClient["server.transcription"]) => (input: ExperimentalTranscriptionTranscribeWithOverridesInput) =>
+    preserveEffect<ExperimentalTranscriptionTranscribeWithOverridesOutput>()(
+      raw["transcribeWithOverrides"]({
+        query: { location: input["location"] },
+        payload: {
+          audio: input["audio"],
+          mime: input["mime"],
+          prompt: input["prompt"],
+          contextSessionID: input["contextSessionID"],
+          images: input["images"],
+          settings: input["settings"],
+          overrides: input["overrides"],
+        },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const adaptGroupExperimentalTranscription = (raw: RawClient["server.transcription"]) => ({
+  transcribeWithOverrides: EndpointExperimentalTranscriptionTranscribeWithOverrides(raw),
 })
 
 const EndpointProviderList = (raw: RawClient["server.provider"]) => (input?: ProviderListInput) =>
@@ -1973,6 +2018,7 @@ const adaptClient = (raw: RawClient) => {
       session: adaptGroupExperimentalSession(raw["server.session"]),
       generate: adaptGroupExperimentalGenerate(raw["server.generate"]),
       voice: adaptGroupExperimentalVoice(raw["server.voice"]),
+      transcription: adaptGroupExperimentalTranscription(raw["server.transcription"]),
       integration: adaptGroupExperimentalIntegration(raw["server.integration"]),
       mcp: adaptGroupExperimentalMcp(raw["server.mcp"]),
       file: adaptGroupExperimentalFile(raw["server.fs"]),
@@ -1982,6 +2028,7 @@ const adaptClient = (raw: RawClient) => {
     },
     message: adaptGroupMessage(raw["server.message"]),
     model: adaptGroupModel(raw["server.model"]),
+    transcription: adaptGroupTranscription(raw["server.transcription"]),
     provider: adaptGroupProvider(raw["server.provider"]),
     integration: adaptGroupIntegration(raw["server.integration"]),
     mcp: adaptGroupMcp(raw["server.mcp"]),
@@ -2047,6 +2094,11 @@ const adaptClient = (raw: RawClient) => {
       models: client.experimental.voice.models,
       /** @deprecated Use `client.experimental.voice.session`. Removed in the next minor. */
       session: client.experimental.voice.session,
+    },
+    transcription: {
+      ...client.transcription,
+      /** @deprecated Use `client.experimental.transcription.transcribeWithOverrides`. Removed in the next minor. */
+      transcribeWithOverrides: client.experimental.transcription.transcribeWithOverrides,
     },
     integration: {
       ...client.integration,

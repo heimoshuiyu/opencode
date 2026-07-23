@@ -1,0 +1,38 @@
+.composer-voice-scope {
+  position: absolute;
+  z-index: 2;
+  inset-block-end: calc(100% + 8px);
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  padding: 3px 12px 3px 8px;
+  border: 1px solid var(--v2-border-border-base);
+  border-radius: 999px;
+  background: var(--v2-background-bg-layer-02);
+  color: var(--v2-text-text-base);
+  pointer-events: none;
+  font-size: 12px;
+  line-height: var(--line-height-compact);
+  white-space: nowrap;
+}
+
+.composer-voice-scope canvas {
+  width: 123px;
+  height: 27px;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .composer-voice-scope {
+    animation: voice-scope-in 140ms ease-out;
+  }
+  @keyframes voice-scope-in {
+    from {
+      opacity: 0;
+      transform: translateY(3px) scale(0.97);
+    }
+  }
+}

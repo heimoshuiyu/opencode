@@ -1,4 +1,4 @@
-import { produce, reconcile, unwrap } from "solid-js/store"
+import { createStore, produce, reconcile, unwrap } from "solid-js/store"
 import { createEffect, createMemo } from "solid-js"
 import { createMediaQuery } from "@solid-primitives/media"
 import { Effect, Option, Predicate, Schema, SchemaGetter } from "effect"
@@ -9,6 +9,7 @@ import { persisted } from "@/runtime/persistence/storage"
 import { Persistence } from "@/runtime/persistence/schema"
 import { usePlatform } from "@/runtime/platform/platform"
 import { ScopedKey, type ServerScope } from "@/runtime/server/scope"
+import { transcriptionOptions, transcriptionPreference, whisperEndpoint } from "./transcription"
 
 export type Settings = typeof settingsSchema.Type
 
@@ -203,6 +204,9 @@ export const settingsSchema = Persistence.struct({
   workspaces: workspacesSchema,
   notifications: notificationsSchema,
   sounds: soundsSchema,
+  transcription: Persistence.record(
+    transcriptionPreference.pipe(Schema.catchDecoding(() => Effect.succeed(Option.none()))),
+  ),
 })
 
 function storedTimelineCategory(category: TimelineCategory) {
@@ -319,6 +323,7 @@ export const defaultSettings: Settings = {
   appearance: { fontSize: 14, mono: "", sans: "", terminal: "", tabLayout: "horizontal", reduceMotion: "system" },
   keybinds: {},
   permissions: { autoApprove: false, autoApproveProjects: {} },
+  transcription: {},
   workspaces: { defaultDestination: "last-used", lastUsed: {} },
   notifications: { agent: false, permissions: true, questions: true, errors: false },
   sounds: {
@@ -348,6 +353,12 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
   gate: false,
   init: () => {
     const [store, setStore, , ready] = persisted({ key: "settings.v3" }, settingsPersistence, defaultSettings)
+    // Secrets live only for this window, never in settings.v3, and only for the exact destination entered.
+    const [keys, setKeys] = createStore<Record<string, { url: string; key: string } | undefined>>({})
+    const whisperKey = (scope: ServerScope) => {
+      const entry = keys[scope]
+      return entry && entry.url === whisperEndpoint(store.transcription[scope]) ? entry.key : undefined
+    }
 
     const sidebarOrganizeOptions: SidebarOrganize[] = recentSessionsAvailable(
       usePlatform().platform,
@@ -470,6 +481,19 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
       },
       visibility: {
         customAgents: showCustomAgents,
+      },
+      transcription: {
+        get: (scope: ServerScope) => store.transcription[scope],
+        set(scope: ServerScope, value: typeof transcriptionPreference.Type) {
+          if (keys[scope]?.url !== whisperEndpoint(value)) setKeys(scope, undefined)
+          setStore("transcription", scope, value)
+        },
+        key: whisperKey,
+        setKey(scope: ServerScope, key: string) {
+          const url = whisperEndpoint(store.transcription[scope])
+          setKeys(scope, url && key ? { url, key } : undefined)
+        },
+        options: (scope: ServerScope) => transcriptionOptions(store.transcription[scope], whisperKey(scope)),
       },
       appearance: {
         fontSize: withFallback(() => store.appearance?.fontSize, defaultSettings.appearance.fontSize),

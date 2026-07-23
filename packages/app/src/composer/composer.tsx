@@ -8,6 +8,8 @@ import { Keybind } from "@opencode/ui/keybind"
 import { Slash } from "@opencode/ui/slash"
 import { Tooltip } from "@opencode/ui/tooltip"
 import { ComposerEditor } from "./editor/editor"
+import { VoiceButton } from "./voice"
+import { VoiceScope } from "./voice-scope"
 import { DialogSelectModel, ModelSelectorDrawer } from "@/providers/models/select-dialog"
 import { DialogSelectModelUnpaid } from "@/providers/models/unpaid"
 import { formatKeybind, useCommand } from "@/shell/commands/command"
@@ -31,6 +33,23 @@ export function Composer(props: {
   const dialog = useDialog()
   const command = useCommand()
   const language = useLanguage()
+
+  let root!: HTMLDivElement
+  command.register("composer-dictation", () => [
+    {
+      id: "prompt.voice",
+      title: language.t("prompt.action.voiceToggle"),
+      category: language.t("command.category.session"),
+      keybind: "F8",
+      editable: true,
+      disabled: !props.model.voice || props.readOnly || props.model.mode() !== "normal",
+      skip: (event) => event.repeat || event.isComposing,
+      onSelect: () => {
+        if (!root?.getClientRects().length) return false
+        props.model.voice?.toggleVoice()
+      },
+    },
+  ])
 
   const modelName = () => {
     const preview = props.model.model.preview
@@ -57,7 +76,18 @@ export function Composer(props: {
   }
 
   return (
-    <div class="flex flex-col gap-3">
+    <div ref={root} class="relative flex flex-col gap-3">
+      <Show when={props.model.voice?.view().busy && props.model.voice}>
+        {(voice) => <VoiceScope view={voice().view} />}
+      </Show>
+      <Show when={props.model.voice?.error()}>
+        {(error) => (
+          <div role="alert" class="px-2 text-12-regular text-text-weak">
+            <div class="font-medium">{language.t("prompt.toast.voiceFailed.title")}</div>
+            <div class="line-clamp-2 break-words">{error()}</div>
+          </div>
+        )}
+      </Show>
       <ComposerEditor
         controller={props.model}
         borderUnderlay={props.borderUnderlay}
@@ -71,6 +101,17 @@ export function Composer(props: {
         queueFirstLabel={language.t("session.queue.first")}
         exitShellKeybind={[formatKeybind("esc", language.t)]}
         suggestionBoundary={props.suggestionBoundary}
+        voiceControl={
+          <Show when={props.model.voice}>
+            {(voice) => (
+              <VoiceButton
+                voice={voice()}
+                keybind={command.keybindParts("prompt.voice")}
+                disabled={props.readOnly || props.model.mode() !== "normal"}
+              />
+            )}
+          </Show>
+        }
         modelControl={
           <ComposerModelControl
             loading={props.model.model.loading}

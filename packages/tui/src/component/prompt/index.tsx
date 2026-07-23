@@ -48,6 +48,8 @@ import { useConnected } from "../use-connected"
 import { useToast } from "../../ui/toast"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
+import { useVoice } from "../../context/voice"
+import { VoiceButton } from "./voice-button"
 import { useConfig, useCursorStyle, useNewDesigns } from "../../config"
 import { usePromptMove } from "./move"
 import { promptFilesForServer, resolvePastedAttachments } from "./local-attachment"
@@ -92,6 +94,7 @@ export type PromptRef = {
   mode: "normal" | "shell"
   setMode(mode: "normal" | "shell"): void
   set(prompt: PromptInfo): void
+  insert(text: string): boolean
   reset(): void
   blur(): void
   focus(): void
@@ -338,6 +341,9 @@ export function Prompt(props: PromptProps) {
   let promptPartTypeId = 0
   const event = useEvent()
 
+  const voice = useVoice()
+  const [rowWidth, setRowWidth] = createSignal(0)
+
   event.on("tui.prompt.append", (evt, { directory }) => {
     if (directory !== (currentLocation.current?.directory ?? data.location.default().directory)) return
     if (!input || input.isDestroyed) return
@@ -498,6 +504,15 @@ export function Prompt(props: PromptProps) {
         category: "Prompt",
         enabled: imageAttachments().length > 0,
         run: () => openImagePreview(0),
+      },
+      {
+        title: "Toggle voice input",
+        name: "prompt.transcribe",
+        category: "Prompt",
+        run: (_input: string | undefined, event?: KeyEvent) => {
+          if (event?.repeated || event?.eventType === "repeat" || event?.eventType === "release") return
+          return voice.toggle()
+        },
       },
       {
         title: "Interrupt session",
@@ -697,6 +712,17 @@ export function Prompt(props: PromptProps) {
       setStore("prompt", prompt)
       restoreExtmarksFromPrompt(prompt)
       input.gotoBufferEnd()
+    },
+    insert(text) {
+      if (disposed || input.isDestroyed) return false
+      input.insertText(text)
+      input.gotoBufferEnd()
+      setTimeout(() => {
+        if (!input || input.isDestroyed) return
+        input.invalidateIntrinsicSize()
+        renderer.requestRender()
+      }, 0)
+      return true
     },
     reset() {
       resetComposer()
@@ -947,6 +973,13 @@ export function Prompt(props: PromptProps) {
       bindings: ["prompt.paste"],
     }
   })
+
+  // Do not steal F8 from another command the user has already bound there.
+  Keymap.createLayer(() => ({
+    enabled: !disabled(),
+    priority: -1,
+    bindings: ["prompt.transcribe"],
+  }))
 
   Keymap.createLayer(() => {
     return {
@@ -1861,7 +1894,16 @@ export function Prompt(props: PromptProps) {
               cursorColor={disabled() ? theme.background.raised.base : theme.text.base}
               syntaxStyle={syntax()}
             />
-            <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
+            <box
+              flexDirection="row"
+              flexShrink={0}
+              paddingTop={1}
+              gap={1}
+              onSizeChange={function (this: BoxRenderable) {
+                const width = this.width
+                queueMicrotask(() => setRowWidth(width))
+              }}
+            >
               <PromptMetadataRow
                 mode={store.mode}
                 agent={agentLabel()}
@@ -1876,6 +1918,7 @@ export function Prompt(props: PromptProps) {
                 modelAlpha={modelMetaAlpha()}
                 variantAlpha={variantMetaAlpha()}
               />
+              <VoiceButton voice={voice} width={rowWidth()} animations={animationsEnabled()} />
             </box>
           </box>
         </box>

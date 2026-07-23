@@ -257,6 +257,12 @@ export const serverSettings: Entry<SettingsServerTab | "servers">[] = [
   { tab: "workspaces", label: "settings.tab.workspaces", keywords: "workspaces disk usage cleanup delete" },
   { tab: "providers", label: "settings.providers.title", keywords: "connect api key credentials" },
   { tab: "models", label: "settings.models.title", keywords: "model picker visibility" },
+  {
+    tab: "models",
+    label: "settings.transcription.title",
+    target: "settings-transcription",
+    keywords: "dictation microphone speech to text transcription whisper llm audio hot words vocabulary provider",
+  },
   { tab: "extensions", label: "settings.tab.extensions" },
   {
     tab: "extensions",

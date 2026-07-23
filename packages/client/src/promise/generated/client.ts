@@ -118,6 +118,10 @@ import type {
   ExperimentalVoiceModelsOutput,
   ExperimentalVoiceSessionInput,
   ExperimentalVoiceSessionOutput,
+  TranscriptionTranscribeInput,
+  TranscriptionTranscribeOutput,
+  ExperimentalTranscriptionTranscribeWithOverridesInput,
+  ExperimentalTranscriptionTranscribeWithOverridesOutput,
   ProviderListInput,
   ProviderListOutput,
   ProviderGetInput,
@@ -1243,6 +1247,32 @@ export function make(options: ClientOptions) {
             requestOptions,
           ).then((value) => value.data),
       },
+      transcription: {
+        transcribeWithOverrides: (
+          input: ExperimentalTranscriptionTranscribeWithOverridesInput,
+          requestOptions?: RequestOptions,
+        ) =>
+          request<ExperimentalTranscriptionTranscribeWithOverridesOutput>(
+            {
+              method: "POST",
+              path: `/api/experimental/transcription`,
+              query: { location: input["location"] },
+              body: {
+                audio: input["audio"],
+                mime: input["mime"],
+                prompt: input["prompt"],
+                contextSessionID: input["contextSessionID"],
+                images: input["images"],
+                settings: input["settings"],
+                overrides: input["overrides"],
+              },
+              successStatus: 200,
+              declaredStatuses: [400, 401, 404, 500, 503],
+              empty: false,
+            },
+            requestOptions,
+          ),
+      },
       integration: {
         wellknown: {
           add: (input: ExperimentalIntegrationWellknownAddInput, requestOptions?: RequestOptions) =>
@@ -1781,6 +1811,28 @@ export function make(options: ClientOptions) {
             query: { location: input?.["location"] },
             successStatus: 200,
             declaredStatuses: [400, 401, 404, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
+    },
+    transcription: {
+      transcribe: (input: TranscriptionTranscribeInput, requestOptions?: RequestOptions) =>
+        request<TranscriptionTranscribeOutput>(
+          {
+            method: "POST",
+            path: `/api/transcription`,
+            query: { location: input["location"] },
+            body: {
+              audio: input["audio"],
+              mime: input["mime"],
+              prompt: input["prompt"],
+              contextSessionID: input["contextSessionID"],
+              images: input["images"],
+              settings: input["settings"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 500, 503],
             empty: false,
           },
           requestOptions,
@@ -2733,6 +2785,11 @@ export function make(options: ClientOptions) {
       models: client.experimental.voice.models,
       /** @deprecated Use `client.experimental.voice.session`. Removed in the next minor. */
       session: client.experimental.voice.session,
+    },
+    transcription: {
+      ...client.transcription,
+      /** @deprecated Use `client.experimental.transcription.transcribeWithOverrides`. Removed in the next minor. */
+      transcribeWithOverrides: client.experimental.transcription.transcribeWithOverrides,
     },
     integration: {
       ...client.integration,

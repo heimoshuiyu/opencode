@@ -120,6 +120,8 @@ const Group = HttpApiGroup.make("mock")
   .add(HttpApiEndpoint.get("provider", "/api/provider", { success: Json }))
   .add(HttpApiEndpoint.get("model", "/api/model", { success: Json }))
   .add(HttpApiEndpoint.get("modelDefault", "/api/model/default", { success: Json }))
+  .add(HttpApiEndpoint.post("transcription", "/api/transcription", { payload: JsonPayload, success: Json }))
+  .add(HttpApiEndpoint.post("advancedTranscription", "/api/experimental/transcription", { payload: JsonPayload, success: Json }))
   .add(HttpApiEndpoint.get("integrationList", "/api/integration", { success: Json }))
   .add(
     HttpApiEndpoint.get("integrationGet", "/api/integration/:integrationID", {

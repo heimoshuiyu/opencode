@@ -47,6 +47,7 @@ export type MockFileContent =
   | undefined
 
 export interface MockServerConfig {
+  advancedTranscriptionStatus?: () => 404 | 503 | 200
   server?: string
   // The machine name `/api/info` reports; omitted like a server that predates it.
   hostname?: string
@@ -382,6 +383,12 @@ export async function mockOpenCodeServer(page: Page, config: MockServerConfig) {
     }
 
     const directory = url.searchParams.get("directory") ?? url.searchParams.get("location[directory]")
+
+    if (url.pathname === "/api/experimental/transcription") {
+      const status = config.advancedTranscriptionStatus?.()
+      if (status === 404) return route.fulfill({ status, headers: corsHeaders, body: "" })
+      if (status === 503) return route.fulfill({ status, headers: corsHeaders, json: { code: "service_starting" } })
+    }
 
     if (config.strictDirectory && directory && !ownedDirectories(config).has(directory)) {
       return route.fulfill({ status: 500, headers: corsHeaders, json: { name: "InvalidDirectory" } })
@@ -803,6 +810,8 @@ function mockHandlers(
           }),
         config: () => Effect.succeed(configEntries),
         reference: () => Effect.succeed({ location: location(config), data: [] }),
+        transcription: () => Effect.succeed({ location: location(config), data: { text: "Dictated sentence." } }),
+        advancedTranscription: () => Effect.succeed({ location: location(config), data: { text: "Dictated sentence." } }),
         // `beforeAgentsResponse` holds the Location's agent list, as a cold Location does while its plugins activate.
         agent: (ctx) =>
           Effect.promise(async () => config.beforeAgentsResponse?.()).pipe(

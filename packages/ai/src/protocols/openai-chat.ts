@@ -36,6 +36,15 @@ import { ToolStream } from "./utils/tool-stream.js"
 import { OpenAIFreeform } from "./openai-freeform.js"
 
 const ADAPTER = "openai-chat"
+const SUPPORTED_AUDIO_MIMES = new Set([
+  "audio/wav",
+  "audio/mp3",
+  "audio/mpeg",
+  "audio/aiff",
+  "audio/aac",
+  "audio/ogg",
+  "audio/flac",
+])
 const RESERVED_REASONING_FIELDS = new Set(["role", "content", "refusal", "tool_calls"])
 export const DEFAULT_BASE_URL = "https://api.openai.com/v1"
 export const PATH = "/chat/completions"
@@ -173,6 +182,14 @@ const OpenAIChatUserContent = Schema.Union([
   Schema.Struct({
     type: Schema.Literal("file"),
     file: Schema.Struct({ filename: Schema.String, file_data: Schema.String }),
+  }),
+  Schema.Struct({
+    type: Schema.Literal("input_audio"),
+    input_audio: Schema.Struct({ data: Schema.String, format: Schema.String }),
+  }),
+  Schema.Struct({
+    type: Schema.Literal("audio_url"),
+    audio_url: Schema.Struct({ url: Schema.String }),
   }),
 ])
 type OpenAIChatUserContent = Schema.Schema.Type<typeof OpenAIChatUserContent>
@@ -463,6 +480,16 @@ const lowerToolCall = (part: ToolCallPart, options: MessageLoweringOptions): Ope
   }
 }
 
+const audioFormat = (mime: string): string => {
+  if (mime === "audio/wav" || mime === "audio/wave") return "wav"
+  if (mime === "audio/mp3" || mime === "audio/mpeg") return "mp3"
+  if (mime === "audio/aiff") return "aiff"
+  if (mime === "audio/aac") return "aac"
+  if (mime === "audio/ogg") return "ogg"
+  if (mime === "audio/flac") return "flac"
+  return "mp3"
+}
+
 const lowerMedia = Effect.fnUntraced(function* (part: MediaPart) {
   // Chat Completions accepts PDFs, and no other documents, as inline `file` parts; file URLs are not supported.
   if (part.media.mediaType.toLowerCase() === "application/pdf")
@@ -473,6 +500,15 @@ const lowerMedia = Effect.fnUntraced(function* (part: MediaPart) {
         file_data: (yield* ProviderShared.requireInlineMedia("OpenAI Chat", part.media)).dataUrl,
       },
     }
+  if (part.media.kind === "audio") {
+    const inline = yield* ProviderShared.requireInlineMedia("OpenAI Chat", part.media)
+    if (!SUPPORTED_AUDIO_MIMES.has(inline.mime))
+      return yield* ProviderShared.invalidRequest(`OpenAI Chat does not support media type ${part.media.mediaType}`)
+    if ((part.providerMetadata?.opencode as { audioFormat?: string } | undefined)?.audioFormat === "audio_url") {
+      return { type: "audio_url" as const, audio_url: { url: inline.dataUrl } }
+    }
+    return { type: "input_audio" as const, input_audio: { data: inline.base64, format: audioFormat(inline.mime) } }
+  }
   if (part.media.kind !== "image" && part.media.kind !== "video")
     return yield* ProviderShared.invalidRequest(`OpenAI Chat does not support media type ${part.media.mediaType}`)
   const url =

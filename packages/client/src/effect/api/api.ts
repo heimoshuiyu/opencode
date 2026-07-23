@@ -1568,6 +1568,96 @@ export interface ExperimentalVoiceApi<E = never> {
   readonly session: ExperimentalVoiceSessionOperation<E>
 }
 
+export type TranscriptionTranscribeInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: Session.ID | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly settings?:
+    | {
+        readonly type?: ("whisper" | "lalm") | undefined
+        readonly whisper?: { readonly model?: string | undefined; readonly language?: string | undefined } | undefined
+        readonly lalm?:
+          | {
+              readonly model?: string | undefined
+              readonly variant?: string | undefined
+              readonly system?: string | undefined
+              readonly instruction?: string | undefined
+              readonly audio_input_format?: "input_audio" | "audio_url" | undefined
+            }
+          | undefined
+        readonly hot_words?: ReadonlyArray<string> | undefined
+      }
+    | undefined
+}
+export type TranscriptionTranscribeOutput = {
+  readonly location: Location.PublicRef
+  readonly data: {
+    readonly text: string
+    readonly usage?:
+      | { readonly input_tokens?: number | undefined; readonly output_tokens?: number | undefined }
+      | undefined
+  }
+}
+export type TranscriptionTranscribeOperation<E = never> = (
+  input: TranscriptionTranscribeInput,
+) => Effect.Effect<TranscriptionTranscribeOutput, E>
+
+export interface TranscriptionApi<E = never> {
+  readonly transcribe: TranscriptionTranscribeOperation<E>
+
+  /** @deprecated Use `client.experimental.transcription.transcribeWithOverrides`. Removed in the next minor. */
+  readonly transcribeWithOverrides: ExperimentalTranscriptionTranscribeWithOverridesOperation<E>
+}
+
+export type ExperimentalTranscriptionTranscribeWithOverridesInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: Session.ID | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly settings?:
+    | {
+        readonly type?: ("whisper" | "lalm") | undefined
+        readonly whisper?: { readonly model?: string | undefined; readonly language?: string | undefined } | undefined
+        readonly lalm?:
+          | {
+              readonly model?: string | undefined
+              readonly variant?: string | undefined
+              readonly system?: string | undefined
+              readonly instruction?: string | undefined
+              readonly audio_input_format?: "input_audio" | "audio_url" | undefined
+            }
+          | undefined
+        readonly hot_words?: ReadonlyArray<string> | undefined
+      }
+    | undefined
+  readonly overrides: {
+    readonly context_pairs?: 0 | number | undefined
+    readonly hot_words?: ReadonlyArray<string> | undefined
+    readonly whisper?: { readonly url: string; readonly apiKey?: string | undefined } | undefined
+  }
+}
+export type ExperimentalTranscriptionTranscribeWithOverridesOutput = {
+  readonly location: Location.PublicRef
+  readonly data: {
+    readonly text: string
+    readonly usage?:
+      | { readonly input_tokens?: number | undefined; readonly output_tokens?: number | undefined }
+      | undefined
+  }
+}
+export type ExperimentalTranscriptionTranscribeWithOverridesOperation<E = never> = (
+  input: ExperimentalTranscriptionTranscribeWithOverridesInput,
+) => Effect.Effect<ExperimentalTranscriptionTranscribeWithOverridesOutput, E>
+
+export interface ExperimentalTranscriptionApi<E = never> {
+  readonly transcribeWithOverrides: ExperimentalTranscriptionTranscribeWithOverridesOperation<E>
+}
+
 export type ProviderListInput = { readonly location?: { readonly directory?: string | undefined } | undefined }
 export type ProviderListOutput = { readonly location: Location.PublicRef; readonly data: ReadonlyArray<Provider.Info> }
 export type ProviderListOperation<E = never> = (input?: ProviderListInput) => Effect.Effect<ProviderListOutput, E>
@@ -2940,6 +3030,16 @@ export type VoiceSessionOutput = ExperimentalVoiceSessionOutput
 /** @deprecated Use `ExperimentalVoiceSessionOperation`. Removed in the next minor. */
 export type VoiceSessionOperation<E = never> = ExperimentalVoiceSessionOperation<E>
 
+/** @deprecated Use `ExperimentalTranscriptionTranscribeWithOverridesInput`. Removed in the next minor. */
+export type TranscriptionTranscribeWithOverridesInput = ExperimentalTranscriptionTranscribeWithOverridesInput
+
+/** @deprecated Use `ExperimentalTranscriptionTranscribeWithOverridesOutput`. Removed in the next minor. */
+export type TranscriptionTranscribeWithOverridesOutput = ExperimentalTranscriptionTranscribeWithOverridesOutput
+
+/** @deprecated Use `ExperimentalTranscriptionTranscribeWithOverridesOperation`. Removed in the next minor. */
+export type TranscriptionTranscribeWithOverridesOperation<E = never> =
+  ExperimentalTranscriptionTranscribeWithOverridesOperation<E>
+
 /** @deprecated Use `ExperimentalIntegrationWellknownAddInput`. Removed in the next minor. */
 export type IntegrationWellknownAddInput = ExperimentalIntegrationWellknownAddInput
 
@@ -3058,6 +3158,7 @@ export interface AppApi<E = never> {
     readonly session: ExperimentalSessionApi<E>
     readonly generate: ExperimentalGenerateApi<E>
     readonly voice: ExperimentalVoiceApi<E>
+    readonly transcription: ExperimentalTranscriptionApi<E>
     readonly integration: ExperimentalIntegrationApi<E>
     readonly mcp: ExperimentalMcpApi<E>
     readonly file: ExperimentalFileApi<E>
@@ -3067,6 +3168,7 @@ export interface AppApi<E = never> {
   }
   readonly message: MessageApi<E>
   readonly model: ModelApi<E>
+  readonly transcription: TranscriptionApi<E>
   readonly provider: ProviderApi<E>
   readonly integration: IntegrationApi<E>
   readonly mcp: McpApi<E>

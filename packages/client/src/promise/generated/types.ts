@@ -218,6 +218,8 @@ export type VoiceWebRTCTransport = { type: "webrtc"; sdp: string }
 
 export type VoiceWebSocketTransport = { type: "websocket"; url: string; token: string; expiresAt: number }
 
+export type TranscriptionUsage = { input_tokens?: number; output_tokens?: number }
+
 export type IntegrationID = string
 
 export type IntegrationMethodID = string
@@ -371,6 +373,24 @@ export type WebSearchResult = { url: string; title?: string; content?: string; t
 export type UsageLimitsMeter = { percent: number; limited: boolean; resetsAt: number }
 
 export type McpProtocol = "legacy" | "auto" | "2026-07-28"
+
+export type TranscriptionBackend = "whisper" | "lalm"
+
+export type ConfigTranscriptionWhisper = {
+  model?: string
+  language?: string
+  url?: string
+  apiKey?: string
+  allowed_urls?: Array<string>
+}
+
+export type TranscriptionLalm = {
+  model?: string
+  variant?: string
+  system?: string
+  instruction?: string
+  audio_input_format?: "input_audio" | "audio_url"
+}
 
 export type ConfigCompactionPercent = string
 
@@ -742,6 +762,8 @@ export type VoiceModel = { model: string; provider: string; transports: Array<Vo
 
 export type VoiceTransport = VoiceWebRTCTransport | VoiceWebSocketTransport
 
+export type TranscriptionTranscribeResponse = { text: string; usage?: TranscriptionUsage }
+
 export type IntegrationCommandMethod = {
   id: IntegrationMethodID
   type: "command"
@@ -990,6 +1012,14 @@ export type VcsInfo = { provider?: string; branch: VcsBranch }
 export type WebSearchProvider = { id: WebSearchID; name: string }
 
 export type UsageLimitsGo = { rolling: UsageLimitsMeter; weekly: UsageLimitsMeter; monthly: UsageLimitsMeter }
+
+export type ConfigTranscription = {
+  type?: TranscriptionBackend
+  whisper?: ConfigTranscriptionWhisper
+  lalm?: TranscriptionLalm
+  hot_words?: Array<string>
+  context_pairs?: number
+}
 
 export type ConfigModelCapabilities = {
   tools?: boolean
@@ -2513,6 +2543,7 @@ export type ConfigEntry =
                 }
           }
         }
+        transcription?: ConfigTranscription
         compaction?: { auto?: boolean; keep?: { tokens?: number }; buffer?: ConfigCompactionPercent | number }
         skills?: Array<string>
         commands?: {
@@ -4034,6 +4065,64 @@ export type ExperimentalVoiceSessionInput = {
 
 export type ExperimentalVoiceSessionOutput = VoiceSessionResponse["data"]
 
+export type TranscriptionTranscribeInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: string | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly settings?:
+    | {
+        readonly type?: "whisper" | "lalm"
+        readonly whisper?: { readonly model?: string; readonly language?: string }
+        readonly lalm?: {
+          readonly model?: string
+          readonly variant?: string
+          readonly system?: string
+          readonly instruction?: string
+          readonly audio_input_format?: "input_audio" | "audio_url"
+        }
+        readonly hot_words?: ReadonlyArray<string>
+      }
+    | undefined
+}
+
+export type TranscriptionTranscribeOutput = { location: LocationPublicRef; data: TranscriptionTranscribeResponse }
+
+export type ExperimentalTranscriptionTranscribeWithOverridesInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: string | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly settings?:
+    | {
+        readonly type?: "whisper" | "lalm"
+        readonly whisper?: { readonly model?: string; readonly language?: string }
+        readonly lalm?: {
+          readonly model?: string
+          readonly variant?: string
+          readonly system?: string
+          readonly instruction?: string
+          readonly audio_input_format?: "input_audio" | "audio_url"
+        }
+        readonly hot_words?: ReadonlyArray<string>
+      }
+    | undefined
+  readonly overrides: {
+    readonly context_pairs?: 0 | number
+    readonly hot_words?: ReadonlyArray<string>
+    readonly whisper?: { readonly url: string; readonly apiKey?: string }
+  }
+}
+
+export type ExperimentalTranscriptionTranscribeWithOverridesOutput = {
+  location: LocationPublicRef
+  data: TranscriptionTranscribeResponse
+}
+
 export type ProviderListInput = { readonly location?: { readonly directory?: string | undefined } | undefined }
 
 export type ProviderListOutput = { location: LocationPublicRef; data: Array<ProviderInfo> }
@@ -4990,6 +5079,12 @@ export type VoiceSessionInput = ExperimentalVoiceSessionInput
 
 /** @deprecated Use `ExperimentalVoiceSessionOutput`. Removed in the next minor. */
 export type VoiceSessionOutput = ExperimentalVoiceSessionOutput
+
+/** @deprecated Use `ExperimentalTranscriptionTranscribeWithOverridesInput`. Removed in the next minor. */
+export type TranscriptionTranscribeWithOverridesInput = ExperimentalTranscriptionTranscribeWithOverridesInput
+
+/** @deprecated Use `ExperimentalTranscriptionTranscribeWithOverridesOutput`. Removed in the next minor. */
+export type TranscriptionTranscribeWithOverridesOutput = ExperimentalTranscriptionTranscribeWithOverridesOutput
 
 /** @deprecated Use `ExperimentalIntegrationWellknownAddInput`. Removed in the next minor. */
 export type IntegrationWellknownAddInput = ExperimentalIntegrationWellknownAddInput
