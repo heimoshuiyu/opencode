@@ -370,6 +370,7 @@ export function createComposerEditor(input: {
     view: input.view,
     suggestions,
     dispatch,
+    addPart,
     onKeyDown,
     value() {
       return draft.state.prompt.map((part) => ("content" in part ? part.content : "")).join("")

@@ -823,10 +823,24 @@ describe("OpenAI Chat route", () => {
       const error = yield* compileRequest(
         LLM.request({
           model,
-          messages: [Message.user({ type: "media", media: Media.base64("AAECAw==", "audio/mpeg") })],
+          messages: [Message.user({ type: "media", media: Media.base64("AAECAw==", "video/mp4") })],
         }),
       ).pipe(Effect.flip)
-      expect(error.message).toContain("OpenAI Chat does not support media type audio/mpeg")
+      expect(error.message).toContain("OpenAI Chat does not support media type video/mp4")
+    }),
+  )
+
+  it.effect("lowers supported audio media as input_audio", () =>
+    Effect.gen(function* () {
+      const prepared = yield* compileRequest(
+        LLM.request({
+          model,
+          messages: [Message.user({ type: "media", media: Media.base64("AAECAw==", "audio/wav") })],
+        }),
+      )
+      expect(prepared.body.messages[0].content).toEqual([
+        { type: "input_audio", input_audio: { data: "AAECAw==", format: "wav" } },
+      ])
     }),
   )
 

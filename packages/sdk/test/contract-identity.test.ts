@@ -16,6 +16,7 @@ import { WebSearch } from "@opencode/schema/websearch"
 import { Session } from "@opencode/schema/session"
 import { SessionInbox } from "@opencode/schema/session-inbox"
 import { SessionMessage } from "@opencode/schema/session-message"
+import { Voice } from "@opencode/schema/voice"
 import { Workspace } from "@opencode/schema/workspace"
 import { Worktree } from "@opencode/schema/worktree"
 import { Api } from "@opencode/server/api"
@@ -39,6 +40,7 @@ test("re-exports canonical contracts directly from Schema", () => {
   expect(SDK.Session).toBe(Session)
   expect(SDK.Worktree).toBe(Worktree)
   expect(SDK.Workspace).toBe(Workspace)
+  expect(SDK.Voice).toBe(Voice)
   expect(Object.keys(SDK).sort()).toEqual([
     "AbsolutePath",
     "Agent",
@@ -67,6 +69,7 @@ test("re-exports canonical contracts directly from Schema", () => {
     "SessionMessage",
     "Skill",
     "Tool",
+    "Voice",
     "WebSearch",
     "Workspace",
     "Worktree",
