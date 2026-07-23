@@ -3,6 +3,7 @@ import { HttpApi, HttpApiGroup, HttpApiMiddleware, OpenApi } from "effect/http-a
 import { SchemaErrorMiddleware } from "./middleware/schema-error.js"
 import { GenerateGroup } from "./groups/generate.js"
 import { VoiceGroup } from "./groups/voice.js"
+import { makeTranscriptionGroup } from "./groups/transcription.js"
 import { MessageGroup } from "./groups/message.js"
 import { ModelGroup } from "./groups/model.js"
 import { ProviderGroup } from "./groups/provider.js"
@@ -73,6 +74,12 @@ type FormGroups<LocationId extends HttpApiMiddleware.AnyId, LocationService> = R
   typeof makeFormGroup<LocationId, LocationService>
 >
 
+type VoiceGroups = typeof VoiceGroup
+
+type TranscriptionGroups<LocationId extends HttpApiMiddleware.AnyId, LocationService> = ReturnType<
+  typeof makeTranscriptionGroup<LocationId, LocationService>
+>
+
 type LocationGroup<LocationId extends HttpApiMiddleware.AnyId, LocationService> = ReturnType<
   typeof makeLocationGroup<LocationId, LocationService>
 >
@@ -98,7 +105,6 @@ type ApiGroups<
   | typeof MigrationGroup
   | typeof WorktreeGroup
   | typeof GenerateGroup
-  | typeof VoiceGroup
   | typeof PersistentPtyGroup
   | typeof CredentialGroup
   | LocationGroups<LocationId>
@@ -106,6 +112,8 @@ type ApiGroups<
   | PtyGroups<LocationId, LocationService>
   | McpGroups<LocationId, LocationService>
   | FormGroups<LocationId, LocationService>
+  | VoiceGroups
+  | TranscriptionGroups<LocationId, LocationService>
   | SessionGroups<SessionLocationId, SessionLocationService, FormLocationId, FormLocationService>
   | MixedMiddlewareGroups<LocationId, LocationService, SessionLocationId, SessionLocationService>
   | Event
@@ -172,6 +180,7 @@ const makeApiFromGroup = <
     .add(ModelGroup.middleware(locationMiddleware))
     .add(GenerateGroup)
     .add(VoiceGroup)
+    .add(makeTranscriptionGroup(locationMiddleware))
     .add(ProviderGroup.middleware(locationMiddleware))
     .add(IntegrationGroup.middleware(locationMiddleware))
     .add(makeMcpGroup(locationMiddleware))

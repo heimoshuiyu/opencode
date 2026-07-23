@@ -112,6 +112,8 @@ import type {
   VoiceModelsOutput,
   VoiceSessionInput,
   VoiceSessionOutput,
+  TranscriptionTranscribeInput,
+  TranscriptionTranscribeOutput,
   ProviderListInput,
   ProviderListOutput,
   ProviderGetInput,
@@ -1190,6 +1192,28 @@ export function make(options: ClientOptions) {
           },
           requestOptions,
         ).then((value) => value.data),
+    },
+    transcription: {
+      transcribe: (input: TranscriptionTranscribeInput, requestOptions?: RequestOptions) =>
+        request<TranscriptionTranscribeOutput>(
+          {
+            method: "POST",
+            path: `/api/transcription`,
+            query: { location: input["location"] },
+            body: {
+              audio: input["audio"],
+              mime: input["mime"],
+              prompt: input["prompt"],
+              contextSessionID: input["contextSessionID"],
+              images: input["images"],
+              settings: input["settings"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 500, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
     },
     provider: {
       list: (input?: ProviderListInput, requestOptions?: RequestOptions) =>

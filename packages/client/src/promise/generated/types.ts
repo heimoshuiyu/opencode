@@ -186,6 +186,8 @@ export type VoiceWebRTCTransport = { type: "webrtc"; sdp: string }
 
 export type VoiceWebSocketTransport = { type: "websocket"; url: string; token: string; expiresAt: number }
 
+export type TranscriptionUsage = { input_tokens?: number; output_tokens?: number }
+
 export type IntegrationID = string
 
 export type IntegrationMethodID = string
@@ -309,6 +311,17 @@ export type WebSearchID = string
 export type WebSearchResult = { url: string; title?: string; content?: string; time: { published?: number } }
 
 export type McpProtocol = "legacy" | "auto" | "2026-07-28"
+
+export type TranscriptionBackend = "whisper" | "lalm"
+
+export type ConfigTranscriptionWhisper = { url?: string; apiKey?: string; model?: string; language?: string }
+
+export type TranscriptionLalm = {
+  model?: string
+  system?: string
+  instruction?: string
+  audio_input_format?: "input_audio" | "audio_url"
+}
 
 export type ConfigWorktree = { directory: string }
 
@@ -668,6 +681,8 @@ export type VoiceModel = { model: string; provider: string; transports: Array<Vo
 
 export type VoiceTransport = VoiceWebRTCTransport | VoiceWebSocketTransport
 
+export type TranscriptionTranscribeResponse = { text: string; usage?: TranscriptionUsage }
+
 export type IntegrationCommandMethod = {
   id: IntegrationMethodID
   type: "command"
@@ -857,6 +872,14 @@ export type FormAnswer1 = { [x: string]: FormValue1 }
 export type VcsInfo = { provider?: string; branch: VcsBranch }
 
 export type WebSearchProvider = { id: WebSearchID; name: string }
+
+export type ConfigTranscription = {
+  type?: TranscriptionBackend
+  whisper?: ConfigTranscriptionWhisper
+  lalm?: TranscriptionLalm
+  hot_words?: Array<string>
+  context_pairs?: number
+}
 
 export type ConfigModelCapabilities = {
   tools?: boolean
@@ -2269,6 +2292,7 @@ export type ConfigEntry =
                 }
           }
         }
+        transcription?: ConfigTranscription
         compaction?: { auto?: boolean; keep?: { tokens?: number }; buffer?: number }
         skills?: Array<string>
         commands?: {
@@ -5000,6 +5024,120 @@ export type VoiceSessionInput = {
 }
 
 export type VoiceSessionOutput = VoiceSessionResponse["data"]
+
+export type TranscriptionTranscribeInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
+  readonly audio: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["audio"]
+  readonly mime: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["mime"]
+  readonly prompt?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["prompt"]
+  readonly contextSessionID?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["contextSessionID"]
+  readonly images?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["images"]
+  readonly settings?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly settings?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["settings"]
+}
+
+export type TranscriptionTranscribeOutput = { location: LocationPublicRef; data: TranscriptionTranscribeResponse }
 
 export type ProviderListInput = {
   readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]

@@ -7,6 +7,7 @@ import { Keybind } from "@opencode/ui/keybind"
 import { ProviderModelIcon } from "@/providers/models/provider-group"
 import { Tooltip } from "@opencode/ui/tooltip"
 import { ComposerEditor } from "./editor/editor"
+import { VoiceButton } from "./voice"
 import { ModelSelectorPopover } from "@/providers/models/select-dialog"
 import { DialogSelectModelUnpaid } from "@/providers/models/unpaid"
 import { formatKeybind, useCommand } from "@/shell/commands/command"
@@ -26,6 +27,14 @@ export function Composer(props: {
 
   return (
     <div class="flex flex-col gap-3">
+      <Show when={props.model.voice?.error()}>
+        {(error) => (
+          <div role="alert" class="px-2 text-12-regular text-text-weak">
+            <div class="font-medium">{language.t("prompt.toast.voiceFailed.title")}</div>
+            <div class="line-clamp-2 break-words">{error()}</div>
+          </div>
+        )}
+      </Show>
       <ComposerEditor
         controller={props.model}
         borderUnderlay={props.borderUnderlay}
@@ -37,6 +46,22 @@ export function Composer(props: {
         alternateKeybind={[formatKeybind("mod", language.t), "↵"]}
         exitShellKeybind={[formatKeybind("esc", language.t)]}
         suggestionBoundary={props.suggestionBoundary}
+        voiceControl={
+          <Show when={props.model.voice}>
+            {(voice) => (
+              <VoiceButton
+                voiceTitle={voice().voiceTitle}
+                toggleVoice={voice().toggleVoice}
+                recording={voice().recording}
+                transcribing={voice().transcribing}
+                pendingRetry={voice().pendingRetry}
+                cancelRetry={voice().cancelRetry}
+                keybind={command.keybindParts("prompt.voice")}
+                disabled={props.model.state.mode !== "normal"}
+              />
+            )}
+          </Show>
+        }
         modelControl={
           <ComposerModelControl
             loading={props.model.model.loading}

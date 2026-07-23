@@ -53,6 +53,7 @@ import { ReadToolFileSystem } from "./tool/read-filesystem.js"
 import { Tool } from "./tool.js"
 import { ToolOutput } from "./tool-output.js"
 import { Vcs } from "./vcs.js"
+import { Transcription } from "./transcription/transcribe.js"
 
 export * as Instance from "./instance.js"
 export { Service, node, type Interface } from "./instance/service.js"
@@ -109,6 +110,7 @@ const nodes = [
   Snapshot.node,
   SessionRunnerLLM.node,
   Vcs.node,
+  Transcription.node,
   // Start repository watches only after boot-critical filesystem and Git work.
   LocationWatcher.node,
 ] as const satisfies readonly Node.LocationGraph<never, unknown>[]

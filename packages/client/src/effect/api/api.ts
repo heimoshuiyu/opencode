@@ -1448,6 +1448,46 @@ export interface VoiceApi<E = never> {
   readonly session: VoiceSessionOperation<E>
 }
 
+export type TranscriptionTranscribeInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: Session.ID | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly settings?:
+    | {
+        readonly type?: ("whisper" | "lalm") | undefined
+        readonly whisper?: { readonly model?: string | undefined; readonly language?: string | undefined } | undefined
+        readonly lalm?:
+          | {
+              readonly model?: string | undefined
+              readonly system?: string | undefined
+              readonly instruction?: string | undefined
+              readonly audio_input_format?: "input_audio" | "audio_url" | undefined
+            }
+          | undefined
+        readonly hot_words?: ReadonlyArray<string> | undefined
+      }
+    | undefined
+}
+export type TranscriptionTranscribeOutput = {
+  readonly location: Location.PublicRef
+  readonly data: {
+    readonly text: string
+    readonly usage?:
+      | { readonly input_tokens?: number | undefined; readonly output_tokens?: number | undefined }
+      | undefined
+  }
+}
+export type TranscriptionTranscribeOperation<E = never> = (
+  input: TranscriptionTranscribeInput,
+) => Effect.Effect<TranscriptionTranscribeOutput, E>
+
+export interface TranscriptionApi<E = never> {
+  readonly transcribe: TranscriptionTranscribeOperation<E>
+}
+
 export type ProviderListInput = { readonly location?: { readonly directory?: string | undefined } | undefined }
 export type ProviderListOutput = { readonly location: Location.PublicRef; readonly data: ReadonlyArray<Provider.Info> }
 export type ProviderListOperation<E = never> = (input?: ProviderListInput) => Effect.Effect<ProviderListOutput, E>
@@ -2357,6 +2397,7 @@ export interface AppApi<E = never> {
   readonly model: ModelApi<E>
   readonly generate: GenerateApi<E>
   readonly voice: VoiceApi<E>
+  readonly transcription: TranscriptionApi<E>
   readonly provider: ProviderApi<E>
   readonly integration: IntegrationApi<E>
   readonly mcp: McpApi<E>

@@ -118,6 +118,8 @@ import type {
   VoiceModelsOutput,
   VoiceSessionInput,
   VoiceSessionOutput,
+  TranscriptionTranscribeInput,
+  TranscriptionTranscribeOutput,
   ProviderListInput,
   ProviderListOutput,
   ProviderGetInput,
@@ -899,6 +901,26 @@ const EndpointVoiceSession = (raw: RawClient["server.voice"]) => (input: VoiceSe
 const adaptGroupVoice = (raw: RawClient["server.voice"]) => ({
   models: EndpointVoiceModels(raw),
   session: EndpointVoiceSession(raw),
+})
+
+const EndpointTranscriptionTranscribe =
+  (raw: RawClient["server.transcription"]) => (input: TranscriptionTranscribeInput) =>
+    preserveEffect<TranscriptionTranscribeOutput>()(
+      raw["transcribe"]({
+        query: { location: input["location"] },
+        payload: {
+          audio: input["audio"],
+          mime: input["mime"],
+          prompt: input["prompt"],
+          contextSessionID: input["contextSessionID"],
+          images: input["images"],
+          settings: input["settings"],
+        },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const adaptGroupTranscription = (raw: RawClient["server.transcription"]) => ({
+  transcribe: EndpointTranscriptionTranscribe(raw),
 })
 
 const EndpointProviderList = (raw: RawClient["server.provider"]) => (input?: ProviderListInput) =>
@@ -1685,6 +1707,7 @@ const adaptClient = (raw: RawClient) => ({
   model: adaptGroupModel(raw["server.model"]),
   generate: adaptGroupGenerate(raw["server.generate"]),
   voice: adaptGroupVoice(raw["server.voice"]),
+  transcription: adaptGroupTranscription(raw["server.transcription"]),
   provider: adaptGroupProvider(raw["server.provider"]),
   integration: adaptGroupIntegration(raw["server.integration"]),
   mcp: adaptGroupMcp(raw["server.mcp"]),
