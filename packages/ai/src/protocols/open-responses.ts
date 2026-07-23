@@ -52,7 +52,11 @@ const OpenResponsesInputVideo = Schema.Struct({
   type: Schema.tag("input_video"),
   video_url: Schema.String,
 })
-const MediaInput = Schema.Union([OpenResponsesInputImage, OpenResponsesInputFile])
+const OpenResponsesInputAudio = Schema.Struct({
+  type: Schema.tag("input_audio"),
+  input_audio: Schema.Struct({ data: Schema.String, format: Schema.String }),
+})
+const MediaInput = Schema.Union([OpenResponsesInputImage, OpenResponsesInputAudio, OpenResponsesInputFile])
 export type MediaInput = Schema.Schema.Type<typeof MediaInput>
 const OpenResponsesInputContent = Schema.Union([OpenResponsesInputText, MediaInput])
 
@@ -149,6 +153,7 @@ export type HostedToolItem = Schema.Schema.Type<typeof HostedToolItem>
 const OpenResponsesFunctionCallOutputContent = Schema.Union([
   OpenResponsesInputText,
   OpenResponsesInputImage,
+  OpenResponsesInputAudio,
   OpenResponsesInputFile,
   OpenResponsesInputVideo,
 ])
@@ -530,6 +535,11 @@ const lowerMedia = Effect.fn("OpenResponses.lowerMedia")(function* (
     typeof part.data === "string" && (part.data.startsWith("https://") || part.data.startsWith("http://"))
       ? part.data
       : undefined
+  if (target === "message" && media.mime.startsWith("audio/")) {
+    // Responses audio input only accepts wav and mp3 payloads.
+    const format = media.mime === "audio/wav" || media.mime === "audio/wave" ? "wav" : "mp3"
+    return { type: "input_audio" as const, input_audio: { data: media.base64, format } }
+  }
   if (!media.mime.startsWith("image/")) {
     if (target === "tool-result" && media.mime.startsWith("video/"))
       return { type: "input_video" as const, video_url: url ?? media.dataUrl }

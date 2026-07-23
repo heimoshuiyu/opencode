@@ -2054,6 +2054,46 @@ export interface VcsApi<E = never> {
   readonly diff: VcsDiffOperation<E>
 }
 
+export type VoiceTranscribeInput = {
+  readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
+  readonly audio: string
+  readonly mime: string
+  readonly prompt?: string | undefined
+  readonly contextSessionID?: Session.ID | undefined
+  readonly images?: ReadonlyArray<string> | undefined
+  readonly voice?:
+    | {
+        readonly type?: ("whisper" | "lalm") | undefined
+        readonly whisper?: { readonly model?: string | undefined; readonly language?: string | undefined } | undefined
+        readonly lalm?:
+          | {
+              readonly model?: string | undefined
+              readonly system?: string | undefined
+              readonly instruction?: string | undefined
+              readonly audio_input_format?: "input_audio" | "audio_url" | undefined
+            }
+          | undefined
+        readonly hot_words?: ReadonlyArray<string> | undefined
+      }
+    | undefined
+}
+export type VoiceTranscribeOutput = {
+  readonly location: Location.Info
+  readonly data: {
+    readonly text: string
+    readonly usage?:
+      | { readonly input_tokens?: number | undefined; readonly output_tokens?: number | undefined }
+      | undefined
+  }
+}
+export type VoiceTranscribeOperation<E = never> = (
+  input: VoiceTranscribeInput,
+) => Effect.Effect<VoiceTranscribeOutput, E>
+
+export interface VoiceApi<E = never> {
+  readonly transcribe: VoiceTranscribeOperation<E>
+}
+
 export type DebugLocationListOutput = ReadonlyArray<Location.Ref>
 export type DebugLocationListOperation<E = never> = () => Effect.Effect<DebugLocationListOutput, E>
 
@@ -2149,6 +2189,7 @@ export interface AppApi<E = never> {
   readonly worktree: WorktreeApi<E>
   readonly workspace: WorkspaceApi<E>
   readonly vcs: VcsApi<E>
+  readonly voice: VoiceApi<E>
   readonly debug: DebugApi<E>
   readonly migration: MigrationApi<E>
   readonly websearch: WebsearchApi<E>

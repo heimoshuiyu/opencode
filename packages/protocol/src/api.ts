@@ -35,6 +35,7 @@ import { VcsGroup } from "./groups/vcs.js"
 import { MigrationGroup } from "./groups/migration.js"
 import { ConfigGroup } from "./groups/config.js"
 import { WorkspaceGroup } from "./groups/workspace.js"
+import { VoiceGroup } from "./groups/voice.js"
 
 type LocationGroups<LocationId extends HttpApiMiddleware.AnyId> =
   | HttpApiGroup.AddMiddleware<typeof LocationGroup, LocationId>
@@ -57,6 +58,7 @@ type LocationGroups<LocationId extends HttpApiMiddleware.AnyId> =
   | HttpApiGroup.AddMiddleware<typeof WorktreeGroup, LocationId>
   | HttpApiGroup.AddMiddleware<typeof VcsGroup, LocationId>
   | HttpApiGroup.AddMiddleware<typeof ConfigGroup, LocationId>
+  | HttpApiGroup.AddMiddleware<typeof VoiceGroup, LocationId>
 
 type SessionGroups<SessionLocationId extends HttpApiMiddleware.AnyId, SessionLocationService> =
   | ReturnType<typeof makeSessionGroup<SessionLocationId, SessionLocationService>>
@@ -179,6 +181,7 @@ const makeApiFromGroup = <
     .add(WorktreeGroup.middleware(locationMiddleware))
     .add(WorkspaceGroup)
     .add(VcsGroup.middleware(locationMiddleware))
+    .add(VoiceGroup.middleware(locationMiddleware))
     .add(DebugGroup)
     .add(MigrationGroup)
     .add(WebSearchGroup.middleware(locationMiddleware))

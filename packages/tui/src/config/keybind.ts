@@ -200,6 +200,7 @@ export const Definitions = {
 
   "prompt.clear": keybind("ctrl+c", "Clear input field"),
   "prompt.paste": keybind({ key: "ctrl+v", preventDefault: false }, "Paste from clipboard"),
+  "prompt.voice": keybind("alt+v", "Voice input"),
   "input.submit": keybind("return", "Submit input"),
   "input.newline": keybind("shift+return,ctrl+return,alt+return,ctrl+j", "Insert newline in input"),
   "input.move.left": keybind("left,ctrl+b", "Move cursor left in input"),

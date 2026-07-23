@@ -425,9 +425,22 @@ export type VcsFileStatus = {
 
 export type VcsBranchList = Array<string>
 
+export type VoiceUsage = { input_tokens?: number; output_tokens?: number }
+
 export type WebSearchProvider = { id: string; name: string }
 
 export type WebSearchResult = { url: string; title?: string; content?: string; time: { published?: number } }
+
+export type VoiceBackend = "whisper" | "lalm"
+
+export type ConfigVoiceWhisper = { url?: string; apiKey?: string; model?: string; language?: string }
+
+export type VoiceLalm = {
+  model?: string
+  system?: string
+  instruction?: string
+  audio_input_format?: "input_audio" | "audio_url"
+}
 
 export type ConfigWorktree = { directory: string }
 
@@ -1639,6 +1652,16 @@ export type WorktreeList = Array<WorktreeDirectory>
 
 export type VcsInfo = { branch: VcsBranch }
 
+export type VoiceTranscribeResponse = { text: string; usage?: VoiceUsage }
+
+export type ConfigVoice = {
+  type?: VoiceBackend
+  whisper?: ConfigVoiceWhisper
+  lalm?: VoiceLalm
+  hot_words?: Array<string>
+  context_pairs?: number
+}
+
 export type PermissionRuleset = Array<PermissionRule>
 
 export type SessionInboxMove = {
@@ -1999,6 +2022,7 @@ export type ConfigEntry =
                 }
           }
         }
+        voice?: ConfigVoice
         compaction?: { auto?: boolean; keep?: { tokens?: number }; buffer?: number }
         skills?: Array<string>
         commands?: {
@@ -6279,6 +6303,125 @@ export type VcsDiffInput = {
 export type VcsDiffOutput = {
   location: { directory: string; workspaceID?: string; project: { id: string; directory: string; canonical: string } }
   data: Array<FileDiffInfo>
+}
+
+export type VoiceTranscribeInput = {
+  readonly location?: {
+    readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
+  }["location"]
+  readonly audio: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["audio"]
+  readonly mime: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["mime"]
+  readonly prompt?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["prompt"]
+  readonly contextSessionID?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["contextSessionID"]
+  readonly images?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["images"]
+  readonly voice?: {
+    readonly audio: string
+    readonly mime: string
+    readonly prompt?: string
+    readonly contextSessionID?: string
+    readonly images?: ReadonlyArray<string>
+    readonly voice?: {
+      readonly type?: "whisper" | "lalm"
+      readonly whisper?: { readonly model?: string; readonly language?: string }
+      readonly lalm?: {
+        readonly model?: string
+        readonly system?: string
+        readonly instruction?: string
+        readonly audio_input_format?: "input_audio" | "audio_url"
+      }
+      readonly hot_words?: ReadonlyArray<string>
+    }
+  }["voice"]
+}
+
+export type VoiceTranscribeOutput = {
+  location: { directory: string; workspaceID?: string; project: { id: string; directory: string; canonical: string } }
+  data: VoiceTranscribeResponse
 }
 
 export type DebugLocationListOutput = Array<LocationRef>

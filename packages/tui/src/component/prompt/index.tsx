@@ -48,6 +48,9 @@ import { useConnected } from "../use-connected"
 import { useToast } from "../../ui/toast"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
+import { useVoice } from "../../context/voice"
+import { VoiceButton } from "./voice-button"
+import { useArgs } from "../../context/args"
 import { useConfig } from "../../config"
 import { usePromptMove } from "./move"
 import { resolvePastedAttachments } from "./local-attachment"
@@ -91,6 +94,7 @@ export type PromptRef = {
   focused: boolean
   current: PromptInfo
   set(prompt: PromptInfo): void
+  insert(text: string): boolean
   reset(): void
   blur(): void
   focus(): void
@@ -335,6 +339,8 @@ export function Prompt(props: PromptProps) {
   let promptPartTypeId = 0
   const event = useEvent()
 
+  const voice = useVoice()
+
   event.on("tui.prompt.append", (evt, { workspace }) => {
     if (workspace !== (currentLocation.current?.workspaceID ?? data.location.default().workspaceID)) return
     if (!input || input.isDestroyed) return
@@ -497,6 +503,18 @@ export function Prompt(props: PromptProps) {
         run: () => openImagePreview(0),
       },
       {
+        title: "Voice input",
+        name: "prompt.voice",
+        category: "Prompt",
+        run: async () => {
+          if (voice.pendingRetry()) {
+            await voice.confirmRetry()
+          } else {
+            await voice.toggle()
+          }
+        },
+      },
+      {
         title: "Interrupt session",
         name: "session.interrupt",
         category: "Session",
@@ -655,6 +673,7 @@ export function Prompt(props: PromptProps) {
       "prompt.editor",
       "prompt.editor_context.clear",
       "prompt.images.view",
+      "prompt.voice",
       "prompt.stash",
       "prompt.stash.pop",
       "prompt.stash.list",
@@ -684,6 +703,14 @@ export function Prompt(props: PromptProps) {
       setStore("prompt", prompt)
       restoreExtmarksFromPrompt(prompt)
       input.gotoBufferEnd()
+    },
+    insert(text) {
+      if (disposed || input.isDestroyed) return false
+      input.insertText(text)
+      input.getLayoutNode().markDirty()
+      input.gotoBufferEnd()
+      renderer.requestRender()
+      return true
     },
     reset() {
       resetComposer()
@@ -938,6 +965,14 @@ export function Prompt(props: PromptProps) {
       target: inputTarget,
       enabled: inputTarget() !== undefined && !disabled(),
       bindings: ["prompt.paste"],
+    }
+  })
+
+  Keymap.createLayer(() => {
+    return {
+      target: inputTarget,
+      enabled: inputTarget() !== undefined && !disabled(),
+      bindings: ["prompt.voice"],
     }
   })
 
@@ -1859,11 +1894,14 @@ export function Prompt(props: PromptProps) {
                 modelAlpha={modelMetaAlpha()}
                 variantAlpha={variantMetaAlpha()}
               />
-              <Show when={hasRightContent()}>
-                <box flexDirection="row" gap={1} alignItems="center">
-                  {props.right}
-                </box>
-              </Show>
+              <box flexDirection="row" gap={2} alignItems="center">
+                <VoiceButton voice={voice} />
+                <Show when={hasRightContent()}>
+                  <box flexDirection="row" gap={1} alignItems="center">
+                    {props.right}
+                  </box>
+                </Show>
+              </box>
             </box>
           </box>
         </box>

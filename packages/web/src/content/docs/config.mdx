@@ -871,6 +871,59 @@ If a provider appears in both `enabled_providers` and `disabled_providers`, the 
 
 ---
 
+### Voice
+
+Voice input lets you transcribe speech to text directly in the prompt input. Configure the transcription backend through the `voice` option.
+
+Two backends are supported:
+
+- **`lalm`** (default) — Large Audio Language Model transcription via Gemini or OpenAI-compatible audio models
+- **`whisper`** — OpenAI Whisper-compatible transcription API
+
+```json title="opencode.json"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "voice": {
+    "type": "lalm",
+    "lalm": {
+      "model": "google/gemini-2.5-flash"
+    },
+    "context_pairs": 3
+  }
+}
+```
+
+For Whisper:
+
+```json title="opencode.json"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "voice": {
+    "type": "whisper",
+    "whisper": {
+      "url": "https://api.openai.com/v1/audio/transcriptions",
+      "apiKey": "{env:OPENAI_API_KEY}",
+      "model": "whisper-1",
+      "language": "en"
+    }
+  }
+}
+```
+
+Options:
+
+- `type` — `"lalm"` or `"whisper"` (default: `"lalm"`)
+- `lalm.model` — provider/model ID for LALM transcription (e.g. `google/gemini-2.5-flash`)
+- `lalm.system` — custom system prompt for LALM transcription
+- `whisper.url` — Whisper-compatible API endpoint
+- `whisper.apiKey` — API key for the Whisper endpoint
+- `whisper.model` — model name (default: `whisper-1`)
+- `whisper.language` — language code hint
+- `hot_words` — list of terms to improve accuracy for domain-specific vocabulary
+- `context_pairs` — number of recent user/assistant conversation pairs included as context (default: 3, max: 20)
+
+---
+
 ### Experimental
 
 The `experimental` key contains options that are under active development.

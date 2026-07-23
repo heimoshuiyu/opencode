@@ -254,6 +254,8 @@ import type {
   VcsBranchesOutput,
   VcsDiffInput,
   VcsDiffOutput,
+  VoiceTranscribeInput,
+  VoiceTranscribeOutput,
   DebugLocationListOutput,
   DebugLocationEvictInput,
   DebugLocationEvictOutput,
@@ -2101,6 +2103,28 @@ export function make(options: ClientOptions) {
             query: { location: input["location"], mode: input["mode"], base: input["base"], context: input["context"] },
             successStatus: 200,
             declaredStatuses: [400, 401, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
+    },
+    voice: {
+      transcribe: (input: VoiceTranscribeInput, requestOptions?: RequestOptions) =>
+        request<VoiceTranscribeOutput>(
+          {
+            method: "POST",
+            path: `/api/voice/transcribe`,
+            query: { location: input["location"] },
+            body: {
+              audio: input["audio"],
+              mime: input["mime"],
+              prompt: input["prompt"],
+              contextSessionID: input["contextSessionID"],
+              images: input["images"],
+              voice: input["voice"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 500, 503],
             empty: false,
           },
           requestOptions,

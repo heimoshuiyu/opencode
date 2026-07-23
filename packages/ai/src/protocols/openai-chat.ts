@@ -33,6 +33,15 @@ import { ToolSchemaProjection } from "./utils/tool-schema.js"
 import { ToolStream } from "./utils/tool-stream.js"
 
 const ADAPTER = "openai-chat"
+const SUPPORTED_AUDIO_MIMES = new Set([
+  "audio/wav",
+  "audio/mp3",
+  "audio/mpeg",
+  "audio/aiff",
+  "audio/aac",
+  "audio/ogg",
+  "audio/flac",
+])
 const RESERVED_REASONING_FIELDS = new Set(["role", "content", "refusal", "tool_calls"])
 export const DEFAULT_BASE_URL = "https://api.openai.com/v1"
 export const PATH = "/chat/completions"
@@ -91,6 +100,14 @@ const OpenAIChatUserContent = Schema.Union([
   Schema.Struct({
     type: Schema.Literal("image_url"),
     image_url: Schema.Struct({ url: Schema.String }),
+  }),
+  Schema.Struct({
+    type: Schema.Literal("input_audio"),
+    input_audio: Schema.Struct({ data: Schema.String, format: Schema.String }),
+  }),
+  Schema.Struct({
+    type: Schema.Literal("audio_url"),
+    audio_url: Schema.Struct({ url: Schema.String }),
   }),
 ])
 
@@ -319,10 +336,28 @@ const lowerToolCall = (part: ToolCallPart, options: LoweringOptions): OpenAIChat
   },
 })
 
+const audioFormat = (mime: string): string => {
+  if (mime === "audio/wav" || mime === "audio/wave") return "wav"
+  if (mime === "audio/mp3" || mime === "audio/mpeg") return "mp3"
+  if (mime === "audio/aiff") return "aiff"
+  if (mime === "audio/aac") return "aac"
+  if (mime === "audio/ogg") return "ogg"
+  if (mime === "audio/flac") return "flac"
+  return "mp3"
+}
+
 const lowerMedia = Effect.fn("OpenAIChat.lowerMedia")(function* (part: MediaPart) {
   const media = ProviderShared.normalizeMedia(part)
-  if (!media.mime.startsWith("image/"))
+  if (!media.mime.startsWith("image/") && !media.mime.startsWith("audio/"))
     return yield* ProviderShared.invalidRequest(`OpenAI Chat does not support media type ${part.mediaType}`)
+  if (media.mime.startsWith("audio/")) {
+    if (!SUPPORTED_AUDIO_MIMES.has(media.mime))
+      return yield* ProviderShared.invalidRequest(`OpenAI Chat does not support media type ${part.mediaType}`)
+    if (part.metadata?.audioFormat === "audio_url") {
+      return { type: "audio_url" as const, audio_url: { url: media.dataUrl } }
+    }
+    return { type: "input_audio" as const, input_audio: { data: media.base64, format: audioFormat(media.mime) } }
+  }
   return { type: "image_url" as const, image_url: { url: media.dataUrl } }
 })
 
