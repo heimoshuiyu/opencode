@@ -37,6 +37,7 @@ import { WorktreeStrategies } from "../worktree/strategies.js"
 import { Bus } from "../bus.js"
 import { Environment } from "../environment/index.js"
 import { FileAccess } from "../file-access.js"
+import { Database } from "../database/database.js"
 import { FileMutation } from "../file-mutation.js"
 import { Formatter } from "../formatter.js"
 import { Form } from "../form.js"
@@ -72,6 +73,7 @@ import { EditTool } from "../tool/plugin/edit.js"
 import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
 import { McpResourceTools } from "../tool/plugin/mcp-resource.js"
+import { HistoryTool } from "../tool/history.js"
 import { OpenCodeTools } from "../tool/plugin/opencode.js"
 import { QuestionTool } from "../tool/plugin/question.js"
 import { ReadToolFileSystem } from "../tool/read-filesystem.js"
@@ -115,6 +117,7 @@ const services = [
   Bus.Service,
   Environment.Service,
   FileAccess.Service,
+  Database.Service,
   FileMutation.Service,
   Formatter.Service,
   LocationWatcherPolicy.Service,
@@ -168,6 +171,7 @@ export const requirements = LayerNode.group([
   Bus.node,
   Environment.node,
   FileAccess.node,
+  Database.node,
   FileMutation.node,
   Formatter.node,
   LocationWatcherPolicy.node,
@@ -233,6 +237,7 @@ const pre = [
   EditTool.Plugin,
   GlobTool.Plugin,
   GrepTool.Plugin,
+  HistoryTool.Plugin,
   OpenCodeTools.Plugin,
   McpResourceTools.Plugin,
   QuestionTool.Plugin,
