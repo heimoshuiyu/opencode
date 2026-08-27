@@ -9,9 +9,11 @@ import { FSUtil } from "@opencode/util/fs-util"
 import { Effect } from "effect"
 import path from "path"
 import { fileURLToPath } from "url"
+import { Agent } from "../agent.js"
 import { Image } from "../image.js"
 import { Instance } from "../instance/service.js"
 import { Mime } from "../mime.js"
+import { Permission } from "../permission.js"
 import { Plugin } from "../plugin/service.js"
 import { PluginHooks } from "../plugin/hooks.js"
 import { Skill } from "../skill.js"
@@ -57,6 +59,8 @@ export const prepare = Effect.fn("SessionPrompt.prepare")(function* (request: {
     const selected = yield* Effect.gen(function* () {
       if (!requested?.length) return undefined
       const skillService = yield* Skill.Service
+      const agents = yield* Agent.Service
+      const currentAgent = yield* agents.resolve(request.session.agent)
       const prepared = new Map<Skill.ID, Skill.Name>()
       return yield* Effect.forEach(requested, (attachment) =>
         Effect.gen(function* () {
@@ -64,6 +68,10 @@ export const prepare = Effect.fn("SessionPrompt.prepare")(function* (request: {
           if (name !== undefined) return { id: attachment.id, name, mention: attachment.mention }
           const skill = yield* skillService.get(attachment.id)
           if (!skill) return yield* new SkillNotFoundError({ skill: attachment.id })
+          // Deny-only evaluation: identical to Permission.assert's deny branch, but
+          // without its ask fallback, so undetermined skills never prompt here.
+          if (currentAgent && Permission.evaluate("skill", skill.id, currentAgent.permissions).effect === "deny")
+            return yield* new SkillNotFoundError({ skill: attachment.id })
           prepared.set(skill.id, skill.name)
           return {
             id: skill.id,

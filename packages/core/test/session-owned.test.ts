@@ -1,7 +1,7 @@
 import { describe, expect } from "bun:test"
 import { and, eq } from "drizzle-orm"
 import { Cause, Context, DateTime, Deferred, Effect, Exit, Fiber, Layer, Scope } from "effect"
-import { Agent } from "@opencode/schema/agent"
+import { Agent } from "../src/agent.js"
 import { Event } from "@opencode/schema/event"
 import { Model } from "@opencode/schema/model"
 import { Money } from "@opencode/schema/money"
@@ -125,6 +125,7 @@ const setup = Effect.fnUntraced(function* (options?: {
   const services = Layer.mergeAll(
     Layer.succeed(PluginHooks.Service, hooks),
     Layer.mock(Image.Service, {}),
+    Layer.mock(Agent.Service, { resolve: () => Effect.succeed(undefined) }),
     options?.shell ?? Layer.mock(Shell.Service, {}),
   )
   const servicesFor = (ref: Location.Ref) => {
