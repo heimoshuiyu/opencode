@@ -78,6 +78,8 @@ const locations = makeGlobalNode({
               normalize: (_resource, content) =>
                 Effect.succeed(content.content.length > 5 * 1024 * 1024 ? { ...content, content: "AA==" } : content),
             }),
+            // Prompt preparation resolves the session agent to enforce skill deny rules.
+            Layer.mock(Agent.Service, { resolve: () => Effect.succeed(undefined) }),
             Layer.mock(Snapshot.Service, {
               capture: () => Effect.undefined,
               restore: () => Effect.void,

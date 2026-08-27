@@ -14,6 +14,7 @@ import { Project } from "@opencode/core/project"
 import { Plugin } from "@opencode/core/plugin"
 import { PluginHooks } from "@opencode/core/plugin/hooks"
 import { AbsolutePath } from "@opencode/core/schema"
+import { Agent } from "@opencode/core/agent"
 import { Session } from "@opencode/core/session"
 import { SessionExecution } from "@opencode/core/session/execution"
 import { SessionEvent } from "@opencode/core/session/event"
@@ -34,35 +35,51 @@ const info = Skill.Info.make({
   location: AbsolutePath.make(path.resolve("/skills/effect.md")),
   content: "  Use Effect\n",
 })
-const locations = makeGlobalNode({
-  service: LocationServiceMap.Service,
-  layer: Layer.effect(
-    LocationServiceMap.Service,
-    LayerMap.make(
-      (_ref: Location.Ref) =>
-        // These tests need skill activation and prompt preparation from the same location services.
-        // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
-        Layer.mergeAll(
-          LayerNode.compile(LayerNode.group([PluginHooks.node, Image.node])),
-          Layer.mock(Skill.Service, {
-            get: (id) => Effect.succeed(id === info.id ? info : undefined),
-            list: () => Effect.succeed([info]),
-          }),
-          Layer.mock(Plugin.Service, { awaitActivation: Effect.void }),
-        ) as unknown as Layer.Layer<LocationServices>,
+const runner = (agent: Agent.Info) => {
+  const locations = makeGlobalNode({
+    service: LocationServiceMap.Service,
+    layer: Layer.effect(
+      LocationServiceMap.Service,
+      LayerMap.make(
+        (_ref: Location.Ref) =>
+          // These tests need skill activation and prompt preparation from the same location services.
+          // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+          Layer.mergeAll(
+            LayerNode.compile(LayerNode.group([PluginHooks.node, Image.node])),
+            Layer.mock(Skill.Service, {
+              get: (id) => Effect.succeed(id === info.id ? info : undefined),
+              list: () => Effect.succeed([info]),
+            }),
+            Layer.mock(Plugin.Service, { awaitActivation: Effect.void }),
+            // Both prompt preparation and slash activation resolve the session agent
+            // to evaluate skill deny rules.
+            Layer.mock(Agent.Service, { resolve: () => Effect.succeed(agent) }),
+          ) as unknown as Layer.Layer<LocationServices>,
+      ),
     ),
-  ),
-  deps: [],
-})
-const it = testEffect(
-  AppNodeBuilder.build(
-    LayerNode.group([Database.node, Bus.node, SessionProjector.node, SessionStore.node, Session.node]),
-    [
-      LocationServiceMap.node.replace(locations),
-      Project.node.replace(globalProjectNode),
-      SessionExecution.node.replace(SessionExecution.noopLayer),
+    deps: [],
+  })
+  return testEffect(
+    AppNodeBuilder.build(
+      LayerNode.group([Database.node, Bus.node, SessionProjector.node, SessionStore.node, Session.node]),
+      [
+        LocationServiceMap.node.replace(locations),
+        Project.node.replace(globalProjectNode),
+        SessionExecution.node.replace(SessionExecution.noopLayer),
+      ],
+    ),
+  )
+}
+const it = runner(Agent.Info.default(Agent.ID.make("build")))
+const denied = runner(
+  Agent.Info.make({
+    ...Agent.Info.default(Agent.ID.make("build")),
+    // evaluate keeps the last matching rule, so this deny overrides the wildcard allow.
+    permissions: [
+      { action: "*", resource: "*", effect: "allow" },
+      { action: "skill", resource: "effect", effect: "deny" },
     ],
-  ),
+  }),
 )
 
 describe("Session.skill", () => {
@@ -163,6 +180,37 @@ describe("Session.skill", () => {
         expect.objectContaining({ id, type: "skill", skill: "effect", name: "Effect", text: info.content }),
       ])
       expect(yield* sessions.inbox(session.id)).toEqual([])
+    }),
+  )
+})
+
+describe("Session skill deny", () => {
+  denied.effect("rejects prompt-attached skills denied for the session agent", () =>
+    Effect.gen(function* () {
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({ location })
+
+      const failure = yield* Effect.flip(
+        sessions.prompt({
+          sessionID: session.id,
+          text: "Apply @effect",
+          skills: [{ id: info.id, mention: { start: 6, end: 13, text: "@effect" } }],
+          resume: false,
+        }),
+      )
+
+      expect(failure).toMatchObject({ _tag: "Session.SkillNotFoundError", skill: "effect" })
+    }),
+  )
+
+  denied.effect("rejects skill activation denied for the session agent", () =>
+    Effect.gen(function* () {
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({ location })
+
+      const failure = yield* Effect.flip(sessions.skill({ sessionID: session.id, skill: info.id, resume: false }))
+
+      expect(failure).toMatchObject({ _tag: "Session.SkillNotFoundError", skill: "effect" })
     }),
   )
 })
