@@ -270,7 +270,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "{{provider}} modelleri artık kullanımda.",
 
   "provider.custom.title": "Özel sağlayıcı",
-  "provider.custom.unavailable": "Özel sağlayıcılar bu sunucuda kullanılamıyor",
   "provider.custom.description.prefix": "OpenAI uyumlu bir sağlayıcı yapılandırın. ",
   "provider.custom.description.link": "sağlayıcı yapılandırma dokümanları",
   "provider.custom.description.suffix": " sayfasına bakın.",

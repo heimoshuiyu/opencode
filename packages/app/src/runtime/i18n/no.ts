@@ -264,7 +264,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "{{provider}}-modeller er nå tilgjengelige.",
 
   "provider.custom.title": "Egendefinert leverandør",
-  "provider.custom.unavailable": "Egendefinerte leverandører er ikke tilgjengelige på denne serveren",
   "provider.custom.description.prefix": "Konfigurer en OpenAI-kompatibel leverandør. Se ",
   "provider.custom.description.link": "dokumentasjon for leverandørkonfigurasjon",
   "provider.custom.description.suffix": ".",

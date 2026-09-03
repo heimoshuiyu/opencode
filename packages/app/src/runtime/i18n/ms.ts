@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} telah disambungkan",
   "provider.connect.toast.connected.description": "Model {{provider}} kini tersedia untuk digunakan.",
   "provider.custom.title": "Penyedia tersuai",
-  "provider.custom.unavailable": "Penyedia tersuai tidak tersedia pada pelayan ini",
   "provider.custom.description.prefix": "Konfigurasikan penyedia serasi OpenAI. Lihat",
   "provider.custom.description.link": "dokumen konfigurasi penyedia",
   "provider.custom.description.suffix": ".",

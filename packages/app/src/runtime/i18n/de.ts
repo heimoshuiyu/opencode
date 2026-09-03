@@ -156,7 +156,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} verbunden",
   "provider.connect.toast.connected.description": "{{provider}}-Modelle sind jetzt verfügbar.",
   "provider.custom.title": "Benutzerdefinierter Anbieter",
-  "provider.custom.unavailable": "Benutzerdefinierte Anbieter sind auf diesem Server nicht verfügbar",
   "provider.custom.description.prefix": "Konfigurieren Sie einen OpenAI-kompatiblen Anbieter. Siehe die ",
   "provider.custom.description.link": "Dokumentation zur Anbieterkonfiguration",
   "provider.custom.description.suffix": ".",

@@ -289,7 +289,6 @@ export const dict = {
   "provider.custom.error.baseURL.format": "http:// یا https:// سے شروع ہونا چاہیے",
   "provider.custom.error.required": "درکار ہے۔",
   "provider.custom.error.duplicate": "مکرر",
-  "provider.custom.unavailable": "اس سرور پر اپنی مرضی کے مطابق فراہم کنندگان دستیاب نہیں ہیں۔",
   "provider.disconnect.toast.disconnected.title": "{{provider}} منقطع ہو گیا۔",
   "provider.disconnect.toast.disconnected.description": "{{provider}} ماڈلز اب دستیاب نہیں ہیں۔",
   "model.tag.free": "مفت",

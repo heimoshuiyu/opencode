@@ -165,7 +165,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "Modeller fra {{provider}} er nu tilgængelige.",
 
   "provider.custom.title": "Brugerdefineret udbyder",
-  "provider.custom.unavailable": "Brugerdefinerede udbydere er ikke tilgængelige på denne server",
   "provider.custom.description.prefix": "Konfigurer en OpenAI-kompatibel udbyder. Se ",
   "provider.custom.description.link": "dokumentation for udbyderkonfiguration",
   "provider.custom.description.suffix": ".",

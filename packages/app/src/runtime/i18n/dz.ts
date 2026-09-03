@@ -248,7 +248,6 @@ export const dict: Record<string, string> = {
   "provider.connect.toast.connected.title": "{{provider}}མཐུད་ཡོད།",
   "provider.connect.toast.connected.description": "{{provider}} དཔེ་ཚད་ཚུ་ད་ལག་ལེན་འཐབ་བཏུབ་ཨིན།",
   "provider.custom.title": "སྲོལ་སྒྲིག་བྱིན་མི།",
-  "provider.custom.unavailable": "སྲོལ་སྒྲིག་བྱིན་མི་ཚུ་ སར་བར་འདི་གུ་འཐོབ་མི་ཚུགས།",
   "provider.custom.description.prefix": "OpenAI-མཐུན་འགྱུར་ཅན་གྱི་བྱིན་མི་ཅིག་རིམ་སྒྲིག་འབད། བལྟ།",
   "provider.custom.description.link": "བྱིན་མི་རིམ་སྒྲིག་ཡིག་ཆ།",
   "provider.custom.description.suffix": ".",

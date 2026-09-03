@@ -247,7 +247,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} холбогдсон",
   "provider.connect.toast.connected.description": "{{provider}} загваруудыг ашиглах боломжтой боллоо.",
   "provider.custom.title": "Захиалгат үйлчилгээ үзүүлэгч",
-  "provider.custom.unavailable": "Тусгай үйлчилгээ үзүүлэгчид энэ сервер дээр боломжгүй байна",
   "provider.custom.description.prefix": "OpenAI нийцтэй үйлчилгээ үзүүлэгчийг тохируулна уу. -г үзнэ үү",
   "provider.custom.description.link": "үйлчилгээ үзүүлэгчийн тохиргооны баримтууд",
   "provider.custom.description.suffix": ".",

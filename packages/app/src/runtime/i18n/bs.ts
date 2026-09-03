@@ -266,7 +266,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "{{provider}} modeli su sada dostupni za korištenje.",
 
   "provider.custom.title": "Prilagođeni provajder",
-  "provider.custom.unavailable": "Prilagođeni provajderi nisu dostupni na ovom serveru",
   "provider.custom.description.prefix": "Konfiguriši OpenAI-kompatibilnog provajdera. Pogledaj ",
   "provider.custom.description.link": "dokumentaciju za konfiguraciju provajdera",
   "provider.custom.description.suffix": ".",

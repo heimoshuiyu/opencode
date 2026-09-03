@@ -246,7 +246,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} ချိတ်ဆက်ထားသည်။",
   "provider.connect.toast.connected.description": "{{provider}} မော်ဒယ်များကို ယခုအသုံးပြုနိုင်ပါပြီ။",
   "provider.custom.title": "စိတ်ကြိုက်ဝန်ဆောင်မှုပေးသည်။",
-  "provider.custom.unavailable": "စိတ်ကြိုက်ဝန်ဆောင်မှုပေးသူများကို ဤဆာဗာတွင် မရရှိနိုင်ပါ။",
   "provider.custom.description.prefix": "OpenAI-သဟဇာတ ပံ့ပိုးပေးသူကို စီစဉ်သတ်မှတ်ပါ။ ကြည့်ပါ။",
   "provider.custom.description.link": "ပံ့ပိုးပေးသူ config docs",
   "provider.custom.description.suffix": "။",

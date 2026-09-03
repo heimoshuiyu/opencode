@@ -15,6 +15,7 @@ import { cmp, normalizeProjectInfo } from "./utils"
 import { formatServerError } from "@/runtime/server/errors"
 import { QueryClient, queryOptions } from "@tanstack/solid-query"
 import type { ServerScope } from "@/runtime/server/scope"
+import type { ServerApi } from "@/runtime/server/api"
 import { withWorktreeInventory, worktreeInventoryKey } from "@/workspaces/inventory"
 
 type GlobalStore = {
@@ -52,12 +53,25 @@ function runAll(list: Array<() => Promise<unknown>>) {
   return Promise.allSettled(list.map((item) => item()))
 }
 
-export const loadGlobalConfigQuery = (scope: ServerScope) =>
+export const loadGlobalConfigQuery = (scope: ServerScope, api: ConfigApi) =>
   queryOptions({
     queryKey: [scope, "config"],
-    // TODO: Restore config loading when the V2 client exposes a config API.
-    queryFn: async (): Promise<Config> => ({}),
+    queryFn: async (): Promise<Config> =>
+      api.get().then((entries) => {
+        // Documents arrive from lowest to highest priority, so later values
+        // win per key, mirroring the server's own `Config.latest` lookup.
+        const config: Record<string, unknown> = {}
+        entries.forEach((entry) => {
+          if (entry.type !== "document") return
+          Object.entries(entry.info).forEach(([key, value]) => {
+            if (value !== undefined) config[key] = value
+          })
+        })
+        return config as Config
+      }),
   })
+
+type ConfigApi = Pick<ServerApi["config"], "get">
 
 type ProjectApi = {
   readonly list: () => Promise<ProjectListOutput>
@@ -85,13 +99,14 @@ export async function bootstrapGlobal(input: {
   serverAPI: {
     readonly location: LocationApi
     readonly project: ProjectApi
+    readonly config: ConfigApi
   }
   scope: ServerScope
   setGlobalStore: SetStoreFunction<GlobalStore>
   queryClient: QueryClient
 }) {
   const slow = [
-    () => input.queryClient.fetchQuery(loadGlobalConfigQuery(input.scope)),
+    () => input.queryClient.fetchQuery(loadGlobalConfigQuery(input.scope, input.serverAPI.config)),
     () => input.queryClient.fetchQuery(loadPathQuery(input.scope, null, input.serverAPI.location)),
     () =>
       input.queryClient.fetchQuery(loadProjectsQuery(input.scope, input.serverAPI.project)).then((data) =>

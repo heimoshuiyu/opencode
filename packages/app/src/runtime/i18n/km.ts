@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} បានភ្ជាប់",
   "provider.connect.toast.connected.description": "ម៉ូដែល {{provider}} ឥឡូវអាចប្រើបាន។",
   "provider.custom.title": "អ្នកផ្តល់សេវាផ្ទាល់ខ្លួន",
-  "provider.custom.unavailable": "អ្នកផ្តល់សេវាផ្ទាល់ខ្លួនមិនមាននៅលើម៉ាស៊ីនមេនេះទេ។",
   "provider.custom.description.prefix": "កំណត់រចនាសម្ព័ន្ធអ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ។ សូមមើល",
   "provider.custom.description.link": "ឯកសារកំណត់រចនាសម្ព័ន្ធអ្នកផ្តល់សេវា",
   "provider.custom.description.suffix": "។",

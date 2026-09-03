@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} pripojený",
   "provider.connect.toast.connected.description": "Modely {{provider}} sú teraz dostupné na použitie.",
   "provider.custom.title": "Vlastný poskytovateľ",
-  "provider.custom.unavailable": "Vlastní poskytovatelia nie sú na tomto serveri dostupní",
   "provider.custom.description.prefix": "Nastavte poskytovateľa kompatibilného s OpenAI. Pozrite si",
   "provider.custom.description.link": "dokumentáciu k nastaveniu poskytovateľa",
   "provider.custom.description.suffix": ".",

@@ -248,7 +248,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} csatlakoztatva",
   "provider.connect.toast.connected.description": "A {{provider}} modellek már használhatók.",
   "provider.custom.title": "Egyedi szolgáltató",
-  "provider.custom.unavailable": "Egyéni szolgáltatók nem érhetők el ezen a szerveren",
   "provider.custom.description.prefix": "Konfiguráljon egy OpenAI-kompatibilis szolgáltatót. Lásd a",
   "provider.custom.description.link": "szolgáltató konfigurációs dokumentumai",
   "provider.custom.description.suffix": ".",

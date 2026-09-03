@@ -247,7 +247,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} qoşuldu",
   "provider.connect.toast.connected.description": "{{provider}} modelləri artıq istifadə üçün mövcuddur.",
   "provider.custom.title": "Fərdi provayder",
-  "provider.custom.unavailable": "Fərdi provayderlər bu serverdə əlçatan deyil",
   "provider.custom.description.prefix": "OpenAI ilə uyğun provayderi konfiqurasiya edin. ",
   "provider.custom.description.link": "Provayder konfiqurasiyası sənədləri",
   "provider.custom.description.suffix": "nə baxın.",

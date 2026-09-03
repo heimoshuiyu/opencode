@@ -10,6 +10,7 @@ import { EventLogger } from "@opencode/core/event-logger"
 import { FileSystemSearch } from "@opencode/core/filesystem/search"
 import { Credential } from "@opencode/core/credential"
 import { Config } from "@opencode/core/config"
+import { ConfigWriter } from "@opencode/core/config/writer"
 import { PermissionSaved } from "@opencode/core/permission/saved"
 import { PtyTicket } from "@opencode/core/pty/ticket"
 import { PersistentPty } from "@opencode/core/persistent-pty"
@@ -65,6 +66,7 @@ const applicationServiceNodes = [
   PersistentPty.node,
   Credential.node,
   WellKnown.node,
+  ConfigWriter.node,
   PtyEnvironment.node,
   LocationServiceMap.node,
   LocationActivity.node,
@@ -164,6 +166,7 @@ function makeRoutes<AuthError, AuthServices>(
             PluginUpdate.Service,
             Project.Service,
             WellKnown.Service,
+            ConfigWriter.Service,
           )(context),
         ),
         ServerInfo.layer(serviceURLs, options.app),

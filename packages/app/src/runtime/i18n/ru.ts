@@ -265,7 +265,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "Модели {{provider}} теперь доступны.",
 
   "provider.custom.title": "Пользовательский провайдер",
-  "provider.custom.unavailable": "Пользовательские провайдеры недоступны на этом сервере",
   "provider.custom.description.prefix": "Настройте провайдера, совместимого с OpenAI. См. ",
   "provider.custom.description.link": "документацию по настройке провайдера",
   "provider.custom.description.suffix": ".",

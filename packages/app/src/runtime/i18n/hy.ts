@@ -246,7 +246,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} կապված",
   "provider.connect.toast.connected.description": "{{provider}} մոդելներ այժմ հասանելի են օգտագործման համար։",
   "provider.custom.title": "Պատվերով մատակարար",
-  "provider.custom.unavailable": "Պատվերով մատակարարներն անհասանելի են այս սերվերում",
   "provider.custom.description.prefix": "Կարգավորել OpenAI-ի հետ համատեղելի մատակարար: Տեսեք ",
   "provider.custom.description.link": "մատակարարի կազմաձևման փաստաթղթեր",
   "provider.custom.description.suffix": ".",

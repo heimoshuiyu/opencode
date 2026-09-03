@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} пайваст",
   "provider.connect.toast.connected.description": "{{provider}} моделҳо ҳоло барои истифода дастрасанд.",
   "provider.custom.title": "Провайдери фармоишӣ",
-  "provider.custom.unavailable": "Провайдерҳои фармоишӣ дар ин сервер дастрас нестанд",
   "provider.custom.description.prefix": "Провайдери OpenAI-мувофиқро танзим кунед. нигаред",
   "provider.custom.description.link": "ҳуҷҷатҳои конфигуратсияи провайдер",
   "provider.custom.description.suffix": ".",

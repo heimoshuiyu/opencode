@@ -1,4 +1,4 @@
-import type { ProjectListOutput, WorktreeDirectory } from "@opencode/client/promise"
+import type { ConfigUpdateInput, ProjectListOutput, WorktreeDirectory } from "@opencode/client/promise"
 
 export type Project = Omit<ProjectListOutput[number], "canonical"> & {
   worktree: string
@@ -143,24 +143,4 @@ export type ProviderListResponse = {
 
 export type ProviderAuthResponse = Record<string, unknown>
 
-export type Config = {
-  model?: string
-  small_model?: string
-  default_agent?: string
-  username?: string
-  share?: "manual" | "auto" | "disabled"
-  autoshare?: boolean
-  shell?: string
-  plugin?: Array<string | [string, Record<string, unknown>]>
-  provider?: Record<string, { npm?: string; models?: Record<string, unknown> }>
-  mcp?: Record<string, unknown>
-  agent?: Record<string, unknown>
-  command?: Record<string, unknown>
-  instructions?: string[]
-  disabled_providers?: string[]
-  enabled_providers?: string[]
-  permission?: string | Record<string, unknown>
-  tools?: Record<string, boolean>
-  experimental?: Record<string, unknown>
-  [key: string]: unknown
-}
+export type Config = ConfigUpdateInput["payload"]

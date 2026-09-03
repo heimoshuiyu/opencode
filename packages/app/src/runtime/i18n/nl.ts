@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "Verbonden met {{provider}}",
   "provider.connect.toast.connected.description": "{{provider}}-modellen zijn nu beschikbaar voor gebruik.",
   "provider.custom.title": "Aangepaste aanbieder",
-  "provider.custom.unavailable": "Aangepaste aanbieders zijn niet beschikbaar op deze server",
   "provider.custom.description.prefix": "Configureer een OpenAI-compatibele aanbieder. Bekijk de ",
   "provider.custom.description.link": "documentatie over aanbiedersconfiguratie",
   "provider.custom.description.suffix": ".",

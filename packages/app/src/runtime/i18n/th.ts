@@ -264,7 +264,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "โมเดล {{provider}} พร้อมใช้งานแล้ว",
 
   "provider.custom.title": "ผู้ให้บริการที่กำหนดเอง",
-  "provider.custom.unavailable": "ผู้ให้บริการที่กำหนดเองไม่พร้อมใช้งานบนเซิร์ฟเวอร์นี้",
   "provider.custom.description.prefix": "กำหนดค่าผู้ให้บริการที่เข้ากันได้กับ OpenAI ดู ",
   "provider.custom.description.link": "เอกสารการกำหนดค่าผู้ให้บริการ",
   "provider.custom.description.suffix": "",

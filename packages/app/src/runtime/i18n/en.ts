@@ -226,7 +226,8 @@ export const dict = {
   "provider.connect.toast.connected.description": "{{provider}} models are now available to use.",
 
   "provider.custom.title": "Custom provider",
-  "provider.custom.unavailable": "Custom providers are unavailable on this server",
+  "provider.custom.error.registration":
+    "Provider configuration was saved, but the server is still loading it. Add the API key from provider settings in a moment.",
   "provider.custom.description.prefix": "Configure an OpenAI-compatible provider. See the ",
   "provider.custom.description.link": "provider config docs",
   "provider.custom.description.suffix": ".",

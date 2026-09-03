@@ -266,7 +266,6 @@ export const dict = {
   "provider.connect.toast.connected.description": "Los modelos de {{provider}} ahora están disponibles para usar.",
 
   "provider.custom.title": "Proveedor personalizado",
-  "provider.custom.unavailable": "Los proveedores personalizados no están disponibles en este servidor",
   "provider.custom.description.prefix": "Configurar un proveedor compatible con OpenAI. Ver la ",
   "provider.custom.description.link": "documentación de configuración del proveedor",
   "provider.custom.description.suffix": ".",

@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} birikdirildi",
   "provider.connect.toast.connected.description": "{{provider}} modelleri indi ulanylyp bilner.",
   "provider.custom.title": "Hususy üpjün ediji",
-  "provider.custom.unavailable": "Bu serwerde ýörite üpjün edijiler elýeterli däl",
   "provider.custom.description.prefix": "OpenAI gabat gelýän üpjün edijini sazlaň. Serediň ",
   "provider.custom.description.link": "üpjün ediji konfigurasiýa resminamalary",
   "provider.custom.description.suffix": ".",

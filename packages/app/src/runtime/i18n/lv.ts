@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} savienots",
   "provider.connect.toast.connected.description": "{{provider}} modeļi tagad ir pieejami lietošanai.",
   "provider.custom.title": "Pielāgots nodrošinātājs",
-  "provider.custom.unavailable": "Pielāgoti nodrošinātāji šajā serverī nav pieejami",
   "provider.custom.description.prefix": "Konfigurējiet ar OpenAI saderīgu nodrošinātāju. Skatiet",
   "provider.custom.description.link": "nodrošinātāja konfigurācijas dokumentāciju",
   "provider.custom.description.suffix": ".",

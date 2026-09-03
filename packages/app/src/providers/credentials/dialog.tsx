@@ -10,13 +10,16 @@ import { batch, For } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { ExternalLink } from "@/runtime/platform/external-link"
 import { useData } from "@/runtime/server/current"
+import { useServerSDK } from "@/runtime/server/client"
 import { useLanguage } from "@/runtime/i18n/language"
 import { type FormState, headerRow, modelRow, validateCustomProvider } from "./form"
 
-export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
+export function CustomProviderForm(props: { autofocus?: boolean; directory?: string } = {}) {
   const dialog = useDialog()
   const data = useData()
   const language = useLanguage()
+  const serverSDK = useServerSDK()
+  const location = () => (props.directory ? { directory: props.directory } : undefined)
 
   const [form, setForm] = createStore<FormState>({
     providerID: "",
@@ -90,8 +93,6 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
     const output = validateCustomProvider({
       form,
       t: language.t,
-      // TODO: Restore disabled-provider validation when V2 exposes config reads.
-      disabledProviders: [],
       existingProviderIDs: new Set((data.location.provider.list() ?? []).map((provider) => provider.id)),
     })
     batch(() => {
@@ -102,12 +103,45 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
     return output.result
   }
 
+  // Writing the provider config reloads the server through the config file
+  // watcher, so the integration with its key method only appears
+  // asynchronously. Poll briefly before storing the API key credential.
+  const waitForProvider = async (providerID: string, attempts = 40): Promise<void> => {
+    const integration = await serverSDK.api.integration
+      .get({ integrationID: providerID, location: location() })
+      .then((response) => response.data)
+      .catch(() => undefined)
+    if (integration?.methods.some((method) => method.type === "key")) return
+    if (attempts <= 0) throw new Error(language.t("provider.custom.error.registration"))
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    return waitForProvider(providerID, attempts - 1)
+  }
+
   const saveMutation = useMutation(() => ({
     mutationFn: async (result: NonNullable<ReturnType<typeof validate>>): Promise<typeof result> => {
-      // TODO: Restore custom providers when V2 exposes config and arbitrary credential APIs.
-      throw new Error(language.t("provider.custom.unavailable"))
+      await serverSDK.api.config.update({
+        payload: { providers: { [result.providerID]: result.config } },
+        location: location(),
+      })
+      if (!result.key) return result
+      await waitForProvider(result.providerID)
+      await serverSDK.api.integration.connect.key({
+        integrationID: result.providerID,
+        key: result.key,
+        location: location(),
+      })
+      return result
     },
     onSuccess: (result) => {
+      const ref = location()
+      data.location.integration.invalidate(ref)
+      data.location.provider.invalidate(ref)
+      data.location.model.invalidate(ref)
+      void Promise.all([
+        data.location.integration.sync(ref),
+        data.location.provider.sync(ref),
+        data.location.model.sync(ref),
+      ]).catch(() => undefined)
       dialog.close()
       showToast({
         variant: "success",

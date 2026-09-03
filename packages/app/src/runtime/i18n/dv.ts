@@ -248,7 +248,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} ގުޅިފައިވެއެވެ",
   "provider.connect.toast.connected.description": "{{provider}} މޮޑެލްތައް މިހާރު ބޭނުންކުރެވޭނެ އެވެ.",
   "provider.custom.title": "ކަސްޓަމް ޕްރޮވައިޑަރެވެ",
-  "provider.custom.unavailable": "މި ސަރވަރގައި ކަސްޓަމް ޕްރޮވައިޑަރުން ނުލިބެއެވެ",
   "provider.custom.description.prefix": "OpenAI އާއި އެއްގޮތްވާ ޕްރޮވައިޑަރެއް ކޮންފިގްރޭޓްކުރުން. ބަލާށެވެ ",
   "provider.custom.description.link": "ޕްރޮވައިޑަރ ކޮންފިގް ޑޮކްސް",
   "provider.custom.description.suffix": ".",

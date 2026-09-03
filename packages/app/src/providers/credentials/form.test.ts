@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+
 import { validateCustomProvider } from "./form"
 
 const t = (key: string) => key
@@ -19,7 +20,6 @@ describe("validateCustomProvider", () => {
         err: {},
       },
       t,
-      disabledProviders: [],
       existingProviderIDs: new Set(),
     })
 
@@ -28,14 +28,14 @@ describe("validateCustomProvider", () => {
       name: "Custom Provider",
       key: undefined,
       config: {
-        npm: "@ai-sdk/openai-compatible",
+        package: "aisdk:@ai-sdk/openai-compatible",
         name: "Custom Provider",
         env: ["CUSTOM_PROVIDER_KEY"],
-        options: {
+        settings: {
           baseURL: "https://api.example.com",
-          headers: {
-            "X-Test": "enabled",
-          },
+        },
+        headers: {
+          "X-Test": "enabled",
         },
         models: {
           "model-a": { name: "Model A" },
@@ -44,7 +44,7 @@ describe("validateCustomProvider", () => {
     })
   })
 
-  test("flags duplicate rows and allows reconnecting disabled providers", () => {
+  test("flags duplicate rows and existing provider IDs", () => {
     const result = validateCustomProvider({
       form: {
         providerID: "custom-provider",
@@ -62,12 +62,11 @@ describe("validateCustomProvider", () => {
         err: {},
       },
       t,
-      disabledProviders: ["custom-provider"],
       existingProviderIDs: new Set(["custom-provider"]),
     })
 
     expect(result.result).toBeUndefined()
-    expect(result.err.providerID).toBeUndefined()
+    expect(result.err.providerID).toBe("provider.custom.error.providerID.exists")
     expect(result.models[1]).toEqual({
       id: "provider.custom.error.duplicate",
       name: undefined,

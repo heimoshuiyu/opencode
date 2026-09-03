@@ -244,7 +244,6 @@ export const dict: Record<string, string> = {
   "provider.connect.toast.connected.title": "{{provider}} සම්බන්ධයි",
   "provider.connect.toast.connected.description": "{{provider}} මාදිලි දැන් භාවිතා කිරීමට තිබේ.",
   "provider.custom.title": "අභිරුචි සපයන්නා",
-  "provider.custom.unavailable": "අභිරුචි සපයන්නන් මෙම සේවාදායකයේ නොමැත",
   "provider.custom.description.prefix": "OpenAI-අනුකූල සැපයුම්කරුවෙකු වින්‍යාස කරන්න. බලන්න",
   "provider.custom.description.link": "සපයන්නාගේ වින්‍යාස ලේඛන",
   "provider.custom.description.suffix": ".",

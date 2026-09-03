@@ -270,6 +270,8 @@ import type {
   WebsearchQueryOutput,
   ConfigGetInput,
   ConfigGetOutput,
+  ConfigUpdateInput,
+  ConfigUpdateOutput,
 } from "../api/api.js"
 import { ClientError } from "./client-error.js"
 
@@ -1590,7 +1592,19 @@ const EndpointConfigGet = (raw: RawClient["server.config"]) => (input?: ConfigGe
     raw["config.get"]({ query: { location: input?.["location"] } }).pipe(Effect.mapError(mapClientError)),
   )
 
-const adaptGroupConfig = (raw: RawClient["server.config"]) => ({ get: EndpointConfigGet(raw) })
+type ConfigUpdateRequest = Parameters<RawClient["server.config"]["config.update"]>[0]
+const EndpointConfigUpdate = (raw: RawClient["server.config"]) => (input: ConfigUpdateInput) =>
+  preserveEffect<ConfigUpdateOutput>()(
+    raw["config.update"]({
+      query: { location: input["location"] },
+      payload: input["payload"],
+    } as ConfigUpdateRequest).pipe(Effect.mapError(mapClientError)),
+  )
+
+const adaptGroupConfig = (raw: RawClient["server.config"]) => ({
+  get: EndpointConfigGet(raw),
+  update: EndpointConfigUpdate(raw),
+})
 
 const adaptClient = (raw: RawClient) => ({
   health: adaptGroupHealth(raw["server.health"]),

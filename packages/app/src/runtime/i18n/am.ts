@@ -241,7 +241,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}}ተገናኝቷል",
   "provider.connect.toast.connected.description": "{{provider}} ሞዴሎች አሁን ለመጠቀም ይገኛሉ።",
   "provider.custom.title": "ብጁ አቅራቢ",
-  "provider.custom.unavailable": "ብጁ አቅራቢዎች በዚህ አገልጋይ ላይ አይገኙም",
   "provider.custom.description.prefix": "OpenAI-ተኳሃኝ አቅራቢን ያዋቅሩ። ይመልከቱ ",
   "provider.custom.description.link": "የአቅራቢ ውቅረት ሰነዶች",
   "provider.custom.description.suffix": ".",

@@ -252,7 +252,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} đã kết nối",
   "provider.connect.toast.connected.description": "Các mô hình {{provider}} hiện đã sẵn sàng để sử dụng.",
   "provider.custom.title": "Nhà cung cấp tùy chỉnh",
-  "provider.custom.unavailable": "Nhà cung cấp tùy chỉnh không khả dụng trên máy chủ này",
   "provider.custom.description.prefix": "Định cấu hình nhà cung cấp tương thích OpenAI. Xem ",
   "provider.custom.description.link": "tài liệu cấu hình nhà cung cấp",
   "provider.custom.description.suffix": ".",

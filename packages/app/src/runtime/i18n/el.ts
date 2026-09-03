@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} συνδεδεμένο",
   "provider.connect.toast.connected.description": "{{provider}} μοντέλα είναι πλέον διαθέσιμα για χρήση.",
   "provider.custom.title": "Προσαρμοσμένος πάροχος",
-  "provider.custom.unavailable": "Οι προσαρμοσμένοι πάροχοι δεν είναι διαθέσιμοι σε αυτόν τον διακομιστή",
   "provider.custom.description.prefix": "Διαμορφώστε έναν πάροχο συμβατό με OpenAI. Δείτε το ",
   "provider.custom.description.link": "έγγραφα διαμόρφωσης παρόχου",
   "provider.custom.description.suffix": ".",

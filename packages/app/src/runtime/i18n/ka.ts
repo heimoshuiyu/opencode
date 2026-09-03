@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} დაკავშირებული",
   "provider.connect.toast.connected.description": "{{provider}} მოდელები ახლა ხელმისაწვდომია გამოსაყენებლად.",
   "provider.custom.title": "მომხმარებელი პროვაიდერი",
-  "provider.custom.unavailable": "მორგებული პროვაიდერები მიუწვდომელია ამ სერვერზე",
   "provider.custom.description.prefix": "OpenAI-თავსებადი პროვაიდერის კონფიგურაცია. იხილეთ ",
   "provider.custom.description.link": "პროვაიდერის კონფიგურაციის დოკუმენტები",
   "provider.custom.description.suffix": ".",

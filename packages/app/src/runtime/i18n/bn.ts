@@ -245,7 +245,6 @@ export const dict: Record<string, string> = {
   "provider.connect.toast.connected.title": "{{provider}} সংযুক্ত",
   "provider.connect.toast.connected.description": "{{provider}} মডেলগুলি এখন ব্যবহারের জন্য উপলব্ধ৷",
   "provider.custom.title": "কাস্টম প্রদানকারী",
-  "provider.custom.unavailable": "কাস্টম প্রদানকারী এই সার্ভারে অনুপলব্ধ",
   "provider.custom.description.prefix": "একটি OpenAI-সামঞ্জস্যপূর্ণ প্রদানকারী কনফিগার করুন। দেখুন",
   "provider.custom.description.link": "প্রদানকারী কনফিগার ডক্স",
   "provider.custom.description.suffix": ".",

@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} je povezan",
   "provider.connect.toast.connected.description": "Modeli {{provider}} so zdaj na voljo za uporabo.",
   "provider.custom.title": "Ponudnik po meri",
-  "provider.custom.unavailable": "Ponudniki po meri na tem strežniku niso na voljo",
   "provider.custom.description.prefix": "Konfigurirajte ponudnika, združljivega z OpenAI. Glej ",
   "provider.custom.description.link": "konfiguracijski dokumenti ponudnika",
   "provider.custom.description.suffix": ".",

@@ -243,7 +243,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} מחובר",
   "provider.connect.toast.connected.description": "המודלים של {{provider}} זמינים כעת לשימוש.",
   "provider.custom.title": "ספק מותאם אישית",
-  "provider.custom.unavailable": "ספקים מותאמים אישית אינם זמינים בשרת זה",
   "provider.custom.description.prefix": "הגדר ספק תואם OpenAI. ראה את",
   "provider.custom.description.link": "מסמכי תצורת ספק",
   "provider.custom.description.suffix": ".",

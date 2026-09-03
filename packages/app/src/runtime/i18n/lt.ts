@@ -248,7 +248,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} prijungtas",
   "provider.connect.toast.connected.description": "Dabar galima naudoti {{provider}} modelius.",
   "provider.custom.title": "Pasirinktinis teikėjas",
-  "provider.custom.unavailable": "Pasirinktiniai teikėjai šiame serveryje nepasiekiami",
   "provider.custom.description.prefix": "Sukonfigūruokite su OpenAI suderinamą teikėją. Žiūrėkite",
   "provider.custom.description.link": "teikėjo konfigūracijos dokumentai",
   "provider.custom.description.suffix": ".",

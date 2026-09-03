@@ -2156,8 +2156,16 @@ export type ConfigGetInput = {
 export type ConfigGetOutput = ReadonlyArray<Config.Entry>
 export type ConfigGetOperation<E = never> = (input?: ConfigGetInput) => Effect.Effect<ConfigGetOutput, E>
 
+export type ConfigUpdateInput = {
+  readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
+  readonly payload: Config.Info
+}
+export type ConfigUpdateOutput = void
+export type ConfigUpdateOperation<E = never> = (input: ConfigUpdateInput) => Effect.Effect<ConfigUpdateOutput, E>
+
 export interface ConfigApi<E = never> {
   readonly get: ConfigGetOperation<E>
+  readonly update: ConfigUpdateOperation<E>
 }
 
 export interface AppApi<E = never> {

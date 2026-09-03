@@ -147,7 +147,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} 연결됨",
   "provider.connect.toast.connected.description": "이제 {{provider}} 모델을 사용할 수 있습니다.",
   "provider.custom.title": "사용자 지정 공급자",
-  "provider.custom.unavailable": "이 서버에서는 사용자 지정 공급자를 사용할 수 없습니다",
   "provider.custom.description.prefix": "OpenAI 호환 공급자를 구성합니다. ",
   "provider.custom.description.link": "공급자 구성 문서",
   "provider.custom.description.suffix": "를 참조하세요.",

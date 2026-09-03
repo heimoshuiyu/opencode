@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} متصل است",
   "provider.connect.toast.connected.description": "مدل های {{provider}} اکنون برای استفاده در دسترس هستند.",
   "provider.custom.title": "ارائه دهنده سفارشی",
-  "provider.custom.unavailable": "ارائه دهندگان سفارشی در این سرور در دسترس نیستند",
   "provider.custom.description.prefix": "یک ارائه دهنده سازگار با OpenAI را پیکربندی کنید. را ببینید ",
   "provider.custom.description.link": "اسناد پیکربندی ارائه دهنده",
   "provider.custom.description.suffix": ".",

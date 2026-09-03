@@ -251,7 +251,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "تم توصيل {{provider}}",
   "provider.connect.toast.connected.description": "نماذج {{provider}} متاحة الآن للاستخدام.",
   "provider.custom.title": "موفر مخصص",
-  "provider.custom.unavailable": "الموفرون المخصصون غير متاحين على هذا الخادم",
   "provider.custom.description.prefix": "تكوين موفر متوافق مع OpenAI. راجع ",
   "provider.custom.description.link": "وثائق تكوين الموفر",
   "provider.custom.description.suffix": ".",

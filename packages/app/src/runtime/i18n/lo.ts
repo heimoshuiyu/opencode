@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} ເຊື່ອມຕໍ່",
   "provider.connect.toast.connected.description": "ລຸ້ນ {{provider}} ມີໃຫ້ນຳໃຊ້ແລ້ວ.",
   "provider.custom.title": "ຜູ້ໃຫ້ບໍລິການກຳນົດເອງ",
-  "provider.custom.unavailable": "ຜູ້ໃຫ້ບໍລິການແບບກຳນົດເອງບໍ່ສາມາດໃຊ້ໄດ້ໃນເຊີບເວີນີ້",
   "provider.custom.description.prefix": "ຕັ້ງຄ່າຜູ້ໃຫ້ບໍລິການທີ່ເຂົ້າກັນໄດ້ກັບ OpenAI. ເບິ່ງ",
   "provider.custom.description.link": "docs config ຜູ້ໃຫ້ບໍລິການ",
   "provider.custom.description.suffix": ".",

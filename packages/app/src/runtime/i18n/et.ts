@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} ühendatud",
   "provider.connect.toast.connected.description": "{{provider}} mudelit on nüüd kasutamiseks saadaval.",
   "provider.custom.title": "Kohandatud pakkuja",
-  "provider.custom.unavailable": "Kohandatud pakkujad pole selles serveris saadaval",
   "provider.custom.description.prefix": "Konfigureerige OpenAI-ga ühilduv pakkuja. Vaadake ",
   "provider.custom.description.link": "pakkuja konfiguratsioonidokumendid",
   "provider.custom.description.suffix": ".",

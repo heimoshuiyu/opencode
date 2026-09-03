@@ -245,7 +245,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} i lidhur",
   "provider.connect.toast.connected.description": "Modelet {{provider}} tani janë në dispozicion për t'u përdorur.",
   "provider.custom.title": "Ofruesi i personalizuar",
-  "provider.custom.unavailable": "Ofruesit e personalizuar nuk janë të disponueshëm në këtë server",
   "provider.custom.description.prefix": "Konfiguro një ofrues të pajtueshëm me OpenAI. Shihni ",
   "provider.custom.description.link": "dokumentet e konfigurimit të ofruesit",
   "provider.custom.description.suffix": ".",

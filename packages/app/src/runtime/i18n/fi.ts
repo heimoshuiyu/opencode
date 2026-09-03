@@ -152,7 +152,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} yhdistetty",
   "provider.connect.toast.connected.description": "{{provider}}-mallit ovat nyt käytettävissä.",
   "provider.custom.title": "Mukautettu palveluntarjoaja",
-  "provider.custom.unavailable": "Mukautetut palveluntarjoajat eivät ole käytettävissä tällä palvelimella",
   "provider.custom.description.prefix": "Määritä OpenAI-yhteensopiva palveluntarjoaja. Katso ",
   "provider.custom.description.link": "palveluntarjoajan asetusdokumentit",
   "provider.custom.description.suffix": ".",

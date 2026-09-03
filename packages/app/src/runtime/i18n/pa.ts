@@ -286,7 +286,6 @@ export const dict = {
   "provider.custom.error.baseURL.format": "http:// یا https:// توں شروع کرنا ضروری اے۔",
   "provider.custom.error.required": "لازمی اے",
   "provider.custom.error.duplicate": "دُہرا",
-  "provider.custom.unavailable": "ایس سرور تے من پسند پرووائیڈر دستیاب نئیں نیں",
   "provider.disconnect.toast.disconnected.title": "{{provider}} منقطع",
   "provider.disconnect.toast.disconnected.description": "{{provider}} ماڈل ہن دستیاب نئیں ہن۔",
   "model.tag.free": "مفت",

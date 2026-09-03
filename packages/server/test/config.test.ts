@@ -62,3 +62,68 @@ it.live("returns ordered config entries for the requested directory", () =>
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
+
+it.live("merges a config update into the global config document", () =>
+  Effect.gen(function* () {
+    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-config-update-endpoint-")))
+    const global = path.join(tmp.path, "global")
+    yield* Effect.promise(() => fs.mkdir(global, { recursive: true }))
+    yield* Effect.promise(() =>
+      fs.writeFile(path.join(global, "opencode.json"), JSON.stringify({ username: "existing" })),
+    )
+    const server = yield* startServer(global)
+    const url = new URL("/api/config", server.base)
+    const response = yield* Effect.promise(() =>
+      fetch(url, {
+        method: "PATCH",
+        headers: { ...server.headers, "content-type": "application/json" },
+        body: JSON.stringify({
+          providers: {
+            myprovider: {
+              package: "aisdk:@ai-sdk/openai-compatible",
+              name: "My Provider",
+              settings: { baseURL: "https://api.myprovider.com/v1" },
+            },
+          },
+        }),
+      }),
+    )
+    expect(response.status).toBe(204)
+    const written = JSON.parse(
+      yield* Effect.promise(() => fs.readFile(path.join(global, "opencode.json"), "utf8")),
+    )
+    expect(written).toEqual({
+      username: "existing",
+      providers: {
+        myprovider: {
+          package: "aisdk:@ai-sdk/openai-compatible",
+          name: "My Provider",
+          settings: { baseURL: "https://api.myprovider.com/v1" },
+        },
+      },
+    })
+  }),
+)
+
+it.live("rejects a config update when the global document is malformed", () =>
+  Effect.gen(function* () {
+    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-config-update-endpoint-")))
+    const global = path.join(tmp.path, "global")
+    yield* Effect.promise(() => fs.mkdir(global, { recursive: true }))
+    yield* Effect.promise(() => fs.writeFile(path.join(global, "opencode.json"), "{ not json"))
+    const server = yield* startServer(global)
+    const url = new URL("/api/config", server.base)
+    const response = yield* Effect.promise(() =>
+      fetch(url, {
+        method: "PATCH",
+        headers: { ...server.headers, "content-type": "application/json" },
+        body: JSON.stringify({ shell: "/bin/zsh" }),
+      }),
+    )
+    expect(response.status).toBe(400)
+    const body = yield* Effect.promise(() => response.json())
+    if (!isRecord(body)) throw new Error("Expected an error body")
+    expect(body["_tag"]).toBe("InvalidRequestError")
+    expect(String(body["message"])).toContain("not a valid JSON document")
+  }),
+)

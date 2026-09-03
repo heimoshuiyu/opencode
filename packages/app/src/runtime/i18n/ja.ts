@@ -250,7 +250,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}}が接続されました",
   "provider.connect.toast.connected.description": "{{provider}}モデルが使用可能になりました。",
   "provider.custom.title": "カスタムプロバイダー",
-  "provider.custom.unavailable": "このサーバーではカスタムプロバイダーを利用できません",
   "provider.custom.description.prefix": "OpenAI互換のプロバイダーを設定します。詳細は",
   "provider.custom.description.link": "プロバイダー設定ドキュメント",
   "provider.custom.description.suffix": "をご覧ください。",

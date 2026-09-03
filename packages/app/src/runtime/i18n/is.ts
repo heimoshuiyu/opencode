@@ -248,7 +248,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} tengdur",
   "provider.connect.toast.connected.description": "{{provider}} gerðir eru nú fáanlegar til notkunar.",
   "provider.custom.title": "Sérsniðin veitandi",
-  "provider.custom.unavailable": "Sérsniðnar veitendur eru ekki tiltækar á þessum netþjóni",
   "provider.custom.description.prefix": "Stilltu OpenAI-samhæfan þjónustuaðila. Sjáðu",
   "provider.custom.description.link": "stillingarskjöl fyrir veitanda",
   "provider.custom.description.suffix": ".",

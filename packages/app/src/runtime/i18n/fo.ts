@@ -244,7 +244,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} tengt",
   "provider.connect.toast.connected.description": "{{provider}} modellir eru nú tøk at brúka.",
   "provider.custom.title": "Sersniðgivin veitari",
-  "provider.custom.unavailable": "Sersniðgivnir veitarar eru ikki tøkir á hesum ambætaranum.",
   "provider.custom.description.prefix": "Set upp ein OpenAI-samsvarandi veitara. Sí ",
   "provider.custom.description.link": "veitara uppsetingarskjøl",
   "provider.custom.description.suffix": ".",

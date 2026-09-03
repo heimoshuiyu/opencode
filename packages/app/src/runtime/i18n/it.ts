@@ -189,7 +189,6 @@ export const dict = {
   "provider.custom.error.baseURL.format": "Deve iniziare con http:// o https://",
   "provider.custom.error.required": "Necessario",
   "provider.custom.error.duplicate": "Duplicato",
-  "provider.custom.unavailable": "I provider personalizzati non sono disponibili su questo server",
   "provider.disconnect.toast.disconnected.title": "{{provider}} disconnesso",
   "provider.disconnect.toast.disconnected.description": "I modelli {{provider}} non sono più disponibili.",
   "model.tag.free": "Gratuito",

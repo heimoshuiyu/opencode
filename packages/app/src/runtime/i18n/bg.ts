@@ -247,7 +247,6 @@ export const dict = {
   "provider.connect.toast.connected.title": "{{provider}} свързан",
   "provider.connect.toast.connected.description": "{{provider}} модела вече са налични за използване.",
   "provider.custom.title": "Персонализиран доставчик",
-  "provider.custom.unavailable": "Персонализираните доставчици не са достъпни на този сървър",
   "provider.custom.description.prefix": "Конфигурирайте OpenAI-съвместим доставчик. Вижте",
   "provider.custom.description.link": "документи за конфигурация на доставчика",
   "provider.custom.description.suffix": ".",
