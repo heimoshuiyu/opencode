@@ -16,48 +16,48 @@ const viewName = "history_view"
 
 const SearchInput = Schema.Struct({
   keyword: Schema.Array(Schema.String).annotate({
-    description: "搜索关键词列表，每个关键词使用 SQL LIKE 匹配（%keyword%）",
+    description: "List of search keywords; each keyword is matched with SQL LIKE (%keyword%)",
   }),
   match_mode: Schema.optional(Schema.Literals(["AND", "OR"])).annotate({
-    description: "多关键词匹配模式：AND=所有关键词都必须匹配，OR=任一关键词匹配即可",
+    description: "Multi-keyword match mode: AND = every keyword must match, OR = any keyword matches",
   }),
   role: Schema.optional(Schema.Literals(["all", "user", "assistant"])).annotate({
-    description: "过滤角色：all=全部，user=仅用户消息，assistant=仅助手消息",
+    description: "Filter by role: all = everything, user = user messages only, assistant = assistant messages only",
   }),
   limit: Schema.optional(Schema.Number).annotate({
-    description: "最多返回条数，默认 20",
+    description: "Maximum number of results to return, default 20",
   }),
   offset: Schema.optional(Schema.Number).annotate({
-    description: "跳过前 N 条结果，用于分页，默认 0",
+    description: "Skip the first N results for pagination, default 0",
   }),
   session: Schema.optional(Schema.String).annotate({
-    description: "限定在某个 session ID 内搜索，空字符串=不限",
+    description: "Restrict the search to one session ID; empty string = no restriction",
   }),
   directory: Schema.optional(Schema.String).annotate({
     description:
-      "限定工作区范围。空字符串=默认按当前项目搜索（同一 git 仓库的所有 worktree 都会被包含）；'%'=搜索所有项目；也可传具体目录路径进行模糊匹配",
+      "Restrict the workspace scope. Empty string = search the current project only (all worktrees of the same git repository are included); '%' = search all projects; a concrete directory path is fuzzy-matched",
   }),
   full: Schema.optional(Schema.Boolean).annotate({
-    description: "是否输出完整文本（默认只输出关键词附近片段）",
+    description: "Output the full text (by default only snippets around keyword hits are shown)",
   }),
   context_lines: Schema.optional(Schema.Number).annotate({
-    description: "非 full 模式下，关键词命中行前后各展示多少行，默认 3",
+    description: "How many lines to show before and after each keyword hit in non-full mode, default 3",
   }),
   time_from: Schema.optional(Schema.String).annotate({
     description:
-      "起始时间（本地时间），格式：'YYYY-MM-DD'、'YYYY-MM-DD HH:MM' 或 'YYYY-MM-DD HH:MM:SS'。留空=不限制",
+      "Start time (local time), format: 'YYYY-MM-DD', 'YYYY-MM-DD HH:MM', or 'YYYY-MM-DD HH:MM:SS'. Empty = no limit",
   }),
   time_to: Schema.optional(Schema.String).annotate({
-    description: "结束时间（本地时间），格式同上。留空=不限制。例如 '2026-05-23' 表示到当天 23:59:59",
+    description: "End time (local time), same format. Empty = no limit. For example '2026-05-23' means through 23:59:59 of that day",
   }),
 })
 
 const ViewInput = Schema.Struct({
   session_id: Schema.String.annotate({
-    description: "Session ID（如 ses_xxxxx）",
+    description: "Session ID (e.g. ses_xxxxx)",
   }),
   last: Schema.optional(Schema.Number).annotate({
-    description: "只看最后 N 轮对话，0=查看全部",
+    description: "Show only the last N rounds of conversation, 0 = show all",
   }),
 })
 
@@ -275,7 +275,7 @@ function doSearch(unsafe: UnsafeFn, args: any, sessionID: string): Effect.Effect
     const timeFrom = parseTime(args.time_from, "from")
     const timeTo = parseTime(args.time_to, "to")
 
-    if (keywords.length === 0) return "未提供任何搜索关键词"
+    if (keywords.length === 0) return "No search keywords provided"
 
     let timeFilterSQL = ""
     const timeFilterParams: SqlParam[] = []
@@ -340,8 +340,8 @@ function doSearch(unsafe: UnsafeFn, args: any, sessionID: string): Effect.Effect
     if (rows.length === 0) {
       const countRows = (yield* unsafe<{ total: number }>(countSQL, baseParams)) as readonly { total: number }[]
       const total = countRows[0]?.total ?? 0
-      if (total === 0) return `未找到包含「${kwDisplay}」的消息`
-      return `未找到包含「${kwDisplay}」的消息（offset=${offset} 已超出范围，共 ${total} 条匹配）`
+      if (total === 0) return `No messages found containing "${kwDisplay}"`
+      return `No messages found containing "${kwDisplay}" (offset=${offset} is out of range, ${total} total matches)`
     }
 
     let total: number | null = null
@@ -353,7 +353,7 @@ function doSearch(unsafe: UnsafeFn, args: any, sessionID: string): Effect.Effect
 
     const lines: string[] = []
     if (needCount && total !== null && (total > limit || offset > 0)) {
-      lines.push(`共 ${total} 条匹配，当前显示第 ${offset + 1}–${offset + rows.length} 条`)
+      lines.push(`${total} total matches, showing ${offset + 1}–${offset + rows.length}`)
       lines.push("")
     }
 
@@ -390,7 +390,7 @@ function doView(unsafe: UnsafeFn, args: any): Effect.Effect<string, ToolFailure>
     )) as readonly { id: string; title: string; directory: string; time_created: number }[]
     const info = infoRows[0]
 
-    if (!info) return `Session 不存在或已被排除: ${args.session_id}`
+    if (!info) return `Session does not exist or is excluded: ${args.session_id}`
 
     const lines: string[] = []
     lines.push("============================================================")
@@ -403,7 +403,7 @@ function doView(unsafe: UnsafeFn, args: any): Effect.Effect<string, ToolFailure>
     const messages = (yield* unsafe<ViewRow>(VIEW_MESSAGES_SQL, [args.session_id])) as readonly ViewRow[]
     const nonEmpty = messages.filter((m) => m.text?.trim())
     if (nonEmpty.length === 0) {
-      lines.push("  (无符合条件的内容)")
+      lines.push("  (no matching content)")
       return lines.join("\n")
     }
 
@@ -448,15 +448,15 @@ export const Plugin = {
           ({
             name: searchName,
             options: { codemode: true },
-            description: `搜索历史会话消息，用于回忆之前的讨论、决策和经验。
+            description: `Search historical session messages to recall earlier discussions, decisions, and experience.
 
-当用户提到之前做过的事情、讨论过的话题，或者你不确定的上下文时，
-用这个工具从历史会话中检索相关信息。
+Use this tool to retrieve relevant information from past sessions when the user
+mentions something done before, a topic discussed earlier, or context you are unsure about.
 
-默认行为：
-- 自动排除当前会话（你所在的会话不会被搜索到）
-- 默认搜索当前项目目录范围内的会话（同一 git 仓库的所有 worktree）
-- 设置 directory="%" 可搜索所有项目的会话`,
+Default behavior:
+- The current session is excluded automatically (your own session never appears in results)
+- By default only sessions under the current project directory are searched (all worktrees of the same git repository)
+- Set directory="%" to search sessions across all projects`,
             input: SearchInput,
             output: StringOutput,
             execute: (input, context) =>
@@ -475,10 +475,10 @@ export const Plugin = {
           ({
             name: viewName,
             options: { codemode: true },
-            description: `查看某个历史会话的完整对话内容。
+            description: `View the complete conversation of a historical session.
 
-当你需要了解某个会话的完整上下文时使用，例如查看之前的完整工作过程、
-决策讨论、问题排查过程等。`,
+Use this when you need the full context of a session, such as reviewing a previous
+work process, decision discussion, or troubleshooting session in full.`,
             input: ViewInput,
             output: StringOutput,
             execute: (input) =>
