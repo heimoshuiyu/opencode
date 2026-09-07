@@ -5,7 +5,9 @@ import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstab
 import { ChildProcess } from "effect/unstable/process"
 import { AppProcess } from "@opencode/util/process"
 import { LLM, LLMClient, Message, type Usage } from "@opencode/ai"
+import type { Session as SessionSchema } from "@opencode/schema/session"
 import type { Voice as VoiceSchema } from "@opencode/schema/voice"
+import { App } from "../app"
 import { Config } from "../config"
 import { ConfigVoice } from "@opencode/schema/config/voice"
 import { Bus } from "../bus"
@@ -13,6 +15,7 @@ import { Catalog } from "../catalog"
 import { ModelResolver } from "../model-resolver"
 import { Model, parse } from "../model"
 import { packageName } from "../provider"
+import { SessionModelRequest } from "../session/model-request"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { httpClient } from "@opencode/util/effect/app-node-platform"
 import { llmClient } from "../effect/app-node-platform"
@@ -72,6 +75,8 @@ export type TranscribeInput = {
   readonly prompt?: string
   readonly images?: ReadonlyArray<string>
   readonly override?: VoiceSchema.Settings
+  /** Context session; LALM requests carry its identity headers, mirroring session model requests. */
+  readonly session?: Pick<SessionSchema.Info, "id" | "parentID" | "projectID">
 }
 
 export type TranscribeResult = {
@@ -120,6 +125,7 @@ const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const config = yield* Config.Service
+    const app = yield* App.Metadata
     const processes = yield* AppProcess.Service
     const catalog = yield* Catalog.Service
     const bus = yield* Bus.Service
@@ -287,6 +293,7 @@ const layer = Layer.effect(
 
       const request = LLM.request({
         model,
+        ...(input.session ? { http: { headers: SessionModelRequest.sessionHeaders(input.session, app) } } : {}),
         system,
         messages: [
           Message.user([

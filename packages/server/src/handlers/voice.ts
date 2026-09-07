@@ -156,6 +156,7 @@ export const VoiceHandler = HttpApiBuilder.group(Api, "server.voice", (handlers)
               mime: ctx.payload.mime,
               prompt,
               images: ctx.payload.images ? [...ctx.payload.images] : undefined,
+              session: contextSession,
             },
             settings,
           )

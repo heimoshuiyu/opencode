@@ -204,7 +204,8 @@ interface HookScope {
   readonly kind: SessionRequestKind
 }
 
-const sessionHeaders = (session: Pick<SessionSchema.Info, "id" | "parentID" | "projectID">, app: App.Info) => ({
+/** Identity headers for outbound session-scoped LLM requests; shared by other session-aware callers such as voice transcription. */
+export const sessionHeaders = (session: Pick<SessionSchema.Info, "id" | "parentID" | "projectID">, app: App.Info) => ({
   "x-session-affinity": session.id,
   "X-Session-Id": session.id,
   ...(session.parentID ? { "x-parent-session-id": session.parentID } : {}),
