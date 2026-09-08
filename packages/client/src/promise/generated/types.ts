@@ -6629,6 +6629,7 @@ export type ConfigUpdateInput = {
     readonly warming?: boolean | { readonly prompt?: string; readonly interval?: string; readonly duration?: string }
     readonly providers?: {
       readonly [x: string]: {
+        readonly compaction?: { readonly mode: "local" } | { readonly mode: "provider"; readonly threshold?: number }
         readonly canonical?: string
         readonly name?: string
         readonly env?: ReadonlyArray<string>
@@ -6638,6 +6639,9 @@ export type ConfigUpdateInput = {
         readonly body?: { readonly [x: string]: JsonValue }
         readonly models?: {
           readonly [x: string]: {
+            readonly compaction?:
+              | { readonly mode: "local" }
+              | { readonly mode: "provider"; readonly threshold?: number }
             readonly modelID?: string
             readonly family?: string
             readonly name?: string
