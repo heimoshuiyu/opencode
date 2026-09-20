@@ -13,7 +13,7 @@ export const SkillHandler = HttpApiBuilder.group(Api, "server.skill", (handlers)
         const agent = yield* Agent.Service.use((service) => service.resolve())
         // Catalog visibility mirrors the model-side filter in SkillInstructions:
         // skills denied for the default agent stay hidden from client-facing lists.
-        return agent ? Skill.available(skills, agent) : skills
+        return agent ? Skill.available(skills, agent.permissions) : skills
       }),
     ),
   ),
