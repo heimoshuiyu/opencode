@@ -68,7 +68,7 @@ The selected agent or provider system prompt is sent first. OpenCode then assemb
 1. Agent or provider system prompt
 2. Built-in environment and date context
 3. Code Mode tool guidance, when enabled
-4. Global and project AGENTS.md files
+4. Global and project AGENTS.md files, then `instructions` declarations
 5. Available skill, reference, and MCP guidance
 6. Session-specific instruction entries supplied through the API
 ```
@@ -100,7 +100,7 @@ Instruction values remain privileged. Clients can see which sources changed, but
 
 ## Configuration
 
-The V2 config schema accepts an `instructions` array, but V2 does not currently resolve its files, glob patterns, or URLs. This configuration does not add instructions to the model yet:
+Declare additional instruction files, globs, or URLs in the `instructions` array. They load alongside the `AGENTS.md` files and appear after them.
 
 ```jsonc title="opencode.jsonc"
 {
@@ -109,4 +109,12 @@ The V2 config schema accepts an `instructions` array, but V2 does not currently 
 }
 ```
 
-Use `AGENTS.md` for active V2 instructions. See [Config](/config) for configuration locations and precedence.
+Relative paths and globs resolve against the config file that declares them. `~/` and absolute paths also work.
+
+- Declarations load in config precedence order, lowest to highest, and keep array order within one file.
+- Declared instructions are appended after the global and project `AGENTS.md` files.
+- A missing declared file logs a warning and is skipped without clearing the other instructions.
+
+Local files and glob matches are watched, so edits, additions, and removals update running sessions the same way `AGENTS.md` changes do. URLs are fetched when configuration loads and refetched when config changes; a failed fetch logs a warning and is skipped.
+
+See [Config](/config) for configuration locations and precedence.
