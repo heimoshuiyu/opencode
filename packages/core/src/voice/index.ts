@@ -174,23 +174,27 @@ const layer = Layer.effect(
 
     /**
      * Location model registries populate asynchronously on first use (models.dev fetch,
-     * config, credentials register as the location boots). A lookup racing that
-     * population waits for the next registry update instead of failing the
-     * transcription immediately.
+     * config, credentials, and plugin activation register as the location boots, and a
+     * slow upstream fetch can outlast any small fixed budget). A lookup racing that
+     * population keeps waiting, waking on every registry update, until the model appears
+     * or a total deadline expires — so a fresh Location's first transcription waits for
+     * registration instead of failing while it is still in flight.
      */
     const waitForCatalogModel = (parsed: ReturnType<typeof parse>): Effect.Effect<Model.Info | undefined> =>
       Effect.gen(function* () {
-        for (let attempt = 0; attempt < 3; attempt++) {
+        const deadline = Date.now() + 10_000
+        while (true) {
           const model = yield* registry.get(parsed.providerID, parsed.modelID)
           if (model) return model
+          const remaining = deadline - Date.now()
+          if (remaining <= 0) return undefined
           yield* bus.subscribe(Model.Event.Updated).pipe(
             Stream.take(1),
             Stream.runDrain,
-            Effect.timeout(Duration.seconds(1)),
+            Effect.timeout(Duration.millis(remaining)),
             Effect.ignore,
           )
         }
-        return yield* registry.get(parsed.providerID, parsed.modelID)
       })
 
     const resolveLalmModel = Effect.fn("Voice.resolveLalmModel")(function* (modelStr: string) {
