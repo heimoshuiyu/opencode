@@ -90,10 +90,18 @@ export const Plugin = define({
       const match = Effect.fn("ConfigInstructionPlugin.match")(function* (source: string) {
         const expanded = source.startsWith("~/") ? path.join(global.home, source.slice(2)) : source
         const options = { absolute: true, include: "file", dot: true } as const
-        if (path.isAbsolute(expanded))
+        if (path.isAbsolute(expanded)) {
+          // Glob magic inside the directories (as in `~/notes/**/*.md`) turns the whole path
+          // into one pattern; otherwise the directories stay literal and only the basename
+          // matches, so paths keep working when a component contains glob metacharacters.
+          const fullPattern = globMagic.test(path.dirname(expanded))
           return yield* fs
-            .scan(path.basename(expanded), { ...options, cwd: path.dirname(expanded) })
+            .scan(fullPattern ? expanded.split(path.sep).join("/") : path.basename(expanded), {
+              ...options,
+              ...(fullPattern ? {} : { cwd: path.dirname(expanded) }),
+            })
             .pipe(Effect.orElseSucceed(() => [] as string[]))
+        }
         if (project) return yield* fs.globUp(expanded, start, root)
         if (!discovery.global) return []
         return yield* fs
@@ -237,3 +245,7 @@ function ancestorDirectories(start: string, stop: string): string[] {
 function isUrl(source: string) {
   return URL.canParse(source) && /^https?:$/.test(new URL(source).protocol)
 }
+
+// Glob metacharacters that mark an absolute source's directories as pattern, not literal
+// path. `*`, `?` and `[` select within one segment; `{` enables brace expansion.
+const globMagic = /[*?[{]/
