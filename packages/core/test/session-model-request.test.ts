@@ -12,6 +12,7 @@ describe("SessionModelRequest.unsupportedParts", () => {
           Message.text("Describe these files"),
           { type: "media", media: Media.base64("aGVsbG8=", "image/png"), filename: "logo.png" },
           { type: "media", media: Media.base64("JVBERg==", "application/pdf"), filename: "document.pdf" },
+          { type: "media", media: Media.base64("UklGRg==", "audio/wav"), filename: "recording.wav" },
         ]),
       ],
       capabilities(["text"]),
@@ -21,6 +22,7 @@ describe("SessionModelRequest.unsupportedParts", () => {
       Message.text("Describe these files"),
       Message.text('ERROR: Cannot read "logo.png" (this model does not support image input). Inform the user.'),
       Message.text('ERROR: Cannot read "document.pdf" (this model does not support pdf input). Inform the user.'),
+      Message.text('ERROR: Cannot read "recording.wav" (this model does not support audio input). Inform the user.'),
     ])
   })
 

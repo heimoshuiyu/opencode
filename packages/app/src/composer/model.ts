@@ -348,8 +348,11 @@ export function createComposerModel(adapter: ComposerAdapter, options?: { queue?
 
   const submitView = createMemo(() => composerSubmitView(submission.state()))
 
+  let voice: ReturnType<typeof createVoiceInput> | undefined
+
   const controller = createComposerEditor({
     store: prompt.store,
+    busy: () => voice?.processing() ?? false,
     history: {
       entries: (mode) => history.entries(mode).map((entry) => ({ prompt: entry.prompt, metadata: entry.comments })),
       add: (value, mode) => history.add(value, mode, mode === "shell" ? [] : historyComments()),
@@ -578,7 +581,7 @@ export function createComposerModel(adapter: ComposerAdapter, options?: { queue?
 
   Object.defineProperty(controller, "model", { get: () => adapter.controls().model })
 
-  const voice = createVoiceInput({
+  voice = createVoiceInput({
     sdk: useServerSDK(),
     directory: () => sdk().directory,
     sessionID: () => (adapter.kind === "active-session" ? adapter.session().id : undefined),
@@ -587,10 +590,13 @@ export function createComposerModel(adapter: ComposerAdapter, options?: { queue?
         .current()
         .map((p) => ("content" in p ? p.content : ""))
         .join(""),
+    supportsAudio: () => adapter.controls().model.selection.current()?.capabilities.input.audio ?? false,
+    addAttachment: (file) => controller.addAttachments([file]),
     addPart: (part) => controller.addPart(part),
     restoreFocus: controller.restoreFocus,
     queueScroll: () => requestAnimationFrame(() => editor?.scrollIntoView({ block: "nearest" })),
   })
+
   Object.defineProperty(controller, "voice", { get: () => voice })
 
   command.register("composer-editor", () => [

@@ -3,16 +3,19 @@ import type { Recorder } from "../util/voice"
 import { errorMessage } from "../util/error"
 
 type Audio = ReturnType<Recorder["stop"]>
-type Result = { audio: Audio } | { text: string }
+type Result = { audio: Audio; attach: boolean } | { text: string }
 type State =
   | { type: "idle" }
-  | { type: "recording"; recorder: Recorder; since: number }
+  | { type: "recording"; recorder: Recorder; attach: boolean; since: number }
   | { type: "transcribing"; controller: AbortController }
   | { type: "retry"; result: Result }
 
-/** Owned by the TUI, not one prompt. The currently open prompt supplies context and receives the result. */
+/** Owned by the TUI, not one prompt. Only the output choice is pinned at start;
+ * the currently open prompt still supplies context and receives the result. */
 export function createVoiceInput(input: {
   record(): Recorder
+  acceptsAudio(): boolean
+  attach(audio: Audio): boolean
   insert(text: string): boolean
   transcribe(audio: Audio, signal: AbortSignal): Promise<string>
   cue(kind: "start" | "stop"): void
@@ -23,7 +26,7 @@ export function createVoiceInput(input: {
   async function deliver(result: Result): Promise<void> {
     const controller = new AbortController()
     try {
-      if ("audio" in result) {
+      if ("audio" in result && !result.attach) {
         setState({ type: "transcribing", controller })
         const text = (await input.transcribe(result.audio, controller.signal)).trim()
         if (controller.signal.aborted) return
@@ -31,9 +34,9 @@ export function createVoiceInput(input: {
         // A closed prompt can retry insertion without paying for transcription again.
         result = { text }
       }
-      const placed = input.insert(result.text)
+      const placed = "text" in result ? input.insert(result.text) : input.attach(result.audio)
       setState(placed ? { type: "idle" } : { type: "retry", result })
-      if (!placed) input.notify("No prompt open — choose Retry to insert the text", "warning")
+      if (!placed) input.notify("No prompt open — choose Retry to insert the recording or text", "warning")
     } catch (error) {
       if (controller.signal.aborted) return
       setState({ type: "retry", result })
@@ -60,10 +63,11 @@ export function createVoiceInput(input: {
         if (s.type === "recording") {
           const audio = s.recorder.stop()
           input.cue("stop")
-          return deliver({ audio })
+          return deliver({ audio, attach: s.attach })
         }
+        const attach = input.acceptsAudio()
         const recorder = input.record()
-        setState({ type: "recording", recorder, since: Date.now() })
+        setState({ type: "recording", attach, recorder, since: Date.now() })
         input.cue("start")
       } catch (error) {
         setState({ type: "idle" })

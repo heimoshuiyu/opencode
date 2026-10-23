@@ -1,13 +1,16 @@
+type Take = { attempt: AbortController; output: "text" | "audio" }
+
 export type VoiceState =
   | { type: "idle" | "disposed" }
-  | { type: "opening"; attempt: AbortController }
-  | { type: "recording"; attempt: AbortController; stop: () => void; meter?: AnalyserNode }
-  | { type: "finishing"; attempt: AbortController }
+  | ({ type: "opening" } & Take)
+  | ({ type: "recording"; stop: () => void; meter?: AnalyserNode } & Take)
+  | ({ type: "finishing" } & Take)
+  | { type: "attaching"; attempt: AbortController }
   | { type: "transcribing"; attempt: AbortController; blob: Blob }
   | { type: "retry"; blob: Blob; message: string }
 
 export type VoiceEvent =
-  | { type: "start"; attempt: AbortController }
+  | ({ type: "start" } & Take)
   | { type: "ready"; attempt: AbortController; stop: () => void; meter?: AnalyserNode }
   | { type: "stop" }
   | { type: "stopped"; attempt: AbortController; blob: Blob }
@@ -33,13 +36,15 @@ export function transitionVoice(state: VoiceState, event: VoiceEvent): VoiceStat
     case "stop":
       if (state.type === "opening") return { type: "idle" }
 
-      return state.type === "recording" ? { type: "finishing", attempt: state.attempt } : state
+      return state.type === "recording" ? { type: "finishing", attempt: state.attempt, output: state.output } : state
     case "stopped":
       if (state.type !== "finishing" || state.attempt !== event.attempt) return state
 
       if (!event.blob.size) return { type: "idle" }
 
-      return { type: "transcribing", attempt: state.attempt, blob: event.blob }
+      return state.output === "audio"
+        ? { type: "attaching", attempt: state.attempt }
+        : { type: "transcribing", attempt: state.attempt, blob: event.blob }
     case "retry":
       return state.type === "retry" ? { type: "transcribing", attempt: event.attempt, blob: state.blob } : state
     case "failed":
@@ -49,7 +54,9 @@ export function transitionVoice(state: VoiceState, event: VoiceEvent): VoiceStat
         ? { type: "retry", blob: state.blob, message: event.message }
         : { type: "idle" }
     case "complete":
-      return state.type === "transcribing" && state.attempt === event.attempt ? { type: "idle" } : state
+      return (state.type === "transcribing" || state.type === "attaching") && state.attempt === event.attempt
+        ? { type: "idle" }
+        : state
   }
 }
 
@@ -60,6 +67,6 @@ export function voiceView(state: VoiceState) {
     transcribing: state.type === "transcribing",
     error: state.type === "retry" ? state.message : "",
     meter: state.type === "recording" ? state.meter : undefined,
-    phase: state.type === "finishing" ? "transcribing" : state.type,
+    phase: state.type === "finishing" ? (state.output === "audio" ? "attaching" : "transcribing") : state.type,
   }
 }

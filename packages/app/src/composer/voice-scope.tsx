@@ -88,6 +88,8 @@ export function VoiceScope(props: { view: () => ReturnType<typeof voiceView> }) 
         return language.t("prompt.voice.opening")
       case "recording":
         return language.t("prompt.voice.recording")
+      case "attaching":
+        return language.t("prompt.voice.attaching")
       default:
         return language.t("prompt.voice.transcribing")
     }

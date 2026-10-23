@@ -13,16 +13,23 @@ import { createTuiResolvedConfig } from "../fixture/tui-runtime"
 
 const wav = { mime: "audio/wav", buffer: new ArrayBuffer(48) }
 
-test("Record and its shortcut can stop recording and cancel transcription", async () => {
+test("Record and its shortcut share the model's output choice, even when switching controls", async () => {
   const output: string[] = []
   const cues: string[] = []
   const result = Promise.withResolvers<string>()
+  let acceptsAudio = false
   let voice!: ReturnType<typeof createVoiceInput>
 
   function Prompt() {
     const size = useTerminalDimensions()
     voice = createVoiceInput({
       record: () => ({ stop: () => wav, level: () => 0.8, kill() {} }),
+      acceptsAudio: () => acceptsAudio,
+      attach: (audio) => {
+        expect(audio).toBe(wav)
+        output.push("attachment")
+        return true
+      },
       insert: (text) => {
         output.push(text)
         return true
@@ -93,7 +100,17 @@ test("Record and its shortcut can stop recording and cancel transcription", asyn
   await app.renderOnce()
   expect(output).toEqual(["dictated text"])
 
-  expect(cues).toEqual(["start", "stop", "start", "stop"])
+  acceptsAudio = true
+  await app.mockMouse.click(app.captureCharFrame().indexOf("Record"), 0)
+  acceptsAudio = false
+  await voice.toggle()
+  expect(output).toEqual(["dictated text", "attachment"])
+  acceptsAudio = true
+  await voice.toggle()
+  await app.renderOnce()
+  await app.mockMouse.click(app.captureCharFrame().indexOf("●"), 0)
+  expect(output).toEqual(["dictated text", "attachment", "attachment"])
+  expect(cues).toEqual(["start", "stop", "start", "stop", "start", "stop", "start", "stop"])
 })
 
 test("cancel aborts transcription and a late result cannot overwrite a new recording", async () => {
@@ -104,6 +121,8 @@ test("cancel aborts transcription and a late result cannot overwrite a new recor
     dispose,
     voice: createVoiceInput({
       record: () => ({ stop: () => wav, level: () => 0, kill() {} }),
+      acceptsAudio: () => false,
+      attach: () => false,
       insert: (text) => {
         inserted.push(text)
         return true

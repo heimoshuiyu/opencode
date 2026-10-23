@@ -17,6 +17,8 @@ type VoiceInput = {
   directory: () => string
   sessionID: () => string | undefined
   editorText: () => string
+  supportsAudio: () => boolean
+  addAttachment: (file: File) => Promise<boolean>
   addPart: (part: { type: "text"; content: string; start: number; end: number }) => void
   restoreFocus: () => void
   queueScroll: () => void
@@ -44,6 +46,11 @@ export function createVoiceInput(input: VoiceInput) {
   }
 
   async function process(blob: Blob, attempt: AbortController) {
+    const focus = () => {
+      input.restoreFocus()
+      input.queueScroll()
+    }
+
     const timeout = setTimeout(() => {
       if (!current(attempt)) return
       dispatch({ type: "failed", attempt, message: language.t("prompt.toast.voiceFailed.description") })
@@ -51,46 +58,56 @@ export function createVoiceInput(input: VoiceInput) {
     }, 120_000)
 
     try {
-      const prompt = input.editorText()
-      const location = { directory: input.directory() }
-      const sessionID = input.sessionID()
-      const bytes = new Uint8Array(await blob.arrayBuffer())
+      if (state().type === "attaching") {
+        const attached = await input.addAttachment(
+          new File([blob], `recording-${Date.now()}.webm`, { type: blob.type }),
+        )
 
-      if (!current(attempt)) return
-      const chunks: string[] = []
+        if (current(attempt) && attached) focus()
+      } else {
+        const prompt = input.editorText()
+        const location = { directory: input.directory() }
+        const sessionID = input.sessionID()
+        const bytes = new Uint8Array(await blob.arrayBuffer())
 
-      for (let i = 0; i < bytes.length; i += 8192) chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)))
+        if (!current(attempt)) return
+        const chunks: string[] = []
 
-      const result = await transcribe(
-        {
-          location,
-          audio: btoa(chunks.join("")),
-          mime: blob.type,
-          prompt: prompt.trim() ? prompt : undefined,
-          contextSessionID: sessionID,
-        },
-        { signal: attempt.signal },
-      )
+        for (let i = 0; i < bytes.length; i += 8192) chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)))
 
-      if (!current(attempt)) return
-      const text = result.data.text
+        const result = await transcribe(
+          {
+            location,
+            audio: btoa(chunks.join("")),
+            mime: blob.type,
+            prompt: prompt.trim() ? prompt : undefined,
+            contextSessionID: sessionID,
+          },
+          { signal: attempt.signal },
+        )
 
-      if (!text?.trim()) throw new Error(language.t("prompt.toast.voiceRetry.description"))
-      input.addPart({ type: "text", content: text, start: 0, end: 0 })
-      input.restoreFocus()
-      input.queueScroll()
+        if (!current(attempt)) return
+        const text = result.data.text
+
+        if (!text?.trim()) throw new Error(language.t("prompt.toast.voiceRetry.description"))
+        input.addPart({ type: "text", content: text, start: 0, end: 0 })
+        focus()
+      }
+
       dispatch({ type: "complete", attempt })
     } catch (error) {
       if (!current(attempt)) return
       const message = error instanceof Error ? error.message : String(error)
 
+      if (state().type === "attaching")
+        showToast({ variant: "error", title: language.t("common.requestFailed"), description: message })
       dispatch({ type: "failed", attempt, message: message || language.t("prompt.toast.voiceRetry.description") })
     } finally {
       clearTimeout(timeout)
     }
   }
 
-  async function start() {
+  async function start(output: "text" | "audio") {
     if (state().type !== "idle") return
 
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -114,7 +131,7 @@ export function createVoiceInput(input: VoiceInput) {
     }
 
     const attempt = new AbortController()
-    dispatch({ type: "start", attempt })
+    dispatch({ type: "start", attempt, output })
     const feedback = voiceFeedback(settings.sounds.interfaceEnabled)
     const cleanup = () => feedback?.close(false)
     attempt.signal.addEventListener("abort", cleanup, { once: true })
@@ -205,7 +222,7 @@ export function createVoiceInput(input: VoiceInput) {
       return void process(s.blob, attempt)
     }
 
-    void start()
+    void start(input.supportsAudio() ? "audio" : "text")
   }
 
   createEffect(on([input.directory, input.sessionID], () => cancel(), { defer: true }))
@@ -249,7 +266,7 @@ export function VoiceButton(props: {
         value={
           <>
             {title()}
-            <Show when={props.keybind.length}>
+            <Show when={props.keybind.length && view().phase !== "attaching"}>
               <Keybind keys={props.keybind} variant="neutral" />
             </Show>
           </>
@@ -265,7 +282,7 @@ export function VoiceButton(props: {
           }
           onMouseDown={(event: MouseEvent) => event.preventDefault()}
           onClick={props.voice.toggleVoice}
-          disabled={props.disabled}
+          disabled={props.disabled || view().phase === "attaching"}
           aria-label={title()}
         >
           <Switch fallback={<Icon name="mic" class="size-4.5" />}>

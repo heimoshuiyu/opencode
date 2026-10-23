@@ -78,6 +78,10 @@ export interface Interface {
     override?: TranscriptionSchema.Settings,
     advanced?: TranscriptionSchema.Overrides,
   ) => Effect.Effect<Resolved, ConfigurationError>
+  readonly normalize: (input: {
+    bytes: Uint8Array
+    mime: string
+  }) => Effect.Effect<{ bytes: Uint8Array; mime: string }, InvalidAudioError | UnavailableError>
   readonly transcribe: (input: TranscribeInput, config?: Resolved) => Effect.Effect<TranscribeResult, Error>
 }
 
@@ -379,7 +383,7 @@ const layer = Layer.effect(
       return { text: response.text, usage: response.usage }
     })
 
-    return Service.of({ resolve: resolveConfig, transcribe })
+    return Service.of({ resolve: resolveConfig, normalize: toMp3, transcribe })
   }),
 )
 

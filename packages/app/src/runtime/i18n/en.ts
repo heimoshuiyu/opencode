@@ -366,6 +366,7 @@ export const dict = {
   "prompt.voice.opening": "Opening microphone…",
   "prompt.voice.recording": "Listening",
   "prompt.voice.transcribing": "Transcribing…",
+  "prompt.voice.attaching": "Attaching audio…",
   "prompt.action.voiceStop": "Stop recording",
   "prompt.action.voiceCancel": "Cancel transcription",
   "prompt.action.voiceRetry": "Retry transcription",

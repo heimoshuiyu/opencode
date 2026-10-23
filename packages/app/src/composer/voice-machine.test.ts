@@ -3,7 +3,7 @@ import { transitionVoice, type VoiceState } from "./voice-machine"
 
 test("a second press before microphone permission cancels the take and ignores a late grant", () => {
   const attempt = new AbortController()
-  const start = { type: "start", attempt } as const
+  const start = { type: "start", attempt, output: "text" } as const
   const pending = transitionVoice({ type: "idle" }, start)
   const stopped = transitionVoice(pending, { type: "stop" })
   expect(stopped.type).toBe("idle")
@@ -16,7 +16,7 @@ test("a second press before microphone permission cancels the take and ignores a
 test("transcription retry keeps the take; a cancelled result cannot settle the next attempt", () => {
   const attempt = new AbortController()
   const blob = new Blob(["audio"])
-  const finishing: VoiceState = { type: "finishing", attempt }
+  const finishing: VoiceState = { type: "finishing", attempt, output: "text" }
   const pending = transitionVoice(finishing, { type: "stopped", attempt, blob })
   const retry = transitionVoice(pending, { type: "failed", attempt, message: "offline" })
   expect(retry).toMatchObject({ type: "retry", blob, message: "offline" })

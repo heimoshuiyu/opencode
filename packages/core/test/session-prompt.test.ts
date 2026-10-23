@@ -49,6 +49,7 @@ import { SessionStored } from "@opencode/core/session/stored"
 import { SessionBlob } from "@opencode/core/session/blob"
 import { SessionTransfer } from "@opencode/core/session/transfer"
 import { PromptInput } from "@opencode/schema/prompt-input"
+import { Transcription } from "@opencode/core/transcription/transcribe"
 
 const executionCalls: Session.ID[] = []
 const interruptCalls: Session.ID[] = []
@@ -113,6 +114,9 @@ const locations = makeGlobalNode({
                   : Effect.succeed(
                       content.content.length > 5 * 1024 * 1024 ? { ...content, content: "AA==" } : content,
                     ),
+            }),
+            Layer.mock(Transcription.Service, {
+              normalize: () => Effect.succeed({ bytes: Buffer.from("mp3-bytes"), mime: "audio/mpeg" }),
             }),
             Layer.mock(Snapshot.Service, {
               capture: () => Effect.undefined,
@@ -863,6 +867,69 @@ describe("Session.prompt", () => {
           name: "main.ts",
         },
         { data: notes, mime: "text/plain", source: { type: "inline" }, name: "notes" },
+      ])
+    }),
+  )
+
+  it.effect("normalizes non-MP3 audio attachments before admission", () =>
+    Effect.gen(function* () {
+      yield* setup
+      const session = yield* Session.Service
+      const data = Buffer.from([0, 1, 2, 3]).toString("base64")
+
+      const message = yield* session.prompt({
+        sessionID,
+        text: "Listen to this",
+        files: [{ uri: `data:audio/webm;base64,${data}`, name: "recording.webm" }],
+        resume: false,
+      })
+
+      expect(message.payload.files).toEqual([
+        {
+          data: Buffer.from("mp3-bytes").toString("base64"),
+          mime: "audio/mpeg",
+          source: { type: "inline" },
+          name: "recording.mp3",
+        },
+      ])
+    }),
+  )
+
+  it.effect("trusts the client audio declaration instead of sniffing byte signatures", () =>
+    Effect.gen(function* () {
+      yield* setup
+      const session = yield* Session.Service
+      const bytes = Buffer.from("ID3\n")
+      const data = bytes.toString("base64")
+
+      const audio = yield* session.prompt({
+        sessionID,
+        text: "Listen to this",
+        files: [{ uri: `data:audio/wav;base64,${data}`, name: "recording.wav" }],
+        resume: false,
+      })
+      const text = yield* session.prompt({
+        sessionID,
+        text: "Read this",
+        files: [{ uri: `data:text/plain;base64,${data}`, name: "notes.txt" }],
+        resume: false,
+      })
+
+      expect(audio.payload.files).toEqual([
+        {
+          data,
+          mime: "audio/wav",
+          source: { type: "inline" },
+          name: "recording.wav",
+        },
+      ])
+      expect(text.payload.files).toEqual([
+        {
+          data,
+          mime: "text/plain",
+          source: { type: "inline" },
+          name: "notes.txt",
+        },
       ])
     }),
   )
