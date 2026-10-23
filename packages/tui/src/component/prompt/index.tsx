@@ -94,6 +94,7 @@ export type PromptRef = {
   setMode(mode: "normal" | "shell"): void
   set(prompt: PromptInfo): void
   insert(text: string): boolean
+  attach(file: { filename?: string; uri: string }): boolean
   reset(): void
   blur(): void
   focus(): void
@@ -716,6 +717,17 @@ export function Prompt(props: PromptProps) {
     insert(text) {
       if (disposed || input.isDestroyed) return false
       input.insertText(text)
+      input.gotoBufferEnd()
+      setTimeout(() => {
+        if (!input || input.isDestroyed) return
+        input.invalidateIntrinsicSize()
+        renderer.requestRender()
+      }, 0)
+      return true
+    },
+    attach(file) {
+      if (disposed || input.isDestroyed) return false
+      pasteAttachment(file)
       input.gotoBufferEnd()
       setTimeout(() => {
         if (!input || input.isDestroyed) return

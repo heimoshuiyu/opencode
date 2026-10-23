@@ -4,25 +4,29 @@ import { useServerSDK } from "@/runtime/server/client"
 import { authTokenFromCredentials } from "@/runtime/server/api"
 import { uuid } from "@/runtime/persistence/uuid"
 import { useWorkspaceLocation } from "@/workspaces/location"
+import { useLanguage } from "@/runtime/i18n/language"
+import { bytesToBase64 } from "@opencode/util/base64"
 import type { ComposerControls } from "../adapter"
 
 // Where a prompt is headed: the model that reads it and the server that runs its tools.
 export type AttachmentDestination = {
   /** Input modalities the selected model reads natively. */
-  input: { image: boolean; pdf: boolean }
+  input: { image: boolean; audio: boolean; pdf: boolean }
   /** The server shares the client's filesystem, so an attachment's source path resolves as-is. */
   local: boolean
   /** Streams a file into the server's temporary directory and returns its absolute path there. */
   upload: (file: File, report: (loaded: number) => void, signal: AbortSignal) => Promise<string>
+  transcribe: (file: File, mime: string) => Promise<string>
 }
 
 export function useAttachmentDestination(controls: Accessor<ComposerControls>) {
   const server = useServer()
   const sdk = useServerSDK()
   const location = useWorkspaceLocation()
+  const language = useLanguage()
 
   return (): AttachmentDestination => ({
-    input: controls().model.selection.current()?.capabilities.input ?? { image: false, pdf: false },
+    input: controls().model.selection.current()?.capabilities.input ?? { image: false, audio: false, pdf: false },
     local: server.isLocal,
     upload: async (file, report, signal) => {
       const info = await sdk.api.server.info({ signal })
@@ -33,6 +37,21 @@ export function useAttachmentDestination(controls: Accessor<ComposerControls>) {
       url.searchParams.set("path", `${info.paths.tmp}/uploads/${uuid()}/${file.name}`)
 
       return write(url, file, server.conn.http.password, report, signal)
+    },
+    transcribe: async (file, mime) => {
+      const audio = bytesToBase64(new Uint8Array(await file.arrayBuffer()))
+
+      const result = await sdk.api.transcription.transcribe({
+        location: { directory: location().directory },
+        audio,
+        mime,
+      })
+
+      const text = result.data.text?.trim()
+
+      if (!text) throw new Error(language.t("prompt.toast.voiceEmpty.description"))
+
+      return text
     },
   })
 }

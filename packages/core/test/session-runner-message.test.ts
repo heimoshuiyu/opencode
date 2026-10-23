@@ -498,7 +498,7 @@ Earlier work
     ])
   })
 
-  test("uses materialized image and PDF data as provider media", () => {
+  test("uses materialized image, PDF and audio data as provider media", () => {
     const data = Base64.make("AAECAw==")
     const messages = toLLMMessages(
       [
@@ -514,6 +514,7 @@ Earlier work
               source: { type: "inline" },
               name: "document.pdf",
             }),
+            FileAttachment.make({ data, mime: "audio/wav", source: { type: "inline" }, name: "recording.wav" }),
           ],
           time: { created },
         }),
@@ -525,6 +526,7 @@ Earlier work
       { type: "text", text: "Inspect this image" },
       { type: "media", media: Media.base64(data, "image/png"), filename: "image.png" },
       { type: "media", media: Media.base64("JVBERg==", "application/pdf"), filename: "document.pdf" },
+      { type: "media", media: Media.base64(data, "audio/wav"), filename: "recording.wav" },
     ])
   })
 

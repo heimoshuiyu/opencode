@@ -6,6 +6,8 @@ import { useToast } from "../ui/toast"
 import { usePromptRef } from "./prompt"
 import { useRoute } from "./route"
 import { useData } from "./data"
+import { useLocal } from "./local"
+import { useLocation } from "./location"
 import { errorMessage } from "../util/error"
 import {
   isEnabled as voiceEnabled,
@@ -16,8 +18,8 @@ import {
 } from "../util/voice"
 
 // App-level recording lifecycle so voice input survives session switches: the
-// recorder outlives the Prompt that started it, and a finished transcription
-// inserts into whichever prompt is active when it completes.
+// recorder outlives the Prompt that started it, and finished audio enters the
+// active prompt as an attachment or transcription, depending on the model.
 export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
   name: "Voice",
   init: () => {
@@ -27,6 +29,8 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
     const promptRef = usePromptRef()
     const route = useRoute()
     const data = useData()
+    const local = useLocal()
+    const location = useLocation()
 
     const [recording, setRecording] = createSignal(false)
     const [processing, setProcessing] = createSignal(false)
@@ -50,6 +54,24 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
 
     function insert(text: string) {
       return promptRef.current?.insert(text) ?? false
+    }
+
+    function supportsAudio() {
+      const selection = local.model.selection()
+      if (!selection) return false
+      const model = data.location.model
+        .list(location.ref)
+        ?.find((item) => item.providerID === selection.providerID && item.id === selection.modelID)
+      return model?.capabilities.input.some((item) => item.startsWith("audio")) ?? false
+    }
+
+    function canAttachAudio() {
+      return supportsAudio() && promptRef.current?.mode !== "shell"
+    }
+
+    function attach(recordingData: { buffer: ArrayBuffer; mime: string }) {
+      const uri = `data:${recordingData.mime};base64,${Buffer.from(recordingData.buffer).toString("base64")}`
+      return promptRef.current?.attach({ uri, filename: "recording.wav" }) ?? false
     }
 
     function handleResult(result: { text: string; cancelled: boolean } | null) {
@@ -96,6 +118,27 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
       return result
     }
 
+    async function processRecording(recordingData: { buffer: ArrayBuffer; mime: string }) {
+      if (canAttachAudio()) {
+        const attached = attach(recordingData)
+        setProcessing(false)
+        setPendingRetry(!attached)
+        if (attached) {
+          lastRecording = undefined
+          return
+        }
+        toast.show({
+          variant: "warning",
+          message: "No prompt open for audio attachment — press the voice keybind to insert",
+          duration: 5000,
+        })
+        return
+      }
+      const result = await runTranscribe(recordingData)
+      setPendingRetry(!result)
+      handleResult(result)
+    }
+
     async function toggle() {
       if (processing()) {
         controller?.abort()
@@ -123,9 +166,7 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
           return
         }
         lastRecording = recordingData
-        const result = await runTranscribe(recordingData)
-        setPendingRetry(!result)
-        handleResult(result)
+        await processRecording(recordingData)
         return
       }
 
@@ -164,9 +205,7 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
       if (!recordingData) return
       setPendingRetry(false)
       setProcessing(true)
-      const result = await runTranscribe(recordingData)
-      setPendingRetry(!result)
-      handleResult(result)
+      await processRecording(recordingData)
     }
 
     function cancelRetry() {
@@ -181,7 +220,7 @@ export const { use: useVoice, provider: VoiceProvider } = createSimpleContext({
     })
 
     const label = createMemo(() => {
-      if (processing()) return "Transcribing"
+      if (processing()) return canAttachAudio() ? "Attaching" : "Transcribing"
       if (recording()) return "Stop"
       return "Record"
     })

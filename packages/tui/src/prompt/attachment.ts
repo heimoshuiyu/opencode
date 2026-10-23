@@ -13,6 +13,7 @@ type ProjectedFile = Readonly<{
 
 function attachmentKind(uri: string) {
   if (uri.startsWith("data:image/")) return "Image"
+  if (uri.startsWith("data:audio/")) return "Audio"
   if (uri.startsWith("data:application/pdf;")) return "PDF"
   return undefined
 }

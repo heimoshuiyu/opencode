@@ -69,6 +69,7 @@ export function createComposerEditor(input: {
   onEditor?: (element: HTMLElement) => void
   onSuggestionSelect?: (item: ComposerSuggestion) => (() => void) | void
   view: ComposerEditorView
+  busy?: () => boolean
   attachments?: ComposerAttachmentConfig
 }) {
   let editor: HTMLElement | undefined
@@ -419,7 +420,9 @@ export function createComposerEditor(input: {
 
       if (input.view.draftOnly) return false
 
-      if (attachments?.pending().length) return false
+      if (input.busy?.()) return false
+
+      if (attachments?.busy()) return false
       const persisted = draft.state
 
       if (state.mode === "shell") {
@@ -460,7 +463,10 @@ export function createComposerEditor(input: {
 
       if (input.view.draftOnly) return
 
-      if (attachments?.pending().length) return
+      if (input.busy?.()) return
+
+      if (attachments?.busy()) return
+
       input.view.submit.onSubmit(options)
       dispatch({ type: "popover.close" })
     },
@@ -539,10 +545,14 @@ export function createComposerEditor(input: {
     setFileInput(element: HTMLInputElement) {
       fileInput = element
     },
-    addAttachments(files: File[]) {
-      if (!attachments) return
-      void attachments.addAttachments(files)
+    async addAttachments(files: File[]) {
+      if (!attachments) return false
+
+      const result = await attachments.addAttachments(files)
+
       restoreFocus()
+
+      return result
     },
     setQuery(value: string) {
       dispatch({ type: "popover.query", value })

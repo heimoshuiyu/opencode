@@ -15,6 +15,7 @@ import { Mime } from "../mime.js"
 import { Plugin } from "../plugin/service.js"
 import { PluginHooks } from "../plugin/hooks.js"
 import { Skill } from "../skill.js"
+import { Transcription } from "../transcription/transcribe.js"
 import { AttachmentError, SkillNotFoundError } from "./error.js"
 
 export type Input = {
@@ -93,14 +94,15 @@ const materializeAttachment = Effect.fn("SessionPrompt.materializeAttachment")(f
 ) {
   const label = attachmentLabel(input)
   const resolved = input.uri.startsWith("data:")
-    ? {
-        bytes: yield* decodeDataURL(input.uri, label),
-        source: { type: "inline" as const },
-        start: undefined,
-        end: undefined,
-        name: undefined,
-        mime: undefined,
-      }
+    ? yield* decodeDataURL(input.uri, label).pipe(
+        Effect.map((decoded) => ({
+          ...decoded,
+          source: { type: "inline" as const },
+          start: undefined,
+          end: undefined,
+          name: undefined,
+        })),
+      )
     : yield* readFileAttachment(input.uri)
   if (resolved.bytes.byteLength > MAX_ATTACHMENT_BYTES)
     return yield* new AttachmentError({
@@ -108,7 +110,10 @@ const materializeAttachment = Effect.fn("SessionPrompt.materializeAttachment")(f
       message: `Attachment exceeds the ${MAX_ATTACHMENT_BYTES} byte limit: ${label}`,
     })
 
-  const mime = resolved.mime ?? Mime.detect(resolved.bytes)
+  const mime =
+    resolved.source.type === "uri" && resolved.mime === "application/x-directory"
+      ? resolved.mime
+      : detectAttachmentMime(resolved.bytes, resolved.mime)
   const content =
     mime === "text/plain" && resolved.start !== undefined
       ? Buffer.from(
@@ -119,15 +124,37 @@ const materializeAttachment = Effect.fn("SessionPrompt.materializeAttachment")(f
             .join("\n"),
         )
       : resolved.bytes
-  const normalized = yield* normalizeImageAttachment(input, Buffer.from(content).toString("base64"), mime)
+  const image = yield* normalizeImageAttachment(input, Buffer.from(content).toString("base64"), mime)
+  const normalized = yield* normalizeAudioAttachment(input, image.data, image.mime)
+  const name = input.name ?? resolved.name
   return FileAttachment.create({
     data: normalized.data,
     mime: normalized.mime,
     source: resolved.source,
-    name: input.name ?? resolved.name,
+    name:
+      normalized.mime === "audio/mpeg" && mime !== "audio/mpeg" && name ? `${name.replace(/\.[^.]+$/, "")}.mp3` : name,
     description: input.description,
     mention: input.mention,
   })
+})
+
+const normalizeAudioAttachment = Effect.fn("SessionPrompt.normalizeAudioAttachment")(function* (
+  input: PromptInput.FileAttachment,
+  data: Base64,
+  mime: string,
+) {
+  if (!mime.startsWith("audio/") || mime === "audio/mpeg" || mime === "audio/wav") return { data, mime }
+  const label = attachmentLabel(input)
+  const transcription = yield* Transcription.Service
+  const normalized = yield* transcription
+    .normalize({ bytes: Buffer.from(data, "base64"), mime })
+    .pipe(
+      Effect.mapError(
+        (error) =>
+          new AttachmentError({ uri: label, message: `Audio conversion failed for ${label}: ${error.message}` }),
+      ),
+    )
+  return { data: Base64.make(Buffer.from(normalized.bytes).toString("base64")), mime: normalized.mime }
 })
 
 const normalizeImageAttachment = Effect.fn("SessionPrompt.normalizeImageAttachment")(function* (
@@ -195,10 +222,23 @@ const readFileAttachment = Effect.fn("SessionPrompt.readFileAttachment")(functio
   const bytes = yield* fs
     .readFile(target)
     .pipe(Effect.mapError(() => new AttachmentError({ uri, message: `Unable to read attachment: ${uri}` })))
-  return { bytes, source: { type: "uri" as const, uri }, start, end, name: path.basename(target), mime: undefined }
+  return {
+    bytes,
+    source: { type: "uri" as const, uri },
+    start,
+    end,
+    name: path.basename(target),
+    mime: FSUtil.mimeType(target),
+  }
 })
 
 const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
+
+function detectAttachmentMime(bytes: Uint8Array, declared: string | undefined) {
+  const mime = declared?.split(";", 1)[0]?.trim().toLowerCase()
+  if (mime?.startsWith("audio/")) return mime
+  return Mime.detect(bytes)
+}
 
 // A data URL is the whole file; errors and logs must name the attachment, not echo its bytes.
 function attachmentLabel(input: PromptInput.FileAttachment) {
@@ -212,11 +252,12 @@ function decodeDataURL(uri: string, label: string) {
       if (comma === -1) throw new Error("Invalid data URL")
       const metadata = uri.slice(5, comma)
       const payload = uri.slice(comma + 1)
+      const mime = metadata.split(";", 1)[0]?.trim().toLowerCase() || undefined
       if (!metadata.split(";").some((part) => part.toLowerCase() === "base64"))
-        return Buffer.from(decodeURIComponent(payload))
+        return { bytes: Buffer.from(decodeURIComponent(payload)), mime }
       const bytes = Buffer.from(payload, "base64")
       if (bytes.toString("base64") !== payload) throw new Error("Non-canonical base64")
-      return bytes
+      return { bytes, mime }
     },
     catch: () => new AttachmentError({ uri: label, message: `Invalid attachment data URL: ${label}` }),
   })

@@ -53,27 +53,52 @@ export function createComposerAttachments(
     return { prompt, cursor: prompt.cursor() ?? cursorPosition(editor) }
   }
 
-  // Uploads this composer started; they finish (or fail) even if the composer unmounts.
-  const [pending, setPending] = createStore<{ ids: string[] }>({ ids: [] })
+  // Work this composer started finishes (or fails) even if the composer unmounts.
+  const [pending, setPending] = createStore<{ ids: string[]; operations: string[] }>({ ids: [], operations: [] })
 
   // Media the model reads natively travels inline with the prompt, so its bytes live in the draft
-  // store. Everything else, including text, reaches the model as a path on the server that its
-  // tools open; those bytes never enter the store, and never get base64-encoded into the request.
+  // store. Audio for other models is transcribed into the editor. Everything else, including text,
+  // reaches the model as a path on the server that its tools open.
   const add = async (file: File, target = capture(), clipboard = false) => {
     if (!target) return false
-    const mime = await attachmentMime(file)
-    const destination = input.destination()
+    const id = uuid()
+    setPending("operations", (ids) => [...ids, id])
 
-    if (native(mime, destination.input) && file.size <= MAX_INLINE_BYTES) return addInline(file, mime, target, clipboard)
-    const sourcePath = input.getPathForFile?.(file) || undefined
+    try {
+      const mime = await attachmentMime(file)
+      const destination = input.destination()
 
-    if (destination.local && sourcePath) return addPath(target, { filename: file.name, mime, path: sourcePath })
-    void stage(file, mime, target, destination)
+      if (mime.startsWith("audio/") && !destination.input.audio) {
+        const text = await destination.transcribe(file, mime).catch((error) => {
+          input.onError(error)
 
-    return true
+          return undefined
+        })
+
+        if (text === undefined) return false
+
+        return input.addPart({ type: "text", content: text, start: 0, end: 0 })
+      }
+
+      if (native(mime, destination.input) && file.size <= MAX_INLINE_BYTES)
+        return addInline(file, mime, target, clipboard)
+      const sourcePath = input.getPathForFile?.(file) || undefined
+
+      if (destination.local && sourcePath) return addPath(target, { filename: file.name, mime, path: sourcePath })
+      void stage(file, mime, target, destination)
+
+      return true
+    } finally {
+      setPending("operations", (ids) => ids.filter((item) => item !== id))
+    }
   }
 
-  const addInline = async (file: File, mime: string, target: NonNullable<ReturnType<typeof capture>>, clipboard: boolean) => {
+  const addInline = async (
+    file: File,
+    mime: string,
+    target: NonNullable<ReturnType<typeof capture>>,
+    clipboard: boolean,
+  ) => {
     const blob = input.store ? await input.store(file) : await createBlobReference(file)
     const sourcePath = input.getPathForFile?.(file) || undefined
 
@@ -141,11 +166,10 @@ export function createComposerAttachments(
   }
 
   const addAttachments = async (files: File[], target = capture()) => {
-    return files.reduce(async (result, file) => {
-      const previous = await result
-
-      return (await add(file, target)) || previous
-    }, Promise.resolve(false))
+    let result = false
+    // Start the first operation synchronously so submission is blocked as soon as this function returns.
+    for (const file of files) result = (await add(file, target)) || result
+    return result
   }
 
   const handlePaste = async (event: ClipboardEvent) => {
@@ -244,8 +268,12 @@ export function createComposerAttachments(
     handleDrop,
     /** Uploads still in flight for this composer; sending waits for them. */
     pending: () => uploads.items().filter((item) => pending.ids.includes(item.id)),
+    busy: () => pending.ids.length + pending.operations.length > 0,
     cancel(id: string) {
-      uploads.items().find((item) => item.id === id)?.cancel()
+      uploads
+        .items()
+        .find((item) => item.id === id)
+        ?.cancel()
     },
     pick(fallback: () => void, done: () => void) {
       if (!input.picker) {
@@ -270,6 +298,8 @@ const MAX_INLINE_BYTES = 20 * 1024 * 1024
 // Mirrors the media the server forwards to the model as message content.
 function native(mime: string, input: AttachmentDestination["input"]) {
   if (imageMimes.has(mime)) return input.image
+
+  if (mime.startsWith("audio/")) return input.audio
 
   if (mime === "application/pdf") return input.pdf
 
@@ -299,7 +329,7 @@ const textMimes = new Set([
 async function attachmentMime(file: File) {
   const type = file.type.split(";", 1)[0]?.trim().toLowerCase() ?? ""
 
-  if (imageMimes.has(type) || type === "application/pdf") return type
+  if (imageMimes.has(type) || type === "application/pdf" || type.startsWith("audio/")) return type
   const index = file.name.lastIndexOf(".")
   const suffix = index === -1 ? "" : file.name.slice(index + 1).toLowerCase()
   const fallback = imageExtensions.get(suffix) ?? (suffix === "pdf" ? "application/pdf" : undefined)

@@ -14,6 +14,8 @@ type VoiceInput = {
   directory: () => string
   sessionID: () => string | undefined
   editorText: () => string
+  supportsAudio: () => boolean
+  addAttachment: (file: File) => Promise<boolean>
   addPart: (part: { type: "text"; content: string; start: number; end: number }) => void
   editorRef: () => HTMLDivElement | undefined
   queueScroll: () => void
@@ -32,11 +34,13 @@ export function createVoiceInput(input: VoiceInput) {
 
   const [state, setState] = createStore({
     recording: false,
+    attaching: false,
     transcribing: false,
     error: "",
   })
   const recording = () => state.recording
   const transcribing = () => state.transcribing
+  const processing = () => state.attaching || state.transcribing
   const audio: {
     recorder?: MediaRecorder
     starting: boolean
@@ -148,6 +152,45 @@ export function createVoiceInput(input: VoiceInput) {
     return blob
   }
 
+  const attachAudio = async (blob: Blob) => {
+    if (!blob.size) {
+      showToast({
+        title: language.t("prompt.toast.voiceEmpty.title"),
+        description: language.t("prompt.toast.voiceEmpty.description"),
+      })
+
+      return
+    }
+
+    const file = new File([blob], `recording-${Date.now()}.webm`, { type: blob.type || "audio/webm" })
+
+    setState("attaching", true)
+
+    const attached = await input
+      .addAttachment(file)
+      .catch((error) => {
+        showToast({
+          variant: "error",
+          title: language.t("common.requestFailed"),
+          description: error instanceof Error ? error.message : String(error),
+        })
+
+        return false
+      })
+      .finally(() => setState("attaching", false))
+
+    if (!attached) return
+
+    requestAnimationFrame(() => {
+      const el = input.editorRef()
+
+      if (!el) return
+
+      el.focus()
+      input.queueScroll()
+    })
+  }
+
   const transcribeAudio = async (blob: Blob) => {
     if (!blob.size) {
       showToast({
@@ -244,8 +287,17 @@ export function createVoiceInput(input: VoiceInput) {
 
     if (recording()) {
       const blob = await recordStop()
+
       if (!blob) return
+
+      if (input.supportsAudio()) {
+        await attachAudio(blob)
+
+        return
+      }
+
       await transcribeAudio(blob)
+
       return
     }
 
@@ -297,6 +349,7 @@ export function createVoiceInput(input: VoiceInput) {
   return {
     recording,
     transcribing,
+    processing,
     pendingRetry: () => !!state.error,
     error: () => state.error,
     voiceTitle,

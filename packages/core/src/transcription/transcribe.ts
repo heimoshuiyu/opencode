@@ -91,6 +91,10 @@ type ResolvedInput = Omit<TranscribeInput, "override"> & {
 
 export interface Interface {
   readonly resolve: (override?: TranscriptionSchema.Settings) => Effect.Effect<Resolved>
+  readonly normalize: (input: {
+    bytes: Uint8Array
+    mime: string
+  }) => Effect.Effect<{ bytes: Uint8Array; mime: string }, InvalidAudioError | UnavailableError>
   readonly transcribe: (input: TranscribeInput, config?: Resolved) => Effect.Effect<TranscribeResult, Error>
 }
 
@@ -366,7 +370,7 @@ const layer = Layer.effect(
       return yield* settings.type === "lalm" ? transcribeLalm(resolved) : transcribeWhisper(resolved)
     })
 
-    return Service.of({ resolve: resolveConfig, transcribe })
+    return Service.of({ resolve: resolveConfig, normalize: toMp3, transcribe })
   }),
 )
 
