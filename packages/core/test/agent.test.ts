@@ -184,6 +184,7 @@ describe("Agent", () => {
         "general",
         "summary",
         "title",
+        "voice",
       ])
       expect((yield* agent.get(Agent.defaultID))?.system).toBeUndefined()
       const permissions = (yield* agent.get(Agent.defaultID))?.permissions ?? []

@@ -1,8 +1,11 @@
+/// <reference path="../markdown.d.ts" />
+
 export * as AgentPlugin from "./agent.js"
 
 import { define } from "@opencode/plugin/effect/plugin"
 import { Effect } from "effect"
 import { Agent } from "../agent.js"
+import voicePrompt from "./agent/voice.md" with { type: "text" }
 
 const PROMPT_EXPLORE = `You are a file search specialist. You excel at thoroughly navigating and exploring codebases.
 
@@ -113,6 +116,31 @@ export const Plugin = define({
         item.hidden = true
         item.system = PROMPT_SUMMARY
         item.permissions.push({ action: "*", resource: "*", effect: "deny" })
+      })
+
+      editor.update(Agent.ID.make("voice"), (item) => {
+        item.name = Agent.Name.make("Voice")
+        item.description =
+          "Create and manage OpenCode sessions, wait in the background, and give spoken summaries"
+        item.mode = "primary"
+        item.system = voicePrompt
+        item.permissions.push(
+          { action: "*", resource: "*", effect: "deny" },
+          { action: "execute", resource: "*", effect: "allow" },
+          { action: "shell", resource: "opencode api *", effect: "allow" },
+          { action: "shell", resource: "opencode --server * api *", effect: "allow" },
+          { action: "shell", resource: "mktemp /tmp/opencode/voice-models-*.json", effect: "allow" },
+          { action: "shell", resource: "mktemp /tmp/opencode/voice-messages-*.json", effect: "allow" },
+          { action: "shell", resource: "jq -c *", effect: "allow" },
+          { action: "shell", resource: 'rm -f "$file"', effect: "allow" },
+          { action: "opencode_session_rename", resource: "*", effect: "allow" },
+          { action: "opencode_session_move", resource: "*", effect: "allow" },
+          { action: "opencode_worktree_create", resource: "*", effect: "allow" },
+          { action: "opencode_worktree_list", resource: "*", effect: "allow" },
+          // Unlocks worktree_remove (permission action "edit") behind a per-call approval prompt
+          // on the exact directory; it grants no silent filesystem edit.
+          { action: "edit", resource: "*", effect: "ask" },
+        )
       })
     })
   }),
