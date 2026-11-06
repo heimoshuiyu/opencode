@@ -28,7 +28,7 @@ import {
   type ComposerState,
   type PromptModel,
 } from "@/composer/state"
-import { appendPrompt, promptLength } from "@/composer/prompt-parts"
+import { appendPrompt, isAttachment, promptLength } from "@/composer/prompt-parts"
 import { TabStorage } from "./schema"
 import { useCurrentRoute, type LayoutRoute } from "@/shell/state/layout"
 import {
@@ -57,7 +57,7 @@ export type Tab = typeof TabStorage.Tab.Type
 
 export type PendingSession = {
   draft: DraftTab
-  message: SessionMessageUser
+  message?: SessionMessageUser
   selection: ComposerSelection
   composer: ComposerState
   view: Accessor<NewSessionStartView>
@@ -247,8 +247,16 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
 
     const runPromotionEffect = (effect: TabPromotionEffect) => {
       if (effect.type === "composer.transfer") {
-        if (promptLength(effect.composer.current()))
-          effect.target.set(effect.composer.current(), effect.composer.cursor())
+        const prompt = effect.composer.current()
+
+        if (promptLength(prompt) || prompt.some(isAttachment)) effect.target.set(prompt, effect.composer.cursor())
+
+        for (const item of effect.composer.context.items()) {
+          effect.target.context.add(item)
+          const source = effect.composer.quoteSource.state.sources[item.key]
+
+          if (source) effect.target.quoteSource.add(item.key, source)
+        }
 
         return
       }
@@ -256,7 +264,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       if (effect.type === "composer.recover") {
         const original = memory.get<ComposerState>(tabKey(effect.draft), "prompt")
 
-        if (!original || !promptLength(effect.composer.current())) return
+        if (!original || original === effect.composer || !promptLength(effect.composer.current())) return
         // Nothing was submitted: recover both inputs in the original draft.
         const restored = appendPrompt(original.current(), effect.composer.current())
         original.set(restored, promptLength(restored))
@@ -555,7 +563,12 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         const draft = { ...actions.draft(draftID) }
         const next = { type: "session" as const, ...session }
         const key = tabKey(next)
-        const composer = createMemoryComposerState()
+
+        // With no submitted message (a call), keep editing the original draft, not an empty follow-up.
+        const composer = preview.message
+          ? createMemoryComposerState()
+          : memory.ensure(tabKey(draft), "prompt", () => createDraftComposerState(draftID))
+
         let attempt = 0
 
         const ready = startTransition(() => {

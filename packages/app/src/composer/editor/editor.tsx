@@ -93,6 +93,8 @@ export type ComposerEditorProps = {
   modelControl?: JSX.Element
   modelControlsVisible?: boolean
   voiceControl?: JSX.Element
+  /** A secondary action beside the submit button, such as starting a voice call. */
+  callControl?: JSX.Element
   attachKeybind?: string[]
   attachShortcut?: string
   alternateKeybind?: string[]
@@ -220,6 +222,7 @@ export function ComposerEditor(props: ComposerEditorProps) {
   const touchBar = (docked: boolean) => (
     <ComposerEditorTouchBar controller={props.controller} docked={docked}>
       {props.voiceControl}
+      {props.callControl}
     </ComposerEditorTouchBar>
   )
 
@@ -546,6 +549,7 @@ export function ComposerEditor(props: ComposerEditorProps) {
                   </span>
                 </Button>
               </Show>
+              <Show when={mode() === "normal"}>{props.callControl}</Show>
               <ComposerEditorSubmitButton
                 mode={mode()}
                 stopping={view.submit.stopping()}

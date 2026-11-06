@@ -100,7 +100,15 @@ export function transitionVoiceGate(state: VoiceGateState, event: VoiceGateEvent
   return { status: "open", user: state.user, assistant: state.assistant, answer: { status: "starting", at: event.now } }
 }
 
-/** How long an announcement must still wait; reading it changes nothing. */
+/** Client replies never interrupt speech, even when the Responses chatter cap would open. */
+export function quietForClientReply(state: VoiceGateState, now: number) {
+  return (
+    state.user.status === "silent" && state.assistant.status === "silent" &&
+    now - Math.max(state.user.endedAt, state.assistant.endedAt) >= QUIET_MS
+  )
+}
+
+/** How long a Responses announcement must still wait; reading it changes nothing. */
 export function voiceGateDelay(state: VoiceGateState, now: number) {
   if (state.user.status === "speaking") return QUIET_MS
   const userAt = state.user.endedAt

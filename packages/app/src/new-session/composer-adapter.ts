@@ -1,8 +1,15 @@
 import { Predicate } from "effect"
 import { base64Encode } from "@opencode/util/encode"
 import { Session } from "@opencode/schema/session"
+import type { SessionMessageUser } from "@opencode/client/promise"
+import { useLocation } from "@solidjs/router"
 import { createMemo, createSignal, onCleanup, startTransition, untrack } from "solid-js"
-import type { ComposerSession, NewSessionComposerAdapter } from "@/composer/adapter"
+import type {
+  ComposerSelection,
+  ComposerSession,
+  ComposerSubmissionHandle,
+  NewSessionComposerAdapter,
+} from "@/composer/adapter"
 import { useComposerState } from "@/composer/persistence"
 import { createComposerControls, createComposerModelSelection } from "@/composer/selection"
 import { createComposerProjectControls } from "./project/controller"
@@ -11,6 +18,8 @@ import { useLocal } from "@/providers/models/selection"
 import { useData, useServer } from "@/runtime/server/current"
 import { useServerSDK } from "@/runtime/server/client"
 import { useTabs } from "@/shell/tabs/tabs"
+import { sessionHref } from "@/shell/routes/session"
+import { useVoice } from "@/voice/context"
 import { createWorktree } from "@/workspaces/create"
 import { showToast } from "@/shell/notifications/toast"
 import type { DraftMcpControls } from "./mcp"
@@ -62,7 +71,7 @@ export function createNewSessionStartStore() {
     ) {
       const result = transitionNewSessionStart(untrack(state), event)
 
-      if (!isNewSessionStartActive(result.state)) return false
+      if (result.state === untrack(state) || !isNewSessionStartActive(result.state)) return false
       runner = { attempt: result.state.attempt, run: open(result.state.attempt) }
       commit(result)
 
@@ -91,18 +100,20 @@ export function createNewSessionComposerAdapter(props: {
   const server = useServer()
   const serverSDK = useServerSDK()
   const tabs = useTabs()
+  const location = useLocation()
+  const voice = useVoice()
   const language = useLanguage()
   const model = createComposerModelSelection({ agent: () => local.agent.current() })
   const controls = createComposerControls({ model })
 
-  const adapter: NewSessionComposerAdapter = {
+  const adapter = {
     kind: "new-session",
     state,
     ready: prompt.ready,
     controls,
     working: () => false,
     submitted: props.submitted,
-    start(selection, submission, message) {
+    start(selection: ComposerSelection, submission?: ComposerSubmissionHandle, message?: SessionMessageUser) {
       const projectDirectory = props.root()
       const worktree = props.worktree()
       const directory = worktree === "main" ? projectDirectory : worktree
@@ -221,6 +232,12 @@ export function createNewSessionComposerAdapter(props: {
             }
 
             if (effect.type === "session.promote") {
+              const target = () =>
+                prompt.capture(
+                  { dir: base64Encode(effect.directory), id: effect.sessionID },
+                  { server: server.key, scope: serverSDK.scope },
+                )
+
               const cleanupReady = startTransition(() => {
                 local.session.promote(effect.directory, effect.sessionID, {
                   agent: selection.agent,
@@ -228,18 +245,12 @@ export function createNewSessionComposerAdapter(props: {
                   variant: selection.variant,
                   choices: model.remembered(),
                 })
-                submission.retarget(
-                  prompt.capture(
-                    { dir: base64Encode(effect.directory), id: effect.sessionID },
-                    { server: server.key, scope: serverSDK.scope },
-                  ),
-                  { preserveDraft: true },
-                )
+                submission?.retarget(target(), { preserveDraft: true })
               })
 
               settled.resolve({
                 cleanupReady,
-                complete: () => pending.complete(submission.target()),
+                complete: () => pending.complete(submission?.target() ?? target()),
                 session: createdSession(effect.sessionID, effect.directory),
               })
 
@@ -273,7 +284,7 @@ export function createNewSessionComposerAdapter(props: {
 
       return settled.promise
     },
-  }
+  } satisfies NewSessionComposerAdapter
 
   const createdSession = (id: Session.ID, directory: string): ComposerSession => ({
     id,
@@ -288,6 +299,32 @@ export function createNewSessionComposerAdapter(props: {
 
   return {
     adapter,
+    canCall: () => !!model.key() && !!controls().agents.current,
+    async startCall() {
+      const key = model.key()
+      const agent = controls().agents.current
+
+      if (!key || !agent || !voice.view().canStart) return
+      const variant = model.variant.current()
+      const selected = { id: key.modelID, providerID: key.providerID, variant }
+      const audio = model.current()?.capabilities.input.audio ?? false
+      const started = await adapter.start({ agent, model: key, variant })
+
+      if (!started) return
+      await started.cleanupReady
+      await started.complete?.()
+
+      // Creating a worktree can take a while. Never open the microphone for a tab the user left.
+      if (location.pathname !== sessionHref(server.key, started.session.id)) return
+      const origin = {
+        id: started.session.id,
+        title: data.session.get(started.session.id)?.title,
+        location: { directory: started.session.directory },
+        agent,
+        model: selected,
+      }
+      voice.start(server.key, server.ctx, origin, { agent, model: selected, audio })
+    },
     project: createComposerProjectControls({ draftId: props.draftID, worktree: props.worktree }),
     model,
     ready: prompt.ready,

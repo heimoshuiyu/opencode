@@ -131,6 +131,7 @@ export type IconName =
   | "outline-worktree"
   | "outline-xmark"
   | "pencil-line"
+  | "phone"
   | "photo"
   | "plus"
   | "plus-small"

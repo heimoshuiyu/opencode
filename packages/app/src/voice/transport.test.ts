@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, expect, jest, test } from "bun:test"
 import type { OpenCodeClient } from "@opencode/client/promise"
+import type { ServerCtx } from "@/runtime/server/runtime"
+import { ServerKey } from "@/runtime/server/persistence"
+import { createVoiceCall } from "./call"
+import { createVoiceCallState, transitionVoiceCall, type VoiceCallEvent } from "./call-machine"
+import type { VoiceEvent } from "./protocol"
 import { CLOSE_TIMEOUT, DISCONNECT_GRACE, JOIN_TIMEOUT } from "./transport-machine"
 import { VoiceFailure, VoiceTransport } from "./transport"
 
@@ -15,7 +20,7 @@ class FakeChannel {
     this.sent.push(JSON.parse(data))
   }
 
-  receive(event: { type: string; error?: { type: string; code: string; message: string } }) {
+  receive(event: VoiceEvent) {
     this.onmessage?.({ data: JSON.stringify(event) })
   }
 }
@@ -181,6 +186,77 @@ const failure = (promise: Promise<unknown>) =>
     () => undefined,
     (error: VoiceFailure) => error.reason,
   )
+
+test("a client delegation steers the dialed session once and speaks only its completed text after quiet", async () => {
+  const model = { providerID: "fixture", id: "fixture", variant: "high" }
+  const origin = { id: "dialed", location: { directory: "/test" }, agent: "voice", model }
+  const post = jest.fn<Voice["session"]>(async () => ({ transport: { type: "webrtc", sdp: "answer" } }))
+  const prompt = jest.fn(async () => {})
+  const synthetic = jest.fn(async () => {})
+  const events = new EventTarget()
+  const ctx = {
+    sdk: {
+      event: {
+        on(type: string, cb: EventListener) {
+          events.addEventListener(type, cb)
+          return () => events.removeEventListener(type, cb)
+        },
+      },
+      api: {
+        experimental: { voice: { models: async () => ({ models: [live] }), session: post } },
+        message: { list: async () => ({ data: [] }) },
+        session: { synthetic },
+      },
+    },
+    data: { session: { prompt } },
+  } as unknown as ServerCtx
+  let state = createVoiceCallState()
+  const dispatch = (event: VoiceCallEvent) => {
+    state = transitionVoiceCall(state, event).state
+  }
+  const call = createVoiceCall({
+    ctx,
+    local: { origin, agent: "voice", model, audio: false },
+    platform: {},
+    tabs: () => [],
+    open: async () => {},
+    call: () => state,
+    dispatch,
+  })
+  dispatch({ type: "start", server: ServerKey.make("local"), ctx, session: origin })
+  const ready = call.connect(1, origin, false)
+  await settle()
+  const channel = FakePeer.last.channel
+  channel.receive({ type: "session.started" })
+  microphone.resolve(new FakeMediaStream([track()]))
+  await ready
+  expect(post.mock.calls[0]?.[0].session?.delegation).toEqual({ type: "client" })
+  const delegation = { type: "session.delegation.created", delegation: { id: "d1", target: "client" } }
+  channel.receive({ type: "session.input_transcript.delta", delta: "check" })
+  channel.receive(delegation)
+  channel.receive({ type: "session.input_transcript.delta", delta: " this" })
+  channel.receive(delegation)
+  jest.advanceTimersByTime(300)
+  await settle()
+  expect(synthetic).toHaveBeenCalledTimes(1)
+  expect(prompt).toHaveBeenCalledTimes(1)
+  expect(prompt).toHaveBeenCalledWith({
+    sessionID: "dialed", text: "user: check this", delivery: "steer", files: undefined,
+  })
+  for (const [sessionID, text] of [
+    ["elsewhere", "wrong"], ["dialed", "first"], ["dialed", "second"],
+  ]) {
+    events.dispatchEvent(Object.assign(new Event("session.text.ended"), { data: { sessionID, text } }))
+  }
+  const spoken = () => channel.sent.filter((event) => event.type === "session.commentary.append")
+  jest.advanceTimersByTime(400)
+  expect(spoken()).toHaveLength(0)
+  jest.advanceTimersByTime(2400)
+  expect(spoken()).toMatchObject([{ content: "first" }, { content: "second" }])
+  const closed = call.dispose()
+  channel.receive({ type: "session.closed" })
+  await closed
+})
 
 test("a microphone granted after End is stopped at once, and the join fails as a connection failure", async () => {
   const result = open()

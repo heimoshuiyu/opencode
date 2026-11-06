@@ -1,5 +1,5 @@
 import type { SessionUserActions } from "@opencode/session-ui/message"
-import type { ShellOutputInput } from "@opencode/client/promise"
+import type { SessionInfo, ShellOutputInput } from "@opencode/client/promise"
 import { getFilename, sameDirectory } from "@opencode/util/path"
 import { useDialog } from "@opencode/ui/context/dialog"
 import { isScrollKeyTarget, scrollKey, scrollKeyOwner } from "@opencode/ui/scroll-view"
@@ -7,7 +7,8 @@ import { makeEventListener } from "@solid-primitives/event-listener"
 import { useNavigate } from "@solidjs/router"
 import { createEffect, createMemo, on, onCleanup, onMount, Show, type Accessor } from "solid-js"
 import { Composer } from "@/composer/composer"
-import { VoiceComposer } from "@/voice/composer"
+import { VoiceCallButton } from "@/voice/composer"
+import { useVoice } from "@/voice/context"
 import { useComposerState } from "@/composer/persistence"
 import { createComposerControls } from "@/composer/selection"
 import { setCursorPosition } from "@/composer/editor/dom"
@@ -429,6 +430,24 @@ export function ActiveSessionComposerRegion(props: {
   const language = useLanguage()
   const openRoute = useOpenSessionRoute()
 
+  const voice = useVoice()
+  const host = useServer()
+  const local = useLocal()
+  const startCall = (session: SessionInfo) => {
+    const selection = props.model.composer.model.selection
+    const key = selection.key()
+    voice.start(host.key, host.ctx, session, {
+      agent: local.agent.current()?.name || session.agent || "voice",
+      model: key ? { id: key.modelID, providerID: key.providerID, variant: selection.variant.current() } : session.model,
+      audio: selection.current()?.capabilities.input.audio ?? false,
+    })
+  }
+  createEffect(() => {
+    const session = props.session.data.info()
+
+    if (session) voice.syncSession(host.key, session)
+  })
+
   // Only the server's LocationNotFoundError for the session's own Location replaces the composer.
   // A refetched session info (on reconnect) must not remount the keyed view and close its open menu.
   const missing = createMemo(
@@ -619,14 +638,17 @@ export function ActiveSessionComposerRegion(props: {
                   />
                 }
               >
-                <VoiceComposer session={props.session.data.info()}>
-                  <Composer
-                    model={props.model.composer}
-                    borderUnderlay
-                    readOnly={props.model.queue.undoing()}
-                    suggestionBoundary={props.suggestionBoundary}
-                  />
-                </VoiceComposer>
+                <Composer
+                  model={props.model.composer}
+                  borderUnderlay
+                  readOnly={props.model.queue.undoing()}
+                  suggestionBoundary={props.suggestionBoundary}
+                  callControl={
+                    <Show when={props.session.data.info()}>
+                      {(session) => <VoiceCallButton onClick={() => startCall(session())} />}
+                    </Show>
+                  }
+                />
               </Show>
             </div>
           }

@@ -1,13 +1,14 @@
 import { createSimpleContext } from "@opencode/ui/context"
 import { useLocation, useNavigate } from "@solidjs/router"
-import { createMemo, createSignal, onCleanup, untrack } from "solid-js"
 import type { SessionInfo } from "@opencode/client/promise"
+import { createMemo, createSignal, onCleanup, untrack } from "solid-js"
 import { usePlatform } from "@/runtime/platform/platform"
 import type { ServerCtx } from "@/runtime/server/runtime"
 import type { ServerConnection } from "@/runtime/server/registry"
 import { sessionHref } from "@/shell/routes/session"
 import { findSessionTab, useTabs } from "@/shell/tabs/tabs"
 import type { createVoiceCall } from "./call"
+import type { VoiceBinding } from "./local-delegation"
 import {
   createVoiceCallState,
   isConnecting,
@@ -17,6 +18,8 @@ import {
   type VoiceCallEvent,
 } from "./call-machine"
 
+type CallContext = { host: ServerCtx; local?: VoiceBinding }
+
 export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
   name: "Voice",
   init: () => {
@@ -25,7 +28,7 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
     const location = useLocation()
     const tabs = useTabs()
 
-    const [call, setCall] = createSignal(createVoiceCallState<ServerCtx>())
+    const [call, setCall] = createSignal(createVoiceCallState<CallContext>())
     const view = createMemo(() => voiceCallView(call()))
 
     // The call's transports and tools, loaded on its first connect and kept across Rejoin.
@@ -50,7 +53,7 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
         check()
       })
 
-    const dispatch = (event: VoiceCallEvent<ServerCtx>) => {
+    const dispatch = (event: VoiceCallEvent<CallContext>) => {
       const current = untrack(call)
       const next = transitionVoiceCall(current, event)
 
@@ -58,7 +61,7 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
       next.effects.forEach(perform)
     }
 
-    const perform = (effect: VoiceCallEffect<ServerCtx>) => {
+    const perform = (effect: VoiceCallEffect<CallContext>) => {
       if (effect.type === "connect") return connect(effect)
 
       if (effect.type === "teardown") return teardown(effect)
@@ -75,7 +78,7 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
       session?.mute(effect.attempt, effect.muted)
     }
 
-    const connect = (effect: Extract<VoiceCallEffect<ServerCtx>, { type: "connect" }>) => {
+    const connect = (effect: Extract<VoiceCallEffect<CallContext>, { type: "connect" }>) => {
       const timer = setTimeout(() => dispatch({ type: "connect.timeout", attempt: effect.attempt }), effect.timeout)
       void closing
         .then(() => import("./call"))
@@ -83,7 +86,8 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
           // A call that ended while the module loaded must not leave a session listening behind it.
           if (!isConnecting(untrack(call), effect.attempt)) return
           session ??= createVoiceCall({
-            ctx: effect.ctx,
+            ctx: effect.ctx.host,
+            local: effect.ctx.local,
             platform,
             open: async (next, signal) => {
               const href = sessionHref(effect.server, next.id)
@@ -114,7 +118,7 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
         .finally(() => clearTimeout(timer))
     }
 
-    const teardown = (effect: Extract<VoiceCallEffect<ServerCtx>, { type: "teardown" }>) => {
+    const teardown = (effect: Extract<VoiceCallEffect<CallContext>, { type: "teardown" }>) => {
       const done = Promise.all([closing, session?.dispose()])
       const timer = setTimeout(() => dispatch({ type: "end.timeout", attempt: effect.attempt }), effect.timeout)
       session = undefined
@@ -140,12 +144,26 @@ export const { provider: VoiceProvider, use: useVoice } = createSimpleContext({
       end,
       mute: () => dispatch({ type: "mute.toggled" }),
       rejoin: () => dispatch({ type: "rejoin" }),
-      /** Tells the call which session is on screen; ignored unless a call on that server is open. */
       syncSession(server: ServerConnection.Key, session: SessionInfo) {
+        const current = untrack(call)
+        if (current.status === "idle" || current.status === "ending" || current.ctx.local) return
         dispatch({ type: "session.viewed", server, session: { id: session.id, title: session.title } })
       },
-      start(server: ServerConnection.Key, ctx: ServerCtx, session: SessionInfo) {
-        dispatch({ type: "start", server, ctx, session: { id: session.id, title: session.title } })
+      start(
+        server: ServerConnection.Key,
+        host: ServerCtx,
+        session: VoiceBinding["origin"],
+        choice: Omit<VoiceBinding, "origin"> | "responses",
+      ) {
+        const origin = {
+          id: session.id,
+          title: session.title,
+          location: { ...session.location },
+          agent: session.agent,
+          model: session.model && { ...session.model },
+        }
+        const local = choice === "responses" ? undefined : { ...choice, origin }
+        dispatch({ type: "start", server, ctx: { host, local }, session: { id: origin.id, title: origin.title } })
       },
     }
   },

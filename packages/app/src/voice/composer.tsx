@@ -1,19 +1,14 @@
-import { motionTuning } from "@opencode/ui/motion-tuning"
 import { Button } from "@opencode/ui/button"
 import { Icon } from "@opencode/ui/icon"
 import { IconButton } from "@opencode/ui/icon-button"
 import { Loader } from "@opencode/ui/loader"
+import { Tooltip } from "@opencode/ui/tooltip"
 import { Schema } from "effect"
 import { makeEventListener } from "@solid-primitives/event-listener"
-import { createEffect, createSignal, For, onCleanup, onMount, Show, untrack, type ParentProps } from "solid-js"
-import { createStore } from "solid-js/store"
-import type { SessionInfo } from "@opencode/client/promise"
-import { useServer } from "@/runtime/server/current"
+import { createEffect, createSignal, For, onCleanup, onMount, Show, untrack } from "solid-js"
 import { useLanguage } from "@/runtime/i18n/language"
-import { usePlatform } from "@/runtime/platform/platform"
 import { Persist, persisted } from "@/runtime/persistence/storage"
 import { Persistence } from "@/runtime/persistence/schema"
-import en from "@/runtime/i18n/en"
 import { useVoice } from "./context"
 import {
   canGrabVoicePanel,
@@ -28,15 +23,6 @@ import {
 } from "./panel-machine"
 import "./voice.css"
 
-const toggle = motionTuning.toggle("voice.calls", {
-  label: en["experiment.voiceCalls"],
-  group: "Voice",
-  description: "Call button in the composer",
-  target: ".voice-call-action",
-  experiment: true,
-  value: false,
-})
-
 // Where the panel was dragged to, as an offset from its bottom-right home.
 const PanelState = Persistence.struct({
   x: Schema.Number,
@@ -44,42 +30,26 @@ const PanelState = Persistence.struct({
   expanded: Schema.Boolean,
 })
 
-export function VoiceComposer(props: ParentProps<{ session: SessionInfo | undefined }>) {
+export function VoiceCallButton(props: { onClick: () => void; disabled?: boolean }) {
   const voice = useVoice()
-  const server = useServer()
   const language = useLanguage()
-  const platform = usePlatform()
-  const [state, setState] = createStore({ enabled: toggle() })
-  onCleanup(motionTuning.subscribe(() => setState("enabled", toggle())))
-
-  const enabled = () =>
-    platform.platform === "desktop" && import.meta.env.VITE_OPENCODE_CHANNEL !== "prod" && state.enabled
-
-  createEffect(() => {
-    const session = props.session
-
-    if (session) voice.syncSession(server.key, session)
-  })
 
   return (
-    <>
-      {props.children}
-      <Show when={enabled() && props.session && voice.view().canStart}>
-        <div class="voice-call-action">
-          <Button
-            size="small"
-            variant="ghost"
-            onClick={() => {
-              const session = props.session
-
-              if (session) voice.start(server.key, server.ctx, session)
-            }}
-          >
-            {language.t("voice.call")}
-          </Button>
-        </div>
-      </Show>
-    </>
+    <Show when={!!navigator.mediaDevices?.getUserMedia && voice.view().canStart}>
+      <Tooltip placement="top" value={language.t("voice.call")}>
+        <IconButton
+          data-action="composer-voice-call"
+          type="button"
+          variant="ghost-muted"
+          class="size-7 shrink-0 rounded-md p-1.5 pointer-coarse:size-11 pointer-coarse:rounded-lg"
+          aria-label={language.t("voice.call")}
+          icon={<Icon name="phone" />}
+          disabled={props.disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={props.onClick}
+        />
+      </Tooltip>
+    </Show>
   )
 }
 

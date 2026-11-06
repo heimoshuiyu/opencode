@@ -161,17 +161,21 @@ function PreparingSession(props: { sessionID: string; pending: PendingSession })
         <div data-component="session-preparing" class="min-h-0 flex-1 overflow-y-auto">
           <SessionIdentityHeader sessionID={props.sessionID} />
           <div class="mx-auto w-full min-w-0 px-4 pb-5 md:max-w-session md:px-6">
-            <SessionUserMessage
-              sessionID={props.sessionID}
-              message={props.pending.message}
-              comments={readPromptPresentation(props.pending.message.metadata)?.comments}
-              historicalAgent={props.pending.selection.agent}
-              historicalModel={{
-                id: props.pending.selection.model.modelID,
-                providerID: props.pending.selection.model.providerID,
-                variant: props.pending.selection.variant,
-              }}
-            />
+            <Show when={props.pending.message}>
+              {(message) => (
+                <SessionUserMessage
+                  sessionID={props.sessionID}
+                  message={message()}
+                  comments={readPromptPresentation(message().metadata)?.comments}
+                  historicalAgent={props.pending.selection.agent}
+                  historicalModel={{
+                    id: props.pending.selection.model.modelID,
+                    providerID: props.pending.selection.model.providerID,
+                    variant: props.pending.selection.variant,
+                  }}
+                />
+              )}
+            </Show>
             <div
               role="status"
               class="mt-3 flex min-h-6 items-center text-[13px] font-medium leading-[var(--line-height-compact)] text-v2-text-text-muted"

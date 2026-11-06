@@ -3,7 +3,7 @@ import { Tooltip } from "@opencode/ui/tooltip"
 import { Icon } from "@opencode/ui/icon"
 import { Keybind } from "@opencode/ui/keybind"
 import { useCommand } from "@/shell/commands/command"
-import { Show, createComputed, createMemo, createSignal, onCleanup, untrack } from "solid-js"
+import { Show, createComputed, createMemo, createSignal, onCleanup, untrack, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 import {
@@ -63,6 +63,7 @@ export const ProviderTipSchema = Persistence.struct({
 
 export function NewSessionView(props: {
   composer: ComposerModel
+  callControl?: JSX.Element
   project: PromptProjectController
   workspace: NewSessionWorkspaceController
   location: ReturnType<typeof useNewSessionLocationDialog>
@@ -124,7 +125,7 @@ export function NewSessionView(props: {
             <div class="mt-8 flex flex-col gap-3">
               <div data-slot="new-session-composer" class="flex flex-col gap-1">
                 <div class="relative z-10">
-                  <Composer model={props.composer} />
+                  <Composer model={props.composer} callControl={props.callControl} />
                 </div>
                 <Show when={props.project.selected()}>
                   {(project) => (

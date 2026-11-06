@@ -812,6 +812,7 @@ function mockHandlers(
         reference: () => Effect.succeed({ location: location(config), data: [] }),
         transcription: () => Effect.succeed({ location: location(config), data: { text: "Dictated sentence." } }),
         advancedTranscription: () => Effect.succeed({ location: location(config), data: { text: "Dictated sentence." } }),
+        voiceModels: () => Effect.succeed({ data: { models: [] } }),
         // `beforeAgentsResponse` holds the Location's agent list, as a cold Location does while its plugins activate.
         agent: (ctx) =>
           Effect.promise(async () => config.beforeAgentsResponse?.()).pipe(

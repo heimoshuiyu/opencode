@@ -59,6 +59,48 @@ test("the new session screen does not show session details", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Session details", exact: true })).toHaveCount(0)
 })
 
+test("calling from a draft keeps its unsent text and the same session can call again", async ({ page }) => {
+  const created: string[] = []
+  const prompts: string[] = []
+
+  const view = await openDraft(page, {
+    name: "VoiceDraft",
+    onSessionCreate: (body) => void created.push(String(body.id)),
+    onPrompt: (prompt) => void prompts.push(prompt.sessionID),
+  })
+
+  const call = page.getByRole("button", { name: "Call", exact: true })
+  const panel = page.getByRole("region", { name: "Voice call", exact: true })
+  await view.editor.fill("Keep this unsent")
+  await call.click()
+  await expect(panel).toBeVisible()
+  expect(created).toHaveLength(1)
+  await expectPath(page, sessionHref(created[0]!))
+  await expect(view.editor).toHaveText("Keep this unsent")
+  await expect(panel.getByRole("button", { name: "Rejoin" })).toBeVisible()
+  await panel.getByRole("button", { name: "End", exact: true }).click()
+  await call.click()
+  await expect(panel.getByRole("button", { name: "Rejoin" })).toBeVisible()
+  expect(created).toHaveLength(1)
+  expect(prompts).toEqual([])
+  await panel.getByRole("button", { name: "End", exact: true }).click()
+})
+
+test.describe("touch call action", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+
+  test("a failed call restores the draft once and leaves the phone action available", async ({ page }) => {
+    const view = await openDraft(page, { name: "TouchCall", onSessionCreate: failFirstCreate })
+    const call = page.locator('[data-slot="composer-touch-bar"]').getByRole("button", { name: "Call", exact: true })
+    await view.editor.fill("Still editing")
+    await call.tap()
+    await expect(page.getByText("Failed to create session", { exact: true })).toBeVisible()
+    await expectPath(page, draftHref(view.draftID))
+    await expect(view.editor).toHaveText("Still editing")
+    await expect(call).toBeEnabled()
+  })
+})
+
 test("the location shortcuts choose worktrees from every state and keep cycling", async ({ page }) => {
   const root = "C:/OpenCode/LocationShortcut"
 

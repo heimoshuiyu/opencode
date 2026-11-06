@@ -1,7 +1,8 @@
 import type { OpenCodeClient } from "@opencode/client/promise"
 import { uuid } from "@opencode/util/uuid"
 import { decodeEvent, type VoiceEvent } from "./protocol"
-import { delegatorInstructions, liveInstructions, tools } from "./spec"
+import { type clientSession, delegatorInstructions, liveInstructions, tools } from "./spec"
+import type { VoiceRecorder } from "./recorder"
 import {
   canJoinVoiceTransport,
   canSendVoiceTransport,
@@ -53,6 +54,8 @@ export class VoiceTransport {
   constructor(
     private readonly inputOptions: {
       voice: OpenCodeClient["experimental"]["voice"]
+      clientSession?: (signal: AbortSignal) => Promise<ReturnType<typeof clientSession>>
+      recorder?: VoiceRecorder
       event: (event: VoiceEvent) => void
       levels: (input: number, output: number) => void
       dropped: () => void
@@ -187,6 +190,7 @@ export class VoiceTransport {
     }
 
     if (effect.type === "stop.media") {
+      this.inputOptions.recorder?.stop()
       this.stream?.getTracks().forEach((track) => track.stop())
       this.audio.pause()
       this.audio.srcObject = null
@@ -250,10 +254,9 @@ export class VoiceTransport {
   }
 
   private async negotiate(viewing: VoiceJoinTarget, tail: string) {
-    const response = await this.inputOptions.voice.session(
-      {
-        model: "gpt-live-1",
-        session: {
+    const session = this.inputOptions.clientSession
+      ? await this.inputOptions.clientSession(this.signal)
+      : {
           model: "gpt-live-1",
           instructions: liveInstructions,
           audio: { output: { voice: "marin" } },
@@ -266,7 +269,11 @@ export class VoiceTransport {
               reasoning: { effort: "low" },
             },
           },
-        },
+        }
+    const response = await this.inputOptions.voice.session(
+      {
+        model: "gpt-live-1",
+        session,
         transport: { type: "webrtc", sdp: this.peer.localDescription!.sdp, dcid: 4 },
       },
       { signal: this.abort.signal },
@@ -290,6 +297,7 @@ export class VoiceTransport {
 
     this.stream = stream
     this.input = this.analyser(stream)
+    this.inputOptions.recorder?.attach(stream)
     await this.sender.replaceTrack(stream.getAudioTracks()[0])
     this.dispatch({ type: "mic.ready" })
   }

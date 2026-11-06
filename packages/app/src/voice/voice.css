@@ -1,8 +1,3 @@
-.voice-call-action {
-  display: flex;
-  justify-content: flex-end;
-  padding-block-start: 4px;
-}
 /* Home is the bottom-right corner, above the composer; a drag offsets it with a transform. */
 .voice-panel {
   position: fixed;

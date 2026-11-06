@@ -65,14 +65,16 @@ export const layer = Layer.effect(
           Effect.map((info) => info?.connections.find((item) => item.type === "env" || methods.includes(item.method))),
         )
 
-    // Where an engine's sessions start: its provider with the server's key or, for GPT-Live without an OpenAI key,
-    // OpenCode's hosted GPT-Live with the server's OpenCode Console connection, whose sign-in works as well as a key.
+    // Where an engine's sessions start: its provider with the server's key or, for GPT-Live, always
+    // OpenCode's hosted GPT-Live with the server's OpenCode Console connection, whose sign-in works
+    // as well as a key.
     const source = Effect.fnUntraced(function* (engine: (typeof Realtime.engines)[number]) {
+      if (engine.id === "openai-live") {
+        const hosted = yield* findConnection(openCodeLive.provider, ["key", "oauth"])
+        return hosted && { provider: openCodeLive.provider, connection: hosted }
+      }
       const connection = yield* findConnection(engine.provider)
-      if (connection) return { provider: engine.provider, connection }
-      if (engine.id !== "openai-live") return undefined
-      const hosted = yield* findConnection(openCodeLive.provider, ["key", "oauth"])
-      return hosted && { provider: openCodeLive.provider, connection: hosted }
+      return connection && { provider: engine.provider, connection }
     })
 
     const models = Effect.fn("Voice.models")(function* () {
@@ -153,7 +155,7 @@ const sessionAccess = (provider: string, credential: Credential.Value) => {
 }
 
 const missingLiveKeyMessage =
-  "GPT-Live needs an OpenAI API key (a stored key or OPENAI_API_KEY) or an OpenCode Console connection on the server. ChatGPT sign-in can't start voice sessions."
+  "GPT-Live needs an OpenCode Console connection (an API key or account sign-in) on the server."
 
 const missingKeyMessage = {
   openai:

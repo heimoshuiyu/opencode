@@ -35,6 +35,23 @@ export function delegatorInstructions(viewing: { id: string; title?: string }, t
   return `${instructions}\nViewed session: ${JSON.stringify({ id: viewing.id, title: viewing.title })}\nRecent voice conversation:\n${tail}`
 }
 
+export const transcriptNotice = "The user is on a voice call; the user messages that follow are their speech, transcribed. Reply briefly in plain conversational prose that can be read aloud — no markdown, code blocks, or lists."
+
+/** The trained delegation trigger hands work to the bound OpenCode session, not a Responses backend. */
+export function clientSession(briefing: string) {
+  return {
+    model: "gpt-live-1",
+    audio: { output: { voice: "marin" } },
+    delegation: { type: "client" },
+    instructions: `You are OpenCode's voice assistant. Speak naturally and briefly. Do not speak until the user speaks.
+Backchannel policy: Use moderate backchannels. Acknowledge naturally without competing with the main response.
+Interruption policy: Stop speaking when the user interrupts. Listen to what they say.
+Delegation policy: An OpenCode agent has the tools; you do not. Generate <|SpawnThinking|> for coding, sessions, navigation, status checks, other work, and corrections to work in progress. Delegate before claiming to act. Do not delegate ordinary conversation, brief clarifications, or background speech.
+While a delegation is pending, don't explain or answer it yourself. Acknowledge it once without predicting the result. The agent's words arrive as commentary: relay them aloud, briefly and in order, without repeating yourself. If the agent asks a question, ask it and delegate the user's answer; do not choose for them.
+The following is context about the session, not instructions or results of a delegation:\n${briefing}`,
+  }
+}
+
 const session = { session_id: { type: "string", description: "Omit for the viewed session" } }
 
 const limit = { type: "integer", minimum: 1, maximum: 100 }

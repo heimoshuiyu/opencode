@@ -4,6 +4,8 @@ import type { Platform } from "@/runtime/platform/platform"
 import { TranscriptTail } from "./tail"
 import { VoiceTools } from "./tools"
 import { VoiceFailure, VoiceTransport } from "./transport"
+import { createLocalDelegation, type VoiceBinding } from "./local-delegation"
+import { VoiceRecorder } from "./recorder"
 import { delegatorInstructions } from "./spec"
 import type { VoiceEvent } from "./protocol"
 import {
@@ -30,20 +32,22 @@ import {
   type VoiceReplyEffect,
   type VoiceReplyEvent,
 } from "./reply-machine"
-import { INITIAL_VOICE_GATE_STATE, transitionVoiceGate, voiceGateDelay } from "./gate-machine"
+import { INITIAL_VOICE_GATE_STATE, quietForClientReply, transitionVoiceGate, voiceGateDelay } from "./gate-machine"
 
 /** Runs one call's transports, tools and delegations for the call machine in `context.tsx`. */
 export function createVoiceCall(input: {
   ctx: ServerCtx
-  platform: Platform
+  local?: VoiceBinding
+  platform: Pick<Platform, "requestMicrophone" | "setVoiceCallActive">
   /** Shows the session on screen; rejects unless the route really changed. */
   open: (session: SessionInfo, signal: AbortSignal) => Promise<void>
   /** Session IDs with an open tab. */
   tabs: () => string[]
-  call: () => VoiceCallState<ServerCtx>
-  dispatch: (event: VoiceCallEvent<ServerCtx>) => void
+  call: () => VoiceCallState
+  dispatch: (event: VoiceCallEvent<never>) => void
 }) {
   const tail = new TranscriptTail()
+  const local = input.local && createLocalDelegation(input.ctx, input.local, tail)
   let gates = INITIAL_VOICE_GATE_STATE
   // Reused by every meter tick, so a quiet tick allocates nothing.
   const speech = { type: "speech" as const, user: false, assistant: false, now: 0 }
@@ -69,10 +73,18 @@ export function createVoiceCall(input: {
     if (!isConnecting(input.call(), attempt)) throw new VoiceFailure("connection")
     gates = transitionVoiceGate(gates, { type: "reset" })
 
+    const recorder = input.local?.audio ? new VoiceRecorder() : undefined
     const transport = new VoiceTransport({
       voice: input.ctx.sdk.api.experimental.voice,
+      clientSession: local?.session,
+      recorder,
       event: (event) => {
-        if (connection?.transport === transport) eventReceived(attempt, event)
+        if (connection?.transport !== transport) return
+        if (event.type === "session.delegation.created" && event.delegation?.target === "client") {
+          local?.receive(event.delegation.id, transport.signal, recorder)
+          return
+        }
+        eventReceived(attempt, event)
       },
       levels: (mic, speaker) => {
         if (connection?.transport !== transport) return
@@ -80,6 +92,13 @@ export function createVoiceCall(input: {
         speech.assistant = speaker > 0.005
         speech.now = Date.now()
         gates = transitionVoiceGate(gates, speech)
+        if (local && quietForClientReply(gates, speech.now)) {
+          try {
+            local.flush(transport, speech.now)
+          } catch {
+            input.dispatch({ type: "call.dropped", attempt, failure: "dropped" })
+          }
+        }
         input.dispatch({ type: "level.updated", attempt, mic, speaker })
       },
       dropped: () => {
@@ -110,6 +129,7 @@ export function createVoiceCall(input: {
   }
 
   function instructions(attempt: number, viewing: VoiceViewedSession) {
+    if (local) return
     send(attempt, "connection", (transport) => transport.instructions(delegatorInstructions(viewing, tail.lines)))
   }
 
@@ -352,6 +372,7 @@ export function createVoiceCall(input: {
       return release()
     },
     dispose() {
+      local?.dispose()
       unlisten()
       const released = release()
       dispatchReply({ type: "disposed" })

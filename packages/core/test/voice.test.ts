@@ -119,13 +119,13 @@ it.effect("uses the first key or env connection Integration lists and never a Ch
     const call = (model: string, connections: Partial<Record<string, Integration.Info["connections"]>>) =>
       start(model, connections, requests)
 
-    yield* call("gpt-live-1", { openai: [credential("active", "key"), credential("stored", "key")] })
-    yield* call("gpt-live-1", { openai: [credential("chatgpt", "oauth"), credential("stored", "key")] })
+    yield* call("gpt-live-1", { opencode: [credential("active", "key"), credential("stored", "key")] })
+    yield* call("gpt-live-1", { openai: [credential("active", "key")], opencode: [credential("console", "oauth")] })
     const grok = yield* call("grok-voice-3.0", { xai: [{ type: "env", name: "XAI_API_KEY" }] })
     const gemini = yield* call("gemini-3.8-live", { google: [{ type: "env", name: "GEMINI_API_KEY" }] })
     expect(requests.map((req) => req.headers.authorization ?? req.headers["x-goog-api-key"])).toEqual([
       "Bearer sk-active",
-      "Bearer sk-stored",
+      "Bearer console-access",
       "Bearer xai-env-key",
       "gemini-env-key",
     ])
@@ -142,9 +142,9 @@ it.effect("uses the first key or env connection Integration lists and never a Ch
       expiresAt: 1760000060,
     })
 
-    const signInOnly = yield* call("gpt-live-1", { openai: [credential("chatgpt", "oauth")] }).pipe(Effect.flip)
-    expect(signInOnly._tag).toBe("Voice.UnavailableError")
-    expect(signInOnly.message).toContain("OpenAI API key")
+    const noConsole = yield* call("gpt-live-1", { openai: [credential("chatgpt", "oauth")] }).pipe(Effect.flip)
+    expect(noConsole._tag).toBe("Voice.UnavailableError")
+    expect(noConsole.message).toContain("OpenCode Console connection")
 
     const missingGoogle = yield* call("gemini-3.8-live", {}).pipe(Effect.flip)
     expect(missingGoogle).toMatchObject({ _tag: "Voice.UnavailableError", service: "google" })
@@ -153,7 +153,7 @@ it.effect("uses the first key or env connection Integration lists and never a Ch
 )
 
 it.effect(
-  "starts GPT-Live on OpenCode's hosted endpoint with an OpenCode Console connection only without an OpenAI key",
+  "starts GPT-Live on OpenCode's hosted endpoint even when an OpenAI key exists",
   () =>
     Effect.gen(function* () {
       const requests: HttpClientRequest.HttpClientRequest[] = []
@@ -171,7 +171,7 @@ it.effect(
       ).toEqual([
         ["https://opencode.ai/inference/openai/v1/live/sessions", "Bearer console-access", "wrk_console"],
         ["https://opencode.ai/inference/openai/v1/live/sessions", "Bearer opencode-env-key", undefined],
-        ["https://api.openai.com/v1/live/sessions", "Bearer sk-active", undefined],
+        ["https://opencode.ai/inference/openai/v1/live/sessions", "Bearer console-access", "wrk_console"],
       ])
 
       const realtime = yield* start("gpt-realtime-2.1", opencode, requests).pipe(Effect.flip)
@@ -213,26 +213,26 @@ it.effect("lists voice models with availability and default without resolving cr
     })
 
     expect(
-      yield* list({ openai: [credential("chatgpt", "oauth")], opencode: [credential("console", "oauth")] }),
+      yield* list({ openai: [credential("active", "key")], opencode: [credential("console", "oauth")] }),
     ).toEqual({
       models: [
         { model: "gpt-live-1", provider: "opencode", transports: ["webrtc"], available: true },
-        { model: "gpt-realtime-2.1", provider: "openai", transports: ["webrtc", "websocket"], available: false },
+        { model: "gpt-realtime-2.1", provider: "openai", transports: ["webrtc", "websocket"], available: true },
         { model: "grok-voice-3.0", provider: "xai", transports: ["websocket"], available: false },
         { model: "gemini-3.8-live", provider: "google", transports: ["websocket"], available: false },
       ],
       default: "gpt-live-1",
     })
 
-    const none = yield* list({ openai: [credential("chatgpt", "oauth")] })
-    expect(none).toEqual({
+    const openAIKeyOnly = yield* list({ openai: [credential("active", "key")] })
+    expect(openAIKeyOnly).toEqual({
       models: [
         { model: "gpt-live-1", provider: "openai", transports: ["webrtc"], available: false },
-        { model: "gpt-realtime-2.1", provider: "openai", transports: ["webrtc", "websocket"], available: false },
+        { model: "gpt-realtime-2.1", provider: "openai", transports: ["webrtc", "websocket"], available: true },
         { model: "grok-voice-3.0", provider: "xai", transports: ["websocket"], available: false },
         { model: "gemini-3.8-live", provider: "google", transports: ["websocket"], available: false },
       ],
+      default: "gpt-realtime-2.1",
     })
-    expect("default" in none).toBe(false)
   }),
 )
