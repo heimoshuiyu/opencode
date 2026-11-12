@@ -1,0 +1,70 @@
+{
+  "emulator": "emulator-5598",
+  "api": 36,
+  "termuxTargetSdk": 28,
+  "mcpTargetSdk": 36,
+  "pairs": [
+    {
+      "requestedEnabled": false,
+      "initial": "Wifi is enabled",
+      "termux": {
+        "exit": 0,
+        "stdoutHex": "0a",
+        "uiActionRequired": false,
+        "after": "Wifi is disabled"
+      },
+      "mcp": {
+        "uiActionRequired": true,
+        "whenSettingsOpened": "Wifi is enabled",
+        "reply": {
+          "opened": true,
+          "requestedEnabled": false,
+          "actualEnabled": false,
+          "achieved": true
+        },
+        "after": "Wifi is disabled"
+      }
+    },
+    {
+      "requestedEnabled": true,
+      "initial": "Wifi is disabled",
+      "termux": {
+        "exit": 0,
+        "stdoutHex": "0a",
+        "uiActionRequired": false,
+        "after": "Wifi is enabled"
+      },
+      "mcp": {
+        "uiActionRequired": true,
+        "whenSettingsOpened": "Wifi is disabled",
+        "reply": {
+          "opened": true,
+          "requestedEnabled": true,
+          "actualEnabled": true,
+          "achieved": true
+        },
+        "after": "Wifi is enabled"
+      }
+    }
+  ],
+  "cancel": {
+    "action": "cancel",
+    "before": "Wifi is enabled",
+    "mcp": {
+      "opened": true,
+      "requestedEnabled": false,
+      "actualEnabled": true,
+      "achieved": false
+    },
+    "panelSwitch": "com.android.settings:id/switchWidget",
+    "atPanelOpen": "Wifi is enabled",
+    "pendingBeforeDismiss": true,
+    "after": "Wifi is enabled"
+  },
+  "decline": {
+    "action": "decline",
+    "error": "Device request declined"
+  },
+  "instrumentationCode": -1,
+  "unattendedParity": false
+}

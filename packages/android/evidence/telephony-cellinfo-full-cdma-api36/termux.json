@@ -1,0 +1,13 @@
+[
+  {
+    "type": "gsm",
+    "registered": true,
+    "asu": 24,
+    "dbm": -65,
+    "level": 4,
+    "cid": 47108,
+    "lac": 8514,
+    "mcc": 310,
+    "mnc": 260
+  }
+]

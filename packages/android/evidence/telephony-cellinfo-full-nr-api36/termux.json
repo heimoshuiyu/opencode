@@ -1,0 +1,18 @@
+[
+  {
+    "type": "nr",
+    "registered": true,
+    "asu": 62,
+    "dbm": -78,
+    "level": 3,
+    "nci": 100500,
+    "pci": 555,
+    "tac": 8514,
+    "mcc": "310",
+    "mnc": "260",
+    "ss_rsrp": -78,
+    "bands": [
+      41
+    ]
+  }
+]

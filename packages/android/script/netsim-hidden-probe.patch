@@ -1,0 +1,35 @@
+diff --git a/src/ap-actor/src/ieee802_11.rs b/src/ap-actor/src/ieee802_11.rs
+index e0f81ea..35e196d 100644
+--- a/src/ap-actor/src/ieee802_11.rs
++++ b/src/ap-actor/src/ieee802_11.rs
+@@ -80,14 +80,14 @@ impl Ieee80211Manager {
+         frame.extend_from_slice(fixed.as_bytes());
+ 
+         // IEs
+-        self.append_beacon_ies(&mut frame, ap);
++        self.append_beacon_ies(&mut frame, ap, frame_control.frame_subtype() == management_subtype::BEACON);
+ 
+         frame
+     }
+ 
+-    fn append_beacon_ies(&self, body: &mut Vec<u8>, ap: &ApState) {
++    fn append_beacon_ies(&self, body: &mut Vec<u8>, ap: &ApState, beacon: bool) {
+         // SSID IE
+-        if ap.config.hidden_ssid {
++        if beacon && ap.config.hidden_ssid {
+             write_ie(body, tags::SSID, &[]);
+         } else {
+             write_ie(body, tags::SSID, ap.config.ssid.as_bytes());
+diff --git a/src/ap-actor/tests/beacon_test.rs b/src/ap-actor/tests/beacon_test.rs
+index 538e534..91f7717 100644
+--- a/src/ap-actor/tests/beacon_test.rs
++++ b/src/ap-actor/tests/beacon_test.rs
+@@ -522,6 +522,8 @@ async fn test_hidden_ssid() {
+         world.recv_frame(|frame, _| frame.stype() == management_subtype::PROBE_RESPONSE).await;
+ 
+     assert_eq!(resp[0], 0x50, "Expected Probe Response");
++    let ssid = netsim_packets::IeIterator::new(&resp[36..]).find(|ie| ie.id == 0).expect("SSID IE");
++    assert_eq!(ssid.body, b"HiddenAP", "Directed response must contain the configured name");
+ }
+ 
+ #[tokio::test]

@@ -1,0 +1,1 @@
+BSSID=02:15:b2:00:00:39 emptySSIDBeacons=5051 namedProbeResponsesToStation=15 firstBeacon=110 probe/reply=(1166, 1169)

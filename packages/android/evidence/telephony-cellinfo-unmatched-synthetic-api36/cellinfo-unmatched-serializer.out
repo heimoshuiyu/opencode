@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: cellinfo-unmatched-serializer={"fixture":"synthetic CellInfoTdscdma","default":{"cells":[{"type":"CellInfoTdscdma","registered":true,"dbm":-85,"level":3}]},"basic":{"cells":[{"type":"CellInfoTdscdma","registered":true,"dbm":-85,"level":3}]},"full":{"cells":[{}]}}
+INSTRUMENTATION_CODE: -1

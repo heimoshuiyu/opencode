@@ -1,0 +1,31 @@
+{
+  "emulator": "emulator-5598",
+  "api": 36,
+  "virtualApsCreated": 101,
+  "preflightDistinct": 102,
+  "termuxExit": 0,
+  "instrumentationCode": -1,
+  "sameOrderAcrossCalls": true,
+  "termux": {
+    "cacheBefore": 102,
+    "cacheAfter": 102,
+    "returned": 102,
+    "distinct": 102,
+    "sameOrderAsBothSnapshots": true,
+    "missing": [],
+    "extra": [],
+    "duplicates": 0,
+    "lastBssid": "02:ad:10:00:00:03"
+  },
+  "mcp": {
+    "cacheBefore": 102,
+    "cacheAfter": 102,
+    "returned": 102,
+    "distinct": 102,
+    "sameOrderAsBothSnapshots": true,
+    "missing": [],
+    "extra": [],
+    "duplicates": 0,
+    "lastBssid": "02:ad:10:00:00:03"
+  }
+}

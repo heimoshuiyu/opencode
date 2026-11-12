@@ -1,0 +1,12 @@
+{
+  "bssid": "02:15:b2:00:00:39",
+  "frequency_mhz": 2437,
+  "ip": "10.0.2.15",
+  "link_speed_mbps": 1,
+  "mac_address": "02:00:00:00:00:00",
+  "network_id": 1,
+  "rssi": -50,
+  "ssid": "OcHiddenFixture",
+  "ssid_hidden": false,
+  "supplicant_state": "COMPLETED"
+}

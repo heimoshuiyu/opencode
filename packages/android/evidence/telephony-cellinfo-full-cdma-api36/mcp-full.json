@@ -1,0 +1,15 @@
+{
+  "cells": [
+    {
+      "registered": true,
+      "type": "gsm",
+      "asu": 24,
+      "level": 4,
+      "dbm": -65,
+      "cid": 47108,
+      "lac": 8514,
+      "mcc": 310,
+      "mnc": 260
+    }
+  ]
+}

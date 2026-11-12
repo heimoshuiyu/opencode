@@ -1,0 +1,14 @@
+[
+  [
+    "termux-api",
+    "v0.53.0",
+    "termux-api-app_v0.53.0+github.debug.apk",
+    "ecf916ff80ae751e65c092f51c055cce4de417ebeea8e449cd0f294afdbde39a"
+  ],
+  [
+    "termux-app",
+    "v0.118.3",
+    "termux-app_v0.118.3+github-debug_x86_64.apk",
+    "3550e61f4d9eb49b712fd1bd9519dc37085a4d8eb597c57a340f0a64859b7144"
+  ]
+]

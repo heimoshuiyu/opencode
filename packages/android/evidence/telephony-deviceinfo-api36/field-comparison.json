@@ -1,0 +1,106 @@
+{
+  "guest": "emulator-5586 API 36",
+  "reference": "Termux:API v0.53.0 / termux-api-package 9e7f153",
+  "view": "full",
+  "ordinaryReadPhoneStateBoth": true,
+  "missing": [],
+  "extra": [],
+  "matched": 18,
+  "restrictedGetterOutcomes": {
+    "device_id": "SecurityException",
+    "sim_serial_number": "SecurityException",
+    "sim_subscriber_id": "SecurityException"
+  },
+  "fields": {
+    "data_activity": {
+      "upstream": "none",
+      "mcp": "none",
+      "sameTypeAndValue": true
+    },
+    "data_enabled": {
+      "upstream": "true",
+      "mcp": "true",
+      "sameTypeAndValue": true
+    },
+    "data_state": {
+      "upstream": "connected",
+      "mcp": "connected",
+      "sameTypeAndValue": true
+    },
+    "device_id": {
+      "upstream": null,
+      "mcp": null,
+      "sameTypeAndValue": true
+    },
+    "device_software_version": {
+      "upstream": "01",
+      "mcp": "01",
+      "sameTypeAndValue": true
+    },
+    "network_country_iso": {
+      "upstream": "us",
+      "mcp": "us",
+      "sameTypeAndValue": true
+    },
+    "network_operator": {
+      "upstream": "310260",
+      "mcp": "310260",
+      "sameTypeAndValue": true
+    },
+    "network_operator_name": {
+      "upstream": "T-Mobile",
+      "mcp": "T-Mobile",
+      "sameTypeAndValue": true
+    },
+    "network_roaming": {
+      "upstream": false,
+      "mcp": false,
+      "sameTypeAndValue": true
+    },
+    "network_type": {
+      "upstream": "nr",
+      "mcp": "nr",
+      "sameTypeAndValue": true
+    },
+    "phone_count": {
+      "upstream": 1,
+      "mcp": 1,
+      "sameTypeAndValue": true
+    },
+    "phone_type": {
+      "upstream": "gsm",
+      "mcp": "gsm",
+      "sameTypeAndValue": true
+    },
+    "sim_country_iso": {
+      "upstream": "us",
+      "mcp": "us",
+      "sameTypeAndValue": true
+    },
+    "sim_operator": {
+      "upstream": "310260",
+      "mcp": "310260",
+      "sameTypeAndValue": true
+    },
+    "sim_operator_name": {
+      "upstream": "T-Mobile",
+      "mcp": "T-Mobile",
+      "sameTypeAndValue": true
+    },
+    "sim_serial_number": {
+      "upstream": null,
+      "mcp": null,
+      "sameTypeAndValue": true
+    },
+    "sim_state": {
+      "upstream": "ready",
+      "mcp": "ready",
+      "sameTypeAndValue": true
+    },
+    "sim_subscriber_id": {
+      "upstream": null,
+      "mcp": null,
+      "sameTypeAndValue": true
+    }
+  }
+}

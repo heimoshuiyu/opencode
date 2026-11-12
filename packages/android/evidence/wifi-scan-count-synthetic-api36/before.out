@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: failure=java.lang.IllegalStateException: Wi-Fi scan list mismatch: {"fixture":"synthetic ScanResult","inputCount":101,"returnedCount":100,"expectedLastBssid":"02:00:00:00:00:54","returnedLastBssid":"02:00:00:00:00:43","orderMatches":false}
+INSTRUMENTATION_CODE: 0

@@ -1,0 +1,104 @@
+{
+  "emulator": "emulator-5588",
+  "api": 36,
+  "join": [
+    "type",
+    "mcc",
+    "mnc",
+    "nci"
+  ],
+  "termuxRecords": 1,
+  "mcpRecords": 1,
+  "nrPairs": [
+    {
+      "identity": {
+        "type": "nr",
+        "mcc": "310",
+        "mnc": "260",
+        "nci": 100500
+      },
+      "missing": [],
+      "extra": [],
+      "fields": [
+        {
+          "field": "asu",
+          "termux": 62,
+          "mcp": 62,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "bands",
+          "termux": [
+            41
+          ],
+          "mcp": [
+            41
+          ],
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "dbm",
+          "termux": -78,
+          "mcp": -78,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "level",
+          "termux": 3,
+          "mcp": 3,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mcc",
+          "termux": "310",
+          "mcp": "310",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mnc",
+          "termux": "260",
+          "mcp": "260",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "nci",
+          "termux": 100500,
+          "mcp": 100500,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "pci",
+          "termux": 555,
+          "mcp": 555,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "registered",
+          "termux": true,
+          "mcp": true,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "ss_rsrp",
+          "termux": -78,
+          "mcp": -78,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "tac",
+          "termux": 8514,
+          "mcp": 8514,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "type",
+          "termux": "nr",
+          "mcp": "nr",
+          "sameTypeAndValue": true
+        }
+      ],
+      "matched": 12
+    }
+  ],
+  "instrumentationCode": -1
+}

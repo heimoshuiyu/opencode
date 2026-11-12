@@ -1,0 +1,920 @@
+[
+  {
+    "bssid": "02:ad:22:00:00:5a",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp090",
+    "timestamp": 119567465,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:5b",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp091",
+    "timestamp": 119564645,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:5c",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp092",
+    "timestamp": 119565295,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:5d",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp093",
+    "timestamp": 119567554,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:5e",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp094",
+    "timestamp": 119566913,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:5f",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp095",
+    "timestamp": 119567136,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4a",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp074",
+    "timestamp": 119567213,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4b",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp075",
+    "timestamp": 119565110,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4c",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp076",
+    "timestamp": 119567059,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4d",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp077",
+    "timestamp": 119565241,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4e",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp078",
+    "timestamp": 119564369,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:4f",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp079",
+    "timestamp": 119567854,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:60",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp096",
+    "timestamp": 119565419,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:61",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp097",
+    "timestamp": 119565516,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:62",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp098",
+    "timestamp": 119568988,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:63",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp099",
+    "timestamp": 119567946,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:64",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp100",
+    "timestamp": 119568045,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:65",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp101",
+    "timestamp": 119566208,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:05",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp005",
+    "timestamp": 119566535,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:06",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp006",
+    "timestamp": 119569122,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:07",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp007",
+    "timestamp": 119565723,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:08",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp008",
+    "timestamp": 119568050,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:09",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp009",
+    "timestamp": 119568165,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:15:b2:00:00:01",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "AndroidWifi",
+    "timestamp": 119570174,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:10",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp016",
+    "timestamp": 119565808,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:11",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp017",
+    "timestamp": 119564871,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:12",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp018",
+    "timestamp": 119568408,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:13",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp019",
+    "timestamp": 119565352,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:14",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp020",
+    "timestamp": 119568551,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:15",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp021",
+    "timestamp": 119566144,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:01",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp001",
+    "timestamp": 119570184,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:02",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp002",
+    "timestamp": 119568267,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:03",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp003",
+    "timestamp": 119569662,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:04",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp004",
+    "timestamp": 119570154,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:27",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp039",
+    "timestamp": 119568603,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:28",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp040",
+    "timestamp": 119564332,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:29",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp041",
+    "timestamp": 119566668,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1a",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp026",
+    "timestamp": 119565877,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1b",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp027",
+    "timestamp": 119567697,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1c",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp028",
+    "timestamp": 119563714,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1d",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp029",
+    "timestamp": 119566381,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1e",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp030",
+    "timestamp": 119569352,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:1f",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp031",
+    "timestamp": 119563786,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:30",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp048",
+    "timestamp": 119566756,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:31",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp049",
+    "timestamp": 119569077,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:32",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp050",
+    "timestamp": 119570390,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:33",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp051",
+    "timestamp": 119569726,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:34",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp052",
+    "timestamp": 119570084,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:35",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp053",
+    "timestamp": 119567746,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:36",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp054",
+    "timestamp": 119563934,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:37",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp055",
+    "timestamp": 119570264,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:16",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp022",
+    "timestamp": 119564946,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:17",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp023",
+    "timestamp": 119568123,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:18",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp024",
+    "timestamp": 119568710,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:19",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp025",
+    "timestamp": 119569267,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0a",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp010",
+    "timestamp": 119564780,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0b",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp011",
+    "timestamp": 119569995,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0c",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp012",
+    "timestamp": 119569557,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0d",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp013",
+    "timestamp": 119570213,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0e",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp014",
+    "timestamp": 119569619,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:0f",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp015",
+    "timestamp": 119569011,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:20",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp032",
+    "timestamp": 119567372,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:21",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp033",
+    "timestamp": 119570340,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:22",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp034",
+    "timestamp": 119568295,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:23",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp035",
+    "timestamp": 119566616,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:24",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp036",
+    "timestamp": 119565640,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:25",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp037",
+    "timestamp": 119565570,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:26",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp038",
+    "timestamp": 119566042,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:49",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp073",
+    "timestamp": 119567767,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3a",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp058",
+    "timestamp": 119568641,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3b",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp059",
+    "timestamp": 119569462,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3c",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp060",
+    "timestamp": 119567608,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3d",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp061",
+    "timestamp": 119569774,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3e",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp062",
+    "timestamp": 119570442,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:3f",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp063",
+    "timestamp": 119568346,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:50",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp080",
+    "timestamp": 119569190,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:51",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp081",
+    "timestamp": 119564512,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:52",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp082",
+    "timestamp": 119568078,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:53",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp083",
+    "timestamp": 119569430,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:54",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp084",
+    "timestamp": 119564524,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:55",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp085",
+    "timestamp": 119566305,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:56",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp086",
+    "timestamp": 119568770,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:57",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp087",
+    "timestamp": 119564711,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:58",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp088",
+    "timestamp": 119564576,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:59",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp089",
+    "timestamp": 119569968,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:38",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp056",
+    "timestamp": 119568893,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:39",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp057",
+    "timestamp": 119563986,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2a",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp042",
+    "timestamp": 119567296,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2b",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp043",
+    "timestamp": 119568483,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2c",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp044",
+    "timestamp": 119566823,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2d",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp045",
+    "timestamp": 119563731,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2e",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp046",
+    "timestamp": 119569298,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:2f",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp047",
+    "timestamp": 119565059,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:40",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp064",
+    "timestamp": 119565963,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:41",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp065",
+    "timestamp": 119570503,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:42",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp066",
+    "timestamp": 119564994,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:43",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp067",
+    "timestamp": 119565472,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:44",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp068",
+    "timestamp": 119565181,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:45",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp069",
+    "timestamp": 119564273,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:46",
+    "frequency_mhz": 2437,
+    "rssi": -50,
+    "ssid": "OcStamp070",
+    "timestamp": 119568832,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:47",
+    "frequency_mhz": 2462,
+    "rssi": -50,
+    "ssid": "OcStamp071",
+    "timestamp": 119566447,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  },
+  {
+    "bssid": "02:ad:22:00:00:48",
+    "frequency_mhz": 2412,
+    "rssi": -50,
+    "ssid": "OcStamp072",
+    "timestamp": 119566999,
+    "channel_bandwidth_mhz": "20",
+    "capabilities": "[ESS]"
+  }
+]

@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: cellinfo-capture={"nativeBefore":[{"class":"CellInfoNr","registered":true,"dbm":-64,"level":4,"mcc":"310","mnc":"260","nci":100500,"pci":555,"tac":8514}],"mcp":{"cells":[{"type":"CellInfoNr","registered":true,"dbm":-64,"level":4}]},"nativeAfter":[{"class":"CellInfoNr","registered":true,"dbm":-64,"level":4,"mcc":"310","mnc":"260","nci":100500,"pci":555,"tac":8514}]}
+INSTRUMENTATION_CODE: -1

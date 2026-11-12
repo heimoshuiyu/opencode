@@ -1,0 +1,8 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingTop="20dp">
+    <TextView android:id="@+id/dialog_origin" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge" android:accessibilityHeading="true" />
+    <TextView android:id="@+id/dialog_caller_title" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="4dp" android:textAppearance="?android:attr/textAppearanceMedium" />
+</LinearLayout>

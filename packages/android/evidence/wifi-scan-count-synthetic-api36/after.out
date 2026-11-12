@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: wifi-scan-count={"fixture":"synthetic ScanResult","inputCount":101,"returnedCount":101,"expectedLastBssid":"02:00:00:00:00:54","returnedLastBssid":"02:00:00:00:00:54","orderMatches":true}
+INSTRUMENTATION_CODE: -1

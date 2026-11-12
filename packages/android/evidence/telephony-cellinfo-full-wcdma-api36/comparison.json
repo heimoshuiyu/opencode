@@ -1,0 +1,123 @@
+{
+  "status": "passed",
+  "emulator": "emulator-5596",
+  "api": 36,
+  "join": [
+    "type",
+    "mcc",
+    "mnc",
+    "lac",
+    "cid"
+  ],
+  "termuxRecords": 1,
+  "mcpRecords": 1,
+  "termuxTypes": [
+    "wcdma"
+  ],
+  "mcpTypes": [
+    "wcdma"
+  ],
+  "duplicates": [],
+  "invalidKeys": [],
+  "termuxOnly": [],
+  "mcpOnly": [],
+  "uniqueWcdmaPairs": 1,
+  "pairs": [
+    {
+      "identity": {
+        "type": "wcdma",
+        "mcc": 310,
+        "mnc": 260,
+        "lac": 8514,
+        "cid": 47108
+      },
+      "missing": [],
+      "extra": [],
+      "fields": [
+        {
+          "field": "asu",
+          "termux": 42,
+          "mcp": 42,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "cid",
+          "termux": 47108,
+          "mcp": 47108,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "dbm",
+          "termux": -78,
+          "mcp": -78,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "lac",
+          "termux": 8514,
+          "mcp": 8514,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "level",
+          "termux": 4,
+          "mcp": 4,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mcc",
+          "termux": 310,
+          "mcp": 310,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mnc",
+          "termux": 260,
+          "mcp": 260,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "psc",
+          "termux": 222,
+          "mcp": 222,
+          "termuxType": "number",
+          "mcpType": "number",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "registered",
+          "termux": true,
+          "mcp": true,
+          "termuxType": "boolean",
+          "mcpType": "boolean",
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "type",
+          "termux": "wcdma",
+          "mcp": "wcdma",
+          "termuxType": "string",
+          "mcpType": "string",
+          "sameTypeAndValue": true
+        }
+      ],
+      "matched": 10
+    }
+  ],
+  "instrumentationCode": -1,
+  "termuxExit": 0
+}

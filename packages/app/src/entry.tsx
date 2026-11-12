@@ -52,7 +52,7 @@ const clearAuthToken = () => {
 // package.json carries the last stable version on every channel, so the server's build passes its own release.
 const web = createWebPlatform(import.meta.env.VITE_OPENCODE_VERSION ?? pkg.version)
 
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
+if (import.meta.env.PROD && import.meta.env.MODE !== "android" && "serviceWorker" in navigator) {
   window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js"), { once: true })
 }
 
@@ -78,7 +78,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 if (root instanceof HTMLElement && root.dataset.opencodeMounted === undefined) {
   // Lazy chunks can import the entry chunk back under a distinct URL, so claim the root before async startup.
   root.dataset.opencodeMounted = ""
-  void loadInitialLocale().then((locale) => {
+  void loadInitialLocale().then(async (locale) => {
     const auth = authFromToken(new URLSearchParams(location.search).get("auth_token"))
     clearAuthToken()
     const standalone = isStandalone()
@@ -86,14 +86,15 @@ if (root instanceof HTMLElement && root.dataset.opencodeMounted === undefined) {
 
     if (standalone) restorePwaRoute()
 
-    const server: ServerConnection.Http | undefined = web.currentServerUrl
+    const device = import.meta.env.MODE === "android"
+      ? await fetch("/android/connection.json").then((r): Promise<ServerConnection.HttpBase | null> => r.json())
+      : null
+    const http = device ?? (web.currentServerUrl ? { url: web.currentServerUrl, ...auth } : undefined)
+    const server: ServerConnection.Http | undefined = http
       ? {
           type: "http",
           authToken: !!auth,
-          http: {
-            url: web.currentServerUrl,
-            ...auth,
-          },
+          http,
         }
       : undefined
 

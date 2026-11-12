@@ -1,0 +1,1 @@
+    mCellInfo=[CellInfoGsm:{mRegistered=YES mTimeStamp=178837562666ns mCellConnectionStatus=1 CellIdentityGsm:{ mLac=8514 mCid=47108 mArfcn=42 mBsic=0x7fffffff mMcc=310 mMnc=260 mAlphaLong=T-Mobile mAlphaShort=TMOBILE mAdditionalPlmns={}} CellSignalStrengthGsm: rssi=-73 ber=99 mTa=2147483647 mLevel=4}]

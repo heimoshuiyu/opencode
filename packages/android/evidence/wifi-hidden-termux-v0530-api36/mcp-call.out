@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: failure=java.lang.IllegalStateException: {"mcp":{"enabled":true,"ssid":"\"OcHiddenFixture\"","bssid":"02:15:b2:00:00:39","macAddress":"02:00:00:00:00:00","rssi":-50,"frequencyMHz":2437,"linkMbps":1,"supplicantState":"COMPLETED","networkId":1,"ssidHidden":false,"ip":"10.0.2.15"},"declined":"Device request declined","androidHidden":false,"configuredHidden":true}
+INSTRUMENTATION_CODE: 0

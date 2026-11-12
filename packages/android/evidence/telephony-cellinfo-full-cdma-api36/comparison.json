@@ -1,0 +1,21 @@
+{
+  "status": "unverified",
+  "reason": "No CDMA records on either side after selecting CDMA only",
+  "join": [
+    "type",
+    "system",
+    "network",
+    "basestation"
+  ],
+  "termuxTypes": [
+    "gsm"
+  ],
+  "mcpTypes": [
+    "gsm"
+  ],
+  "termuxCdmaRecords": 0,
+  "mcpCdmaRecords": 0,
+  "uniqueCdmaPairs": 0,
+  "fieldComparison": null,
+  "instrumentationCode": 0
+}

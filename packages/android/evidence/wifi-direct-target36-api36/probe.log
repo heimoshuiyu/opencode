@@ -1,0 +1,2 @@
+11-11 23:16:40.291  3259  3259 I WifiDirectProbe: uid=10219 targetSdk=36 focused=true requested=false returned=false
+11-11 23:17:34.304  3259  3259 I WifiDirectProbe: uid=10219 targetSdk=36 focused=true requested=true returned=false

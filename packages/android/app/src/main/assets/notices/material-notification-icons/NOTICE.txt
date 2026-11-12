@@ -1,0 +1,5 @@
+Google Material Design Icons (Apache License 2.0).
+https://github.com/google/material-design-icons
+Bundled vector drawables imported without changes from Termux:API v0.53.0,
+commit 6c8eaa223bcc387e6b28146d340acb20712aa3e7, app/src/main/res/drawable.
+OpenCode retains its original server, event_note, done and warning drawables.

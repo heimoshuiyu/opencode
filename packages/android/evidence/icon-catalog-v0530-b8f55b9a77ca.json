@@ -1,0 +1,24 @@
+{
+  "upstreamCommit": "6c8eaa223bcc387e6b28146d340acb20712aa3e7",
+  "upstreamNames": 959,
+  "compiledChoices": 960,
+  "preserved": [
+    "done",
+    "event_note",
+    "server",
+    "warning"
+  ],
+  "added": 956,
+  "missing": [],
+  "extra": [
+    "server"
+  ],
+  "nameSha256": "764a50300a9bb3a1ec2713110fb8957c63ecdfa8bcb9d1c617ea9275c77df81c",
+  "sampleReleaseIds": {
+    "server": "0x7f0502ed",
+    "3d_rotation": "0x7f050000",
+    "flight_takeoff": "0x7f05015a",
+    "wifi": "0x7f0503bd",
+    "zoom_out_map": "0x7f0503c5"
+  }
+}

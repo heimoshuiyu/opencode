@@ -1,0 +1,21 @@
+{
+  "guest": "emulator-5588, Android 16 API 36",
+  "ssid": "OcHiddenFixture",
+  "bssid": "02:15:b2:00:00:39",
+  "state": "COMPLETED",
+  "netId": 1,
+  "allFourConnectionSnapshotsMatched": true,
+  "capture": "BSSID=02:15:b2:00:00:39 emptySSIDBeacons=5051 namedProbeResponsesToStation=15 firstBeacon=110 probe/reply=(1166, 1169)",
+  "termuxApi": "v0.53.0",
+  "cliCommit": "9e7f1531e1aa4a9c1e261a2dbde4de93653c366e",
+  "termux": {
+    "ssid_hidden": false
+  },
+  "openCode": {
+    "ssidHidden": false
+  },
+  "sameUidFrameworkRead": false,
+  "savedProfileHidden": true,
+  "sameValue": true,
+  "truthAssertionInstrumentationCode": 0
+}

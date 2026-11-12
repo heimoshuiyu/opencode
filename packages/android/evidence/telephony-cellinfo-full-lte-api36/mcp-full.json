@@ -1,0 +1,20 @@
+{
+  "cells": [
+    {
+      "registered": true,
+      "dbm": -64,
+      "asu": 76,
+      "level": 4,
+      "type": "lte",
+      "ci": 47108,
+      "pci": 0,
+      "tac": 8514,
+      "mcc": 310,
+      "mnc": 260,
+      "rsrp": -64,
+      "bands": [
+        42
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+INSTRUMENTATION_STATUS: replyStage=runner entered: 15d69881-0744-4b4d-bb0c-987526c03032
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=posted reply-15d69881-0744-4b4d-bb0c-987526c03032
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=SystemUI editor matched reply; stored receipt unchanged
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=stored after Send: {"id":"reply-15d69881-0744-4b4d-bb0c-987526c03032","text":"合成 15d69881-0744-4b4d-bb0c-987526c03032 · A&B"}
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=posted draft-15d69881-0744-4b4d-bb0c-987526c03032
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=SystemUI editor matched draft; stored receipt unchanged
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: replyStage=editor closed with Back; stored after cancel: {"id":"reply-15d69881-0744-4b4d-bb0c-987526c03032","text":"合成 15d69881-0744-4b4d-bb0c-987526c03032 · A&B"}
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: reply-system-ui={"apkReceipt":{"id":"reply-15d69881-0744-4b4d-bb0c-987526c03032","text":"合成 15d69881-0744-4b4d-bb0c-987526c03032 · A&B"},"cancelId":"draft-15d69881-0744-4b4d-bb0c-987526c03032","cancelReceipt":null,"mcpTaken":{"id":"reply-15d69881-0744-4b4d-bb0c-987526c03032","text":"合成 15d69881-0744-4b4d-bb0c-987526c03032 · A&B"},"consumed":true}
+INSTRUMENTATION_CODE: -1

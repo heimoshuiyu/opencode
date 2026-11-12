@@ -1,0 +1,98 @@
+{
+  "guest": "Android 16 API 36 isolated emulator",
+  "upstreamRecordCount": 1,
+  "mcpRecordCount": 1,
+  "rat": "NR",
+  "nativeIdentityBeforeAndAfter": {
+    "mcc": "310",
+    "mnc": "260",
+    "nci": 100500,
+    "tac": 8514,
+    "pci": 555
+  },
+  "pairing": "Unique NR record in both captures; Termux identity matches the independent same-app-UID snapshots bracketing the MCP call. Raw MCP output has no identity key and cannot independently confirm the pairing. No array-index pairing.",
+  "fields": {
+    "type": {
+      "termux": "nr",
+      "mcpPresent": true,
+      "mcp": "CellInfoNr",
+      "result": "same RAT, different representation"
+    },
+    "registered": {
+      "termux": true,
+      "mcpPresent": true,
+      "mcp": true,
+      "result": "equal"
+    },
+    "asu": {
+      "termux": 76,
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "dbm": {
+      "termux": -64,
+      "mcpPresent": true,
+      "mcp": -64,
+      "result": "equal"
+    },
+    "level": {
+      "termux": 4,
+      "mcpPresent": true,
+      "mcp": 4,
+      "result": "equal"
+    },
+    "nci": {
+      "termux": 100500,
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "pci": {
+      "termux": 555,
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "tac": {
+      "termux": 8514,
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "mcc": {
+      "termux": "310",
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "mnc": {
+      "termux": "260",
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "ss_rsrp": {
+      "termux": -64,
+      "mcpPresent": false,
+      "result": "missing"
+    },
+    "bands": {
+      "termux": [
+        41
+      ],
+      "mcpPresent": false,
+      "result": "missing"
+    }
+  },
+  "identicalFields": [
+    "dbm",
+    "level",
+    "registered"
+  ],
+  "missingFromMcp": [
+    "asu",
+    "bands",
+    "mcc",
+    "mnc",
+    "nci",
+    "pci",
+    "ss_rsrp",
+    "tac"
+  ],
+  "instrumentation": "-1 (capture succeeded, not a parity verdict)"
+}

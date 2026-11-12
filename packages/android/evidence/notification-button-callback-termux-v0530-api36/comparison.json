@@ -1,0 +1,40 @@
+{
+  "emulator": "emulator-5598",
+  "api": 36,
+  "callback": "printf %s cbd1766a-f668-4171-badb-ee914cd4f6c6 > ~/oc-button-marker",
+  "termux": {
+    "notificationId": "oc-marker-cbd1766a-f668-4171-badb-ee914cd4f6c6",
+    "postExit": 0,
+    "systemButton": "Write marker",
+    "markerPath": "~/oc-button-marker",
+    "absentBeforePost": true,
+    "absentAfterPostBeforeClick": true,
+    "observedAfterClick": "cbd1766a-f668-4171-badb-ee914cd4f6c6",
+    "exactBytes": 36
+  },
+  "mcp": {
+    "callback": "printf %s cbd1766a-f668-4171-badb-ee914cd4f6c6 > ~/oc-button-marker",
+    "allowed": [
+      "open_app",
+      "open_folders",
+      "open_remote",
+      "reply"
+    ],
+    "callbackResult": {
+      "isError": true,
+      "content": [
+        {
+          "type": "text",
+          "text": "Unknown button1Action; choose open_app, open_folders, open_remote"
+        }
+      ]
+    },
+    "postedOnRejection": false,
+    "openAppControl": {
+      "posted": true,
+      "id": "oc-marker-cbd1766a-f668-4171-badb-ee914cd4f6c6"
+    }
+  },
+  "instrumentationCode": -1,
+  "shellCallbackParity": false
+}

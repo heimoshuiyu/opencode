@@ -1,0 +1,24 @@
+{
+  "deviceApi": 36,
+  "targetSdk": 36,
+  "isolatedAvd": true,
+  "owner": false,
+  "permission": "android.permission.CHANGE_WIFI_STATE",
+  "calls": [
+    {
+      "requestedEnabled": false,
+      "apiReturned": false,
+      "uid": 10219,
+      "before": "Wifi is enabled",
+      "after": "Wifi is enabled"
+    },
+    {
+      "requestedEnabled": true,
+      "apiReturned": false,
+      "uid": 10219,
+      "before": "Wifi is disabled",
+      "after": "Wifi is disabled"
+    }
+  ],
+  "restored": true
+}

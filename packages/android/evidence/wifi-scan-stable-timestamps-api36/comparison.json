@@ -1,0 +1,634 @@
+{
+  "emulator": "emulator-5598",
+  "unit": "microseconds",
+  "snapshots": [
+    "before Termux",
+    "between calls",
+    "after MCP"
+  ],
+  "snapshotCounts": [
+    102,
+    102,
+    102
+  ],
+  "termuxCount": 102,
+  "mcpCount": 102,
+  "stable": 102,
+  "unstable": [],
+  "exact": 102,
+  "mismatches": 0,
+  "pairs": [
+    {
+      "bssid": "02:15:b2:00:00:01",
+      "systemUs": 119570174,
+      "termuxUs": 119570174,
+      "mcpUs": 119570174
+    },
+    {
+      "bssid": "02:ad:22:00:00:01",
+      "systemUs": 119570184,
+      "termuxUs": 119570184,
+      "mcpUs": 119570184
+    },
+    {
+      "bssid": "02:ad:22:00:00:02",
+      "systemUs": 119568267,
+      "termuxUs": 119568267,
+      "mcpUs": 119568267
+    },
+    {
+      "bssid": "02:ad:22:00:00:03",
+      "systemUs": 119569662,
+      "termuxUs": 119569662,
+      "mcpUs": 119569662
+    },
+    {
+      "bssid": "02:ad:22:00:00:04",
+      "systemUs": 119570154,
+      "termuxUs": 119570154,
+      "mcpUs": 119570154
+    },
+    {
+      "bssid": "02:ad:22:00:00:05",
+      "systemUs": 119566535,
+      "termuxUs": 119566535,
+      "mcpUs": 119566535
+    },
+    {
+      "bssid": "02:ad:22:00:00:06",
+      "systemUs": 119569122,
+      "termuxUs": 119569122,
+      "mcpUs": 119569122
+    },
+    {
+      "bssid": "02:ad:22:00:00:07",
+      "systemUs": 119565723,
+      "termuxUs": 119565723,
+      "mcpUs": 119565723
+    },
+    {
+      "bssid": "02:ad:22:00:00:08",
+      "systemUs": 119568050,
+      "termuxUs": 119568050,
+      "mcpUs": 119568050
+    },
+    {
+      "bssid": "02:ad:22:00:00:09",
+      "systemUs": 119568165,
+      "termuxUs": 119568165,
+      "mcpUs": 119568165
+    },
+    {
+      "bssid": "02:ad:22:00:00:0a",
+      "systemUs": 119564780,
+      "termuxUs": 119564780,
+      "mcpUs": 119564780
+    },
+    {
+      "bssid": "02:ad:22:00:00:0b",
+      "systemUs": 119569995,
+      "termuxUs": 119569995,
+      "mcpUs": 119569995
+    },
+    {
+      "bssid": "02:ad:22:00:00:0c",
+      "systemUs": 119569557,
+      "termuxUs": 119569557,
+      "mcpUs": 119569557
+    },
+    {
+      "bssid": "02:ad:22:00:00:0d",
+      "systemUs": 119570213,
+      "termuxUs": 119570213,
+      "mcpUs": 119570213
+    },
+    {
+      "bssid": "02:ad:22:00:00:0e",
+      "systemUs": 119569619,
+      "termuxUs": 119569619,
+      "mcpUs": 119569619
+    },
+    {
+      "bssid": "02:ad:22:00:00:0f",
+      "systemUs": 119569011,
+      "termuxUs": 119569011,
+      "mcpUs": 119569011
+    },
+    {
+      "bssid": "02:ad:22:00:00:10",
+      "systemUs": 119565808,
+      "termuxUs": 119565808,
+      "mcpUs": 119565808
+    },
+    {
+      "bssid": "02:ad:22:00:00:11",
+      "systemUs": 119564871,
+      "termuxUs": 119564871,
+      "mcpUs": 119564871
+    },
+    {
+      "bssid": "02:ad:22:00:00:12",
+      "systemUs": 119568408,
+      "termuxUs": 119568408,
+      "mcpUs": 119568408
+    },
+    {
+      "bssid": "02:ad:22:00:00:13",
+      "systemUs": 119565352,
+      "termuxUs": 119565352,
+      "mcpUs": 119565352
+    },
+    {
+      "bssid": "02:ad:22:00:00:14",
+      "systemUs": 119568551,
+      "termuxUs": 119568551,
+      "mcpUs": 119568551
+    },
+    {
+      "bssid": "02:ad:22:00:00:15",
+      "systemUs": 119566144,
+      "termuxUs": 119566144,
+      "mcpUs": 119566144
+    },
+    {
+      "bssid": "02:ad:22:00:00:16",
+      "systemUs": 119564946,
+      "termuxUs": 119564946,
+      "mcpUs": 119564946
+    },
+    {
+      "bssid": "02:ad:22:00:00:17",
+      "systemUs": 119568123,
+      "termuxUs": 119568123,
+      "mcpUs": 119568123
+    },
+    {
+      "bssid": "02:ad:22:00:00:18",
+      "systemUs": 119568710,
+      "termuxUs": 119568710,
+      "mcpUs": 119568710
+    },
+    {
+      "bssid": "02:ad:22:00:00:19",
+      "systemUs": 119569267,
+      "termuxUs": 119569267,
+      "mcpUs": 119569267
+    },
+    {
+      "bssid": "02:ad:22:00:00:1a",
+      "systemUs": 119565877,
+      "termuxUs": 119565877,
+      "mcpUs": 119565877
+    },
+    {
+      "bssid": "02:ad:22:00:00:1b",
+      "systemUs": 119567697,
+      "termuxUs": 119567697,
+      "mcpUs": 119567697
+    },
+    {
+      "bssid": "02:ad:22:00:00:1c",
+      "systemUs": 119563714,
+      "termuxUs": 119563714,
+      "mcpUs": 119563714
+    },
+    {
+      "bssid": "02:ad:22:00:00:1d",
+      "systemUs": 119566381,
+      "termuxUs": 119566381,
+      "mcpUs": 119566381
+    },
+    {
+      "bssid": "02:ad:22:00:00:1e",
+      "systemUs": 119569352,
+      "termuxUs": 119569352,
+      "mcpUs": 119569352
+    },
+    {
+      "bssid": "02:ad:22:00:00:1f",
+      "systemUs": 119563786,
+      "termuxUs": 119563786,
+      "mcpUs": 119563786
+    },
+    {
+      "bssid": "02:ad:22:00:00:20",
+      "systemUs": 119567372,
+      "termuxUs": 119567372,
+      "mcpUs": 119567372
+    },
+    {
+      "bssid": "02:ad:22:00:00:21",
+      "systemUs": 119570340,
+      "termuxUs": 119570340,
+      "mcpUs": 119570340
+    },
+    {
+      "bssid": "02:ad:22:00:00:22",
+      "systemUs": 119568295,
+      "termuxUs": 119568295,
+      "mcpUs": 119568295
+    },
+    {
+      "bssid": "02:ad:22:00:00:23",
+      "systemUs": 119566616,
+      "termuxUs": 119566616,
+      "mcpUs": 119566616
+    },
+    {
+      "bssid": "02:ad:22:00:00:24",
+      "systemUs": 119565640,
+      "termuxUs": 119565640,
+      "mcpUs": 119565640
+    },
+    {
+      "bssid": "02:ad:22:00:00:25",
+      "systemUs": 119565570,
+      "termuxUs": 119565570,
+      "mcpUs": 119565570
+    },
+    {
+      "bssid": "02:ad:22:00:00:26",
+      "systemUs": 119566042,
+      "termuxUs": 119566042,
+      "mcpUs": 119566042
+    },
+    {
+      "bssid": "02:ad:22:00:00:27",
+      "systemUs": 119568603,
+      "termuxUs": 119568603,
+      "mcpUs": 119568603
+    },
+    {
+      "bssid": "02:ad:22:00:00:28",
+      "systemUs": 119564332,
+      "termuxUs": 119564332,
+      "mcpUs": 119564332
+    },
+    {
+      "bssid": "02:ad:22:00:00:29",
+      "systemUs": 119566668,
+      "termuxUs": 119566668,
+      "mcpUs": 119566668
+    },
+    {
+      "bssid": "02:ad:22:00:00:2a",
+      "systemUs": 119567296,
+      "termuxUs": 119567296,
+      "mcpUs": 119567296
+    },
+    {
+      "bssid": "02:ad:22:00:00:2b",
+      "systemUs": 119568483,
+      "termuxUs": 119568483,
+      "mcpUs": 119568483
+    },
+    {
+      "bssid": "02:ad:22:00:00:2c",
+      "systemUs": 119566823,
+      "termuxUs": 119566823,
+      "mcpUs": 119566823
+    },
+    {
+      "bssid": "02:ad:22:00:00:2d",
+      "systemUs": 119563731,
+      "termuxUs": 119563731,
+      "mcpUs": 119563731
+    },
+    {
+      "bssid": "02:ad:22:00:00:2e",
+      "systemUs": 119569298,
+      "termuxUs": 119569298,
+      "mcpUs": 119569298
+    },
+    {
+      "bssid": "02:ad:22:00:00:2f",
+      "systemUs": 119565059,
+      "termuxUs": 119565059,
+      "mcpUs": 119565059
+    },
+    {
+      "bssid": "02:ad:22:00:00:30",
+      "systemUs": 119566756,
+      "termuxUs": 119566756,
+      "mcpUs": 119566756
+    },
+    {
+      "bssid": "02:ad:22:00:00:31",
+      "systemUs": 119569077,
+      "termuxUs": 119569077,
+      "mcpUs": 119569077
+    },
+    {
+      "bssid": "02:ad:22:00:00:32",
+      "systemUs": 119570390,
+      "termuxUs": 119570390,
+      "mcpUs": 119570390
+    },
+    {
+      "bssid": "02:ad:22:00:00:33",
+      "systemUs": 119569726,
+      "termuxUs": 119569726,
+      "mcpUs": 119569726
+    },
+    {
+      "bssid": "02:ad:22:00:00:34",
+      "systemUs": 119570084,
+      "termuxUs": 119570084,
+      "mcpUs": 119570084
+    },
+    {
+      "bssid": "02:ad:22:00:00:35",
+      "systemUs": 119567746,
+      "termuxUs": 119567746,
+      "mcpUs": 119567746
+    },
+    {
+      "bssid": "02:ad:22:00:00:36",
+      "systemUs": 119563934,
+      "termuxUs": 119563934,
+      "mcpUs": 119563934
+    },
+    {
+      "bssid": "02:ad:22:00:00:37",
+      "systemUs": 119570264,
+      "termuxUs": 119570264,
+      "mcpUs": 119570264
+    },
+    {
+      "bssid": "02:ad:22:00:00:38",
+      "systemUs": 119568893,
+      "termuxUs": 119568893,
+      "mcpUs": 119568893
+    },
+    {
+      "bssid": "02:ad:22:00:00:39",
+      "systemUs": 119563986,
+      "termuxUs": 119563986,
+      "mcpUs": 119563986
+    },
+    {
+      "bssid": "02:ad:22:00:00:3a",
+      "systemUs": 119568641,
+      "termuxUs": 119568641,
+      "mcpUs": 119568641
+    },
+    {
+      "bssid": "02:ad:22:00:00:3b",
+      "systemUs": 119569462,
+      "termuxUs": 119569462,
+      "mcpUs": 119569462
+    },
+    {
+      "bssid": "02:ad:22:00:00:3c",
+      "systemUs": 119567608,
+      "termuxUs": 119567608,
+      "mcpUs": 119567608
+    },
+    {
+      "bssid": "02:ad:22:00:00:3d",
+      "systemUs": 119569774,
+      "termuxUs": 119569774,
+      "mcpUs": 119569774
+    },
+    {
+      "bssid": "02:ad:22:00:00:3e",
+      "systemUs": 119570442,
+      "termuxUs": 119570442,
+      "mcpUs": 119570442
+    },
+    {
+      "bssid": "02:ad:22:00:00:3f",
+      "systemUs": 119568346,
+      "termuxUs": 119568346,
+      "mcpUs": 119568346
+    },
+    {
+      "bssid": "02:ad:22:00:00:40",
+      "systemUs": 119565963,
+      "termuxUs": 119565963,
+      "mcpUs": 119565963
+    },
+    {
+      "bssid": "02:ad:22:00:00:41",
+      "systemUs": 119570503,
+      "termuxUs": 119570503,
+      "mcpUs": 119570503
+    },
+    {
+      "bssid": "02:ad:22:00:00:42",
+      "systemUs": 119564994,
+      "termuxUs": 119564994,
+      "mcpUs": 119564994
+    },
+    {
+      "bssid": "02:ad:22:00:00:43",
+      "systemUs": 119565472,
+      "termuxUs": 119565472,
+      "mcpUs": 119565472
+    },
+    {
+      "bssid": "02:ad:22:00:00:44",
+      "systemUs": 119565181,
+      "termuxUs": 119565181,
+      "mcpUs": 119565181
+    },
+    {
+      "bssid": "02:ad:22:00:00:45",
+      "systemUs": 119564273,
+      "termuxUs": 119564273,
+      "mcpUs": 119564273
+    },
+    {
+      "bssid": "02:ad:22:00:00:46",
+      "systemUs": 119568832,
+      "termuxUs": 119568832,
+      "mcpUs": 119568832
+    },
+    {
+      "bssid": "02:ad:22:00:00:47",
+      "systemUs": 119566447,
+      "termuxUs": 119566447,
+      "mcpUs": 119566447
+    },
+    {
+      "bssid": "02:ad:22:00:00:48",
+      "systemUs": 119566999,
+      "termuxUs": 119566999,
+      "mcpUs": 119566999
+    },
+    {
+      "bssid": "02:ad:22:00:00:49",
+      "systemUs": 119567767,
+      "termuxUs": 119567767,
+      "mcpUs": 119567767
+    },
+    {
+      "bssid": "02:ad:22:00:00:4a",
+      "systemUs": 119567213,
+      "termuxUs": 119567213,
+      "mcpUs": 119567213
+    },
+    {
+      "bssid": "02:ad:22:00:00:4b",
+      "systemUs": 119565110,
+      "termuxUs": 119565110,
+      "mcpUs": 119565110
+    },
+    {
+      "bssid": "02:ad:22:00:00:4c",
+      "systemUs": 119567059,
+      "termuxUs": 119567059,
+      "mcpUs": 119567059
+    },
+    {
+      "bssid": "02:ad:22:00:00:4d",
+      "systemUs": 119565241,
+      "termuxUs": 119565241,
+      "mcpUs": 119565241
+    },
+    {
+      "bssid": "02:ad:22:00:00:4e",
+      "systemUs": 119564369,
+      "termuxUs": 119564369,
+      "mcpUs": 119564369
+    },
+    {
+      "bssid": "02:ad:22:00:00:4f",
+      "systemUs": 119567854,
+      "termuxUs": 119567854,
+      "mcpUs": 119567854
+    },
+    {
+      "bssid": "02:ad:22:00:00:50",
+      "systemUs": 119569190,
+      "termuxUs": 119569190,
+      "mcpUs": 119569190
+    },
+    {
+      "bssid": "02:ad:22:00:00:51",
+      "systemUs": 119564512,
+      "termuxUs": 119564512,
+      "mcpUs": 119564512
+    },
+    {
+      "bssid": "02:ad:22:00:00:52",
+      "systemUs": 119568078,
+      "termuxUs": 119568078,
+      "mcpUs": 119568078
+    },
+    {
+      "bssid": "02:ad:22:00:00:53",
+      "systemUs": 119569430,
+      "termuxUs": 119569430,
+      "mcpUs": 119569430
+    },
+    {
+      "bssid": "02:ad:22:00:00:54",
+      "systemUs": 119564524,
+      "termuxUs": 119564524,
+      "mcpUs": 119564524
+    },
+    {
+      "bssid": "02:ad:22:00:00:55",
+      "systemUs": 119566305,
+      "termuxUs": 119566305,
+      "mcpUs": 119566305
+    },
+    {
+      "bssid": "02:ad:22:00:00:56",
+      "systemUs": 119568770,
+      "termuxUs": 119568770,
+      "mcpUs": 119568770
+    },
+    {
+      "bssid": "02:ad:22:00:00:57",
+      "systemUs": 119564711,
+      "termuxUs": 119564711,
+      "mcpUs": 119564711
+    },
+    {
+      "bssid": "02:ad:22:00:00:58",
+      "systemUs": 119564576,
+      "termuxUs": 119564576,
+      "mcpUs": 119564576
+    },
+    {
+      "bssid": "02:ad:22:00:00:59",
+      "systemUs": 119569968,
+      "termuxUs": 119569968,
+      "mcpUs": 119569968
+    },
+    {
+      "bssid": "02:ad:22:00:00:5a",
+      "systemUs": 119567465,
+      "termuxUs": 119567465,
+      "mcpUs": 119567465
+    },
+    {
+      "bssid": "02:ad:22:00:00:5b",
+      "systemUs": 119564645,
+      "termuxUs": 119564645,
+      "mcpUs": 119564645
+    },
+    {
+      "bssid": "02:ad:22:00:00:5c",
+      "systemUs": 119565295,
+      "termuxUs": 119565295,
+      "mcpUs": 119565295
+    },
+    {
+      "bssid": "02:ad:22:00:00:5d",
+      "systemUs": 119567554,
+      "termuxUs": 119567554,
+      "mcpUs": 119567554
+    },
+    {
+      "bssid": "02:ad:22:00:00:5e",
+      "systemUs": 119566913,
+      "termuxUs": 119566913,
+      "mcpUs": 119566913
+    },
+    {
+      "bssid": "02:ad:22:00:00:5f",
+      "systemUs": 119567136,
+      "termuxUs": 119567136,
+      "mcpUs": 119567136
+    },
+    {
+      "bssid": "02:ad:22:00:00:60",
+      "systemUs": 119565419,
+      "termuxUs": 119565419,
+      "mcpUs": 119565419
+    },
+    {
+      "bssid": "02:ad:22:00:00:61",
+      "systemUs": 119565516,
+      "termuxUs": 119565516,
+      "mcpUs": 119565516
+    },
+    {
+      "bssid": "02:ad:22:00:00:62",
+      "systemUs": 119568988,
+      "termuxUs": 119568988,
+      "mcpUs": 119568988
+    },
+    {
+      "bssid": "02:ad:22:00:00:63",
+      "systemUs": 119567946,
+      "termuxUs": 119567946,
+      "mcpUs": 119567946
+    },
+    {
+      "bssid": "02:ad:22:00:00:64",
+      "systemUs": 119568045,
+      "termuxUs": 119568045,
+      "mcpUs": 119568045
+    },
+    {
+      "bssid": "02:ad:22:00:00:65",
+      "systemUs": 119566208,
+      "termuxUs": 119566208,
+      "mcpUs": 119566208
+    }
+  ]
+}

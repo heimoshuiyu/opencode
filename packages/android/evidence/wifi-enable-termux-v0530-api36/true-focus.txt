@@ -1,0 +1,1 @@
+  mCurrentFocus=Window{c5dda15 u0 com.termux/com.termux.app.TermuxActivity}

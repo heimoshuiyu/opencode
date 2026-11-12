@@ -1,0 +1,14 @@
+[
+  {
+    "type": "wcdma",
+    "registered": true,
+    "asu": 42,
+    "dbm": -78,
+    "level": 4,
+    "cid": 47108,
+    "lac": 8514,
+    "mcc": 310,
+    "mnc": 260,
+    "psc": 222
+  }
+]

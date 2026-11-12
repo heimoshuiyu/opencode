@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: cellinfo-full-count={"fixture":"synthetic CellInfoGsm","inputCount":65,"returnedCount":65,"expectedLastCid":7048,"returnedLastCid":7048,"orderMatches":true,"defaultCount":64,"basicCount":64}
+INSTRUMENTATION_CODE: -1

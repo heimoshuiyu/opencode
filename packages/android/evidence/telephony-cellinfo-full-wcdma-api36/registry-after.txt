@@ -1,0 +1,1 @@
+    mCellInfo=[CellInfoWcdma:{mRegistered=YES mTimeStamp=175609899474ns mCellConnectionStatus=1 CellIdentityWcdma:{ mLac=8514 mCid=47108 mPsc=222 mUarfcn=777 mMcc=310 mMnc=260 mAlphaLong=T-Mobile mAlphaShort=TMOBILE mAdditionalPlmns={310260} mCsgInfo=null} CellSignalStrengthWcdma: ss=-71 ber=2147483647 rscp=-78 ecno=-15 level=4}]

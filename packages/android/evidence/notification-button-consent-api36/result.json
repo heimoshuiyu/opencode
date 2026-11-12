@@ -1,0 +1,16 @@
+{
+  "api": 36,
+  "build": "debug",
+  "fixture": "button1Action=shell; explicit button1Command; real SystemUI button",
+  "command": "printf %s cbd1766a-f668-4171-badb-ee914cd4f6c6 > ~/oc-button-marker",
+  "beforePost": "absent",
+  "afterPost": "absent",
+  "atFirstReview": "absent",
+  "afterDecline": "absent",
+  "atSecondReview": "absent",
+  "afterAllow": "cbd1766a-f668-4171-badb-ee914cd4f6c6",
+  "independentRead": "adb exec-out run-as ai.opencode.android cat files/home/oc-button-marker",
+  "bytes": 36,
+  "matchesTermuxBytes": true,
+  "sha256": "a7fe73a40dd8b7f22dc53c9e7839e3ed3f43bb888395612de588a533d5e8d825"
+}

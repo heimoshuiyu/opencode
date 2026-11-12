@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="ai.opencode.fixture.wifidirect">
+    <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <application android:label="Wi-Fi direct probe" android:allowBackup="false">
+        <activity android:name=".Probe" android:exported="true" />
+    </application>
+</manifest>

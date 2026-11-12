@@ -1,0 +1,103 @@
+{
+  "emulator": "emulator-5592",
+  "api": 36,
+  "join": [
+    "type",
+    "mcc",
+    "mnc",
+    "lac",
+    "cid"
+  ],
+  "termuxRecords": 1,
+  "mcpRecords": 1,
+  "gsmPairs": [
+    {
+      "identity": {
+        "type": "gsm",
+        "mcc": 310,
+        "mnc": 260,
+        "lac": 8514,
+        "cid": 47108
+      },
+      "matched": 9,
+      "missing": [],
+      "extra": [],
+      "fields": [
+        {
+          "field": "asu",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 20,
+          "mcp": 20,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "cid",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 47108,
+          "mcp": 47108,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "dbm",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": -73,
+          "mcp": -73,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "lac",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 8514,
+          "mcp": 8514,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "level",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 4,
+          "mcp": 4,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mcc",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 310,
+          "mcp": 310,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mnc",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 260,
+          "mcp": 260,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "registered",
+          "termuxType": "boolean",
+          "mcpType": "boolean",
+          "termux": true,
+          "mcp": true,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "type",
+          "termuxType": "string",
+          "mcpType": "string",
+          "termux": "gsm",
+          "mcp": "gsm",
+          "sameTypeAndValue": true
+        }
+      ]
+    }
+  ],
+  "termuxExit": 0,
+  "instrumentationCode": -1
+}

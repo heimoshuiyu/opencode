@@ -5,11 +5,11 @@ import type { Opts, Proc } from "./pty.js"
 
 export type { Disp, Exit, Opts, Proc } from "./pty.js"
 
-const pty = createRequire(import.meta.url)(process.env.OPENCODE_NODE_PTY_PATH ?? "@lydell/node-pty") as {
-  spawn: typeof spawn
-}
-
 function spawnPty(file: string, args: string[], opts: Opts): Proc {
+  // Headless servers can run ordinary shell tools without the optional interactive PTY addon.
+  const pty = createRequire(import.meta.url)(process.env.OPENCODE_NODE_PTY_PATH ?? "@lydell/node-pty") as {
+    spawn: typeof spawn
+  }
   const proc = pty.spawn(file, args, process.platform === "win32" && isSea() ? { ...opts, useConptyDll: true } : opts)
   return {
     pid: proc.pid,

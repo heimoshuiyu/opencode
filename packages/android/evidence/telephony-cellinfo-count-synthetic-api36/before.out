@@ -1,0 +1,2 @@
+INSTRUMENTATION_RESULT: failure=java.lang.IllegalStateException: Full cell list mismatch: {"fixture":"synthetic CellInfoGsm","inputCount":65,"returnedCount":64,"expectedLastCid":7048,"returnedLastCid":7031,"orderMatches":false}
+INSTRUMENTATION_CODE: 0

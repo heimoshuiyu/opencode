@@ -1,0 +1,4 @@
+    appId=10219
+    versionCode=0 minSdk=30 targetSdk=36
+    pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ]
+      android.permission.CHANGE_WIFI_STATE: granted=true

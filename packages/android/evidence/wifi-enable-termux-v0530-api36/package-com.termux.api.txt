@@ -1,0 +1,4 @@
+    versionCode=1002 minSdk=24 targetSdk=28
+    versionName=0.53.0
+      android.permission.CHANGE_WIFI_STATE: granted=true
+      android.permission.CHANGE_WIFI_STATE: granted=true

@@ -1,0 +1,20 @@
+{
+  "data_enabled": "true",
+  "data_activity": "none",
+  "data_state": "connected",
+  "device_id": null,
+  "device_software_version": "01",
+  "phone_count": 1,
+  "phone_type": "gsm",
+  "network_operator": "310260",
+  "network_operator_name": "T-Mobile",
+  "network_country_iso": "us",
+  "network_type": "nr",
+  "network_roaming": false,
+  "sim_country_iso": "us",
+  "sim_operator": "310260",
+  "sim_operator_name": "T-Mobile",
+  "sim_serial_number": null,
+  "sim_subscriber_id": null,
+  "sim_state": "ready"
+}

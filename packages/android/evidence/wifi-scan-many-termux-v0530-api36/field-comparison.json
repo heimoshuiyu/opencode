@@ -1,0 +1,984 @@
+{
+  "inputsSha256": {
+    "termux.json": "8fab53ac878920d775af3ad342e12da8d4a8eb580fb64588a1abfa7140f24ced",
+    "mcp.json": "753d3beeee3abc561bbfe7a68666fdbca38bd5b50ef2f582452b3bc670e3d3af"
+  },
+  "join": "unique BSSID",
+  "paired": 102,
+  "sameSample": 0,
+  "mcpSampleNewer": 102,
+  "mcpSampleOlder": 0,
+  "deltaUsRange": [
+    76197154,
+    120003655
+  ],
+  "mapping": {
+    "bssid": "bssid",
+    "ssid": "ssid",
+    "frequency_mhz": "frequencyMHz",
+    "rssi": "levelDbm",
+    "timestamp": "timestampUs",
+    "channel_bandwidth_mhz": "channelBandwidthMHz",
+    "capabilities": "capabilities",
+    "center_frequency_mhz": "centerFreq0MHz",
+    "operator_name": "operatorName",
+    "venue_name": "venueName"
+  },
+  "fields": {
+    "bssid": {
+      "string/string: equal": 102
+    },
+    "ssid": {
+      "string/string: equal": 102
+    },
+    "frequency_mhz": {
+      "number/number: equal": 102
+    },
+    "rssi": {
+      "number/number: equal": 102
+    },
+    "timestamp": {
+      "number/number: differentValue": 102
+    },
+    "channel_bandwidth_mhz": {
+      "string/string: equal": 102
+    },
+    "capabilities": {
+      "string/string: equal": 102
+    },
+    "center_frequency_mhz": {
+      "absent/absent: bothAbsent": 102
+    },
+    "operator_name": {
+      "absent/absent: bothAbsent": 102
+    },
+    "venue_name": {
+      "absent/absent: bothAbsent": 102
+    }
+  },
+  "unmappedRecordKeys": {
+    "termux": {},
+    "mcp": {}
+  },
+  "mcpOnlyCenterFreq1MHzPresent": 0,
+  "pairs": [
+    {
+      "bssid": "02:15:b2:00:00:01",
+      "termuxTimestampUs": 62601523,
+      "mcpTimestampUs": 182605136,
+      "deltaUs": 120003613,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:01",
+      "termuxTimestampUs": 62598334,
+      "mcpTimestampUs": 182601106,
+      "deltaUs": 120002772,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:02",
+      "termuxTimestampUs": 45998825,
+      "mcpTimestampUs": 122198363,
+      "deltaUs": 76199538,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:03",
+      "termuxTimestampUs": 45999575,
+      "mcpTimestampUs": 122199033,
+      "deltaUs": 76199458,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:04",
+      "termuxTimestampUs": 62596401,
+      "mcpTimestampUs": 182597762,
+      "deltaUs": 120001361,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:05",
+      "termuxTimestampUs": 46001510,
+      "mcpTimestampUs": 122200961,
+      "deltaUs": 76199451,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:06",
+      "termuxTimestampUs": 45999022,
+      "mcpTimestampUs": 122198501,
+      "deltaUs": 76199479,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:07",
+      "termuxTimestampUs": 62600526,
+      "mcpTimestampUs": 182603969,
+      "deltaUs": 120003443,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:08",
+      "termuxTimestampUs": 46006475,
+      "mcpTimestampUs": 122203629,
+      "deltaUs": 76197154,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:09",
+      "termuxTimestampUs": 46000510,
+      "mcpTimestampUs": 122200184,
+      "deltaUs": 76199674,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0a",
+      "termuxTimestampUs": 62599562,
+      "mcpTimestampUs": 182602908,
+      "deltaUs": 120003346,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0b",
+      "termuxTimestampUs": 46001311,
+      "mcpTimestampUs": 122200801,
+      "deltaUs": 76199490,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0c",
+      "termuxTimestampUs": 46003255,
+      "mcpTimestampUs": 122202365,
+      "deltaUs": 76199110,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0d",
+      "termuxTimestampUs": 62596771,
+      "mcpTimestampUs": 182598950,
+      "deltaUs": 120002179,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0e",
+      "termuxTimestampUs": 46006501,
+      "mcpTimestampUs": 122203966,
+      "deltaUs": 76197465,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:0f",
+      "termuxTimestampUs": 45998650,
+      "mcpTimestampUs": 122198016,
+      "deltaUs": 76199366,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:10",
+      "termuxTimestampUs": 62597210,
+      "mcpTimestampUs": 182599461,
+      "deltaUs": 120002251,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:11",
+      "termuxTimestampUs": 46002686,
+      "mcpTimestampUs": 122201704,
+      "deltaUs": 76199018,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:12",
+      "termuxTimestampUs": 46002270,
+      "mcpTimestampUs": 122201600,
+      "deltaUs": 76199330,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:13",
+      "termuxTimestampUs": 62598106,
+      "mcpTimestampUs": 182600789,
+      "deltaUs": 120002683,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:14",
+      "termuxTimestampUs": 46000846,
+      "mcpTimestampUs": 122200449,
+      "deltaUs": 76199603,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:15",
+      "termuxTimestampUs": 46006484,
+      "mcpTimestampUs": 122203752,
+      "deltaUs": 76197268,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:16",
+      "termuxTimestampUs": 62596145,
+      "mcpTimestampUs": 182597453,
+      "deltaUs": 120001308,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:17",
+      "termuxTimestampUs": 46002743,
+      "mcpTimestampUs": 122201963,
+      "deltaUs": 76199220,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:18",
+      "termuxTimestampUs": 45998644,
+      "mcpTimestampUs": 122197921,
+      "deltaUs": 76199277,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:19",
+      "termuxTimestampUs": 62600423,
+      "mcpTimestampUs": 182603844,
+      "deltaUs": 120003421,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1a",
+      "termuxTimestampUs": 45999796,
+      "mcpTimestampUs": 122199283,
+      "deltaUs": 76199487,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1b",
+      "termuxTimestampUs": 46003440,
+      "mcpTimestampUs": 122202623,
+      "deltaUs": 76199183,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1c",
+      "termuxTimestampUs": 62601443,
+      "mcpTimestampUs": 182605073,
+      "deltaUs": 120003630,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1d",
+      "termuxTimestampUs": 46003691,
+      "mcpTimestampUs": 122202887,
+      "deltaUs": 76199196,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1e",
+      "termuxTimestampUs": 46002905,
+      "mcpTimestampUs": 122202173,
+      "deltaUs": 76199268,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:1f",
+      "termuxTimestampUs": 62598698,
+      "mcpTimestampUs": 182601745,
+      "deltaUs": 120003047,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:20",
+      "termuxTimestampUs": 45998768,
+      "mcpTimestampUs": 122198276,
+      "deltaUs": 76199508,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:21",
+      "termuxTimestampUs": 46006510,
+      "mcpTimestampUs": 122204105,
+      "deltaUs": 76197595,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:22",
+      "termuxTimestampUs": 62600654,
+      "mcpTimestampUs": 182604132,
+      "deltaUs": 120003478,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:23",
+      "termuxTimestampUs": 46002737,
+      "mcpTimestampUs": 122201899,
+      "deltaUs": 76199162,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:24",
+      "termuxTimestampUs": 46006493,
+      "mcpTimestampUs": 122203887,
+      "deltaUs": 76197394,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:25",
+      "termuxTimestampUs": 62596104,
+      "mcpTimestampUs": 182597324,
+      "deltaUs": 120001220,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:26",
+      "termuxTimestampUs": 46006514,
+      "mcpTimestampUs": 122204206,
+      "deltaUs": 76197692,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:27",
+      "termuxTimestampUs": 45998632,
+      "mcpTimestampUs": 122197754,
+      "deltaUs": 76199122,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:28",
+      "termuxTimestampUs": 62596192,
+      "mcpTimestampUs": 182597462,
+      "deltaUs": 120001270,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:29",
+      "termuxTimestampUs": 46006518,
+      "mcpTimestampUs": 122204282,
+      "deltaUs": 76197764,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2a",
+      "termuxTimestampUs": 45998705,
+      "mcpTimestampUs": 122198129,
+      "deltaUs": 76199424,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2b",
+      "termuxTimestampUs": 62597872,
+      "mcpTimestampUs": 182600465,
+      "deltaUs": 120002593,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2c",
+      "termuxTimestampUs": 46000759,
+      "mcpTimestampUs": 122200401,
+      "deltaUs": 76199642,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2d",
+      "termuxTimestampUs": 45999710,
+      "mcpTimestampUs": 122199173,
+      "deltaUs": 76199463,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2e",
+      "termuxTimestampUs": 62600266,
+      "mcpTimestampUs": 182603664,
+      "deltaUs": 120003398,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:2f",
+      "termuxTimestampUs": 46002749,
+      "mcpTimestampUs": 122202008,
+      "deltaUs": 76199259,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:30",
+      "termuxTimestampUs": 45999084,
+      "mcpTimestampUs": 122198560,
+      "deltaUs": 76199476,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:31",
+      "termuxTimestampUs": 62598398,
+      "mcpTimestampUs": 182601197,
+      "deltaUs": 120002799,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:32",
+      "termuxTimestampUs": 46003723,
+      "mcpTimestampUs": 122202947,
+      "deltaUs": 76199224,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:33",
+      "termuxTimestampUs": 45998963,
+      "mcpTimestampUs": 122198427,
+      "deltaUs": 76199464,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:34",
+      "termuxTimestampUs": 62599320,
+      "mcpTimestampUs": 182602581,
+      "deltaUs": 120003261,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:35",
+      "termuxTimestampUs": 46003240,
+      "mcpTimestampUs": 122202213,
+      "deltaUs": 76198973,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:36",
+      "termuxTimestampUs": 45999463,
+      "mcpTimestampUs": 122198962,
+      "deltaUs": 76199499,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:37",
+      "termuxTimestampUs": 62601844,
+      "mcpTimestampUs": 182605499,
+      "deltaUs": 120003655,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:38",
+      "termuxTimestampUs": 46002187,
+      "mcpTimestampUs": 122201568,
+      "deltaUs": 76199381,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:39",
+      "termuxTimestampUs": 46006497,
+      "mcpTimestampUs": 122203923,
+      "deltaUs": 76197426,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3a",
+      "termuxTimestampUs": 62596282,
+      "mcpTimestampUs": 182597468,
+      "deltaUs": 120001186,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3b",
+      "termuxTimestampUs": 46003300,
+      "mcpTimestampUs": 122202469,
+      "deltaUs": 76199169,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3c",
+      "termuxTimestampUs": 46001317,
+      "mcpTimestampUs": 122200853,
+      "deltaUs": 76199536,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3d",
+      "termuxTimestampUs": 62598447,
+      "mcpTimestampUs": 182601272,
+      "deltaUs": 120002825,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3e",
+      "termuxTimestampUs": 46001247,
+      "mcpTimestampUs": 122200678,
+      "deltaUs": 76199431,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:3f",
+      "termuxTimestampUs": 46003521,
+      "mcpTimestampUs": 122202686,
+      "deltaUs": 76199165,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:40",
+      "termuxTimestampUs": 62601597,
+      "mcpTimestampUs": 182605210,
+      "deltaUs": 120003613,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:41",
+      "termuxTimestampUs": 46006505,
+      "mcpTimestampUs": 122204044,
+      "deltaUs": 76197539,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:42",
+      "termuxTimestampUs": 45998638,
+      "mcpTimestampUs": 122197835,
+      "deltaUs": 76199197,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:43",
+      "termuxTimestampUs": 62598669,
+      "mcpTimestampUs": 182601711,
+      "deltaUs": 120003042,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:44",
+      "termuxTimestampUs": 46004191,
+      "mcpTimestampUs": 122203336,
+      "deltaUs": 76199145,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:45",
+      "termuxTimestampUs": 45999199,
+      "mcpTimestampUs": 122198659,
+      "deltaUs": 76199460,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:46",
+      "termuxTimestampUs": 62601140,
+      "mcpTimestampUs": 182604706,
+      "deltaUs": 120003566,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:47",
+      "termuxTimestampUs": 45999288,
+      "mcpTimestampUs": 122198722,
+      "deltaUs": 76199434,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:48",
+      "termuxTimestampUs": 45999324,
+      "mcpTimestampUs": 122198805,
+      "deltaUs": 76199481,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:49",
+      "termuxTimestampUs": 62596681,
+      "mcpTimestampUs": 182598818,
+      "deltaUs": 120002137,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4a",
+      "termuxTimestampUs": 46001932,
+      "mcpTimestampUs": 122201354,
+      "deltaUs": 76199422,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4b",
+      "termuxTimestampUs": 46002698,
+      "mcpTimestampUs": 122201766,
+      "deltaUs": 76199068,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4c",
+      "termuxTimestampUs": 62598054,
+      "mcpTimestampUs": 182600758,
+      "deltaUs": 120002704,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4d",
+      "termuxTimestampUs": 46001774,
+      "mcpTimestampUs": 122201206,
+      "deltaUs": 76199432,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4e",
+      "termuxTimestampUs": 45997856,
+      "mcpTimestampUs": 122197411,
+      "deltaUs": 76199555,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:4f",
+      "termuxTimestampUs": 62598877,
+      "mcpTimestampUs": 182601826,
+      "deltaUs": 120002949,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:50",
+      "termuxTimestampUs": 45999406,
+      "mcpTimestampUs": 122198863,
+      "deltaUs": 76199457,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:51",
+      "termuxTimestampUs": 46000987,
+      "mcpTimestampUs": 122200630,
+      "deltaUs": 76199643,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:52",
+      "termuxTimestampUs": 62601233,
+      "mcpTimestampUs": 182604826,
+      "deltaUs": 120003593,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:53",
+      "termuxTimestampUs": 46002039,
+      "mcpTimestampUs": 122201383,
+      "deltaUs": 76199344,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:54",
+      "termuxTimestampUs": 46001670,
+      "mcpTimestampUs": 122201038,
+      "deltaUs": 76199368,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:55",
+      "termuxTimestampUs": 62598508,
+      "mcpTimestampUs": 182601382,
+      "deltaUs": 120002874,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:56",
+      "termuxTimestampUs": 46002722,
+      "mcpTimestampUs": 122201827,
+      "deltaUs": 76199105,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:57",
+      "termuxTimestampUs": 46002128,
+      "mcpTimestampUs": 122201463,
+      "deltaUs": 76199335,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:58",
+      "termuxTimestampUs": 62600884,
+      "mcpTimestampUs": 182604358,
+      "deltaUs": 120003474,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:59",
+      "termuxTimestampUs": 46000156,
+      "mcpTimestampUs": 122199764,
+      "deltaUs": 76199608,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5a",
+      "termuxTimestampUs": 45997478,
+      "mcpTimestampUs": 122197179,
+      "deltaUs": 76199701,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5b",
+      "termuxTimestampUs": 62596445,
+      "mcpTimestampUs": 182598675,
+      "deltaUs": 120002230,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5c",
+      "termuxTimestampUs": 46004089,
+      "mcpTimestampUs": 122203265,
+      "deltaUs": 76199176,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5d",
+      "termuxTimestampUs": 46001283,
+      "mcpTimestampUs": 122200698,
+      "deltaUs": 76199415,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5e",
+      "termuxTimestampUs": 62601285,
+      "mcpTimestampUs": 182604902,
+      "deltaUs": 120003617,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:5f",
+      "termuxTimestampUs": 46000164,
+      "mcpTimestampUs": 122199827,
+      "deltaUs": 76199663,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:60",
+      "termuxTimestampUs": 45997953,
+      "mcpTimestampUs": 122197490,
+      "deltaUs": 76199537,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:61",
+      "termuxTimestampUs": 62599443,
+      "mcpTimestampUs": 182602786,
+      "deltaUs": 120003343,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:62",
+      "termuxTimestampUs": 46006480,
+      "mcpTimestampUs": 122203685,
+      "deltaUs": 76197205,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:63",
+      "termuxTimestampUs": 46003644,
+      "mcpTimestampUs": 122202843,
+      "deltaUs": 76199199,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:64",
+      "termuxTimestampUs": 62601179,
+      "mcpTimestampUs": 182604762,
+      "deltaUs": 120003583,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    },
+    {
+      "bssid": "02:ad:10:00:00:65",
+      "termuxTimestampUs": 46000032,
+      "mcpTimestampUs": 122199698,
+      "deltaUs": 76199666,
+      "differences": {
+        "timestamp": "differentValue"
+      }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "emulator": "emulator-5590",
+  "api": 36,
+  "join": [
+    "type",
+    "mcc",
+    "mnc",
+    "ci"
+  ],
+  "termuxRecords": 1,
+  "mcpRecords": 1,
+  "ltePairs": [
+    {
+      "identity": {
+        "type": "lte",
+        "mcc": 310,
+        "mnc": 260,
+        "ci": 47108
+      },
+      "missing": [],
+      "extra": [],
+      "matched": 12,
+      "fields": [
+        {
+          "field": "asu",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 76,
+          "mcp": 76,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "bands",
+          "termuxType": "array",
+          "mcpType": "array",
+          "termux": [
+            42
+          ],
+          "mcp": [
+            42
+          ],
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "ci",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 47108,
+          "mcp": 47108,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "dbm",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": -64,
+          "mcp": -64,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "level",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 4,
+          "mcp": 4,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mcc",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 310,
+          "mcp": 310,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "mnc",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 260,
+          "mcp": 260,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "pci",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 0,
+          "mcp": 0,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "registered",
+          "termuxType": "boolean",
+          "mcpType": "boolean",
+          "termux": true,
+          "mcp": true,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "rsrp",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": -64,
+          "mcp": -64,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "tac",
+          "termuxType": "number",
+          "mcpType": "number",
+          "termux": 8514,
+          "mcp": 8514,
+          "sameTypeAndValue": true
+        },
+        {
+          "field": "type",
+          "termuxType": "string",
+          "mcpType": "string",
+          "termux": "lte",
+          "mcp": "lte",
+          "sameTypeAndValue": true
+        }
+      ],
+      "unobserved": [
+        "rsrq",
+        "rssi",
+        "timing_advance"
+      ]
+    }
+  ],
+  "termuxExit": 0,
+  "instrumentationCode": -1
+}
